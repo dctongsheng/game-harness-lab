@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "game_id": "snake",
+  "version_id": "h-70743d9f1c75e2e5",
+  "parent_id": "h-8c72ab5f2b6570cb",
+  "scope": "9ba47500338b07315e7e",
+  "rules_version": "game-harness-lab/snake-v1",
+  "decision_model": "startlux-decision-27b-autothink",
+  "think_mode": "never",
+  "identity_verification": "service_reported_name",
+  "approval_job_id": "job-ep-6db0e9daa574415e",
+  "created_at": "2026-10-16T17:08:40.717609+00:00",
+  "score_summary": {
+    "baseline": 3.75,
+    "candidate": 4.75,
+    "pairs": 4
+  },
+  "files": {
+    "game.json": "1a67a4679234094462471207f8cfb8d63f57cda0807539ad9b9ef9243eea543f",
+    "strategy.json": "36676048a9cafa3b36e3c9d8273ecd4f5af8e717ff6dc94b5b0e55b80dcf8218",
+    "evaluation.json": "101eb298da75d7f599319d3238f3f8911ab7b42bb9b4f7bd8879c2d57362f10e",
+    "README.md": "998c1d08be187ade80b3691bf7a53a48bfdbd2a28c85c043a1a57914bf3bbc88"
+  }
+}
