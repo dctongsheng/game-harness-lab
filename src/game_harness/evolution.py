@@ -14,6 +14,7 @@ import json
 import math
 from pathlib import Path
 from typing import Any, Callable
+from .visibility import strip_private_fields
 
 
 COMPONENTS = ("decision_instructions", "strategy_notes")
@@ -123,11 +124,17 @@ def _summary(episode: dict, *, include_trace: bool, game_context: dict | None = 
         for key in ("episode_id", "seed", "game_id", "harness_id", "score", "steps", "termination_reason", "model")
         if key in episode
     }
+    visibility = (game_context or {}).get("information_policy", {})
+    private_feedback = visibility.get("feedback_visibility") == "candidate_before_only"
+    if visibility.get("seed_is_private"):
+        result.pop("seed", None)
     if include_trace:
         trace = episode.get("trace", [])
         if not isinstance(trace, list):
             raise EvolutionInfrastructureError("Episode trace must be a list")
-        indices = sorted(set(range(min(2, len(trace)))) | set(range(max(0, len(trace) - TRACE_SAMPLE_SIZE + 2), len(trace))))
+        eligible = [i for i, item in enumerate(trace)
+                    if not private_feedback or isinstance(item, dict) and item.get("policy_role") == "candidate"]
+        indices = sorted(set(eligible[:2] + eligible[-(TRACE_SAMPLE_SIZE - 2):]))
         sampled = []
         for index in indices:
             step = trace[index]
@@ -135,8 +142,11 @@ def _summary(episode: dict, *, include_trace: bool, game_context: dict | None = 
                 continue
             record = {"trace_index": index}
             for key in ("before", "after", "action", "policy_role", "actor", "criteria", "policy_hash"):
+                if private_feedback and key == "after":
+                    continue  # The next observation belongs to the opposing player.
                 if key in step:
-                    record[key] = _safe_state(step[key])
+                    item = step[key]
+                    record[key] = _safe_state(strip_private_fields(item) if visibility.get("seed_is_private") else item)
             receipt = step.get("receipt")
             if isinstance(receipt, dict):
                 record["receipt"] = {
@@ -151,8 +161,9 @@ def _summary(episode: dict, *, include_trace: bool, game_context: dict | None = 
         result["trace_sampling"] = {
             "total_steps": len(trace), "retained_indices": indices,
             "all_steps_sampled": len(indices) == len(trace),
+            "visibility": "candidate_before_only" if private_feedback else "full_information",
             "serialized_sample_truncated": len(trace_text) > MAX_EPISODE_FEEDBACK_CHARS,
-            "method": "first two and last eight steps; nested state size bounded",
+            "method": "first two and last eight eligible steps; nested state size bounded",
         }
     return result
 

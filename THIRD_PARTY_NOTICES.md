@@ -18,3 +18,12 @@ inside the distributed vendor directory.
 
 GEPA is pinned by source commit in `pyproject.toml`; its MIT notice and other
 dependencies' license notices remain in their installed distributions.
+
+## Decision Arena board and arcade rules
+
+- Source repository: https://github.com/dctongsheng/decison-arena
+- Reference checkout supplied by the user; pinned commit `4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d`.
+- Copyright (c) 2026 Dougo, **MIT**. Full licenses are retained in `games/vendor/arena-board/LICENSE` and `games/vendor/arena-arcade/LICENSE` under `src/game_harness/`.
+- Military Chess and Gomoku rules, plus Tetris and original platformer rules and required common/core definitions, are copied without source changes. Each vendor directory includes a `SOURCE.json` with file checksums and source provenance.
+- `board_bridge.ts` and `arcade_bridge.ts` implement the local paused adapter contract. Compiled `.cjs` files bundle these MIT rules for Node 18+; no external packages or network are used at gameplay runtime.
+- These adapters do not copy the reference project's legacy GPL or unlicensed demos, Nintendo ROMs, or Nintendo assets. Platformer levels and graphics are the reference project's original game.

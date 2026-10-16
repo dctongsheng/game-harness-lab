@@ -2,6 +2,10 @@
 import re
 from .snake import SnakeAdapter
 from .xiangqi import XiangqiAdapter
+from .army import ArmyAdapter
+from .gomoku import GomokuAdapter
+from .tetris import TetrisAdapter
+from .platformer import PlatformerAdapter
 
 _REGISTRY = {}
 
@@ -23,8 +27,13 @@ def get_game(game_id='snake'):
 
 def game_catalog():
     return [{'id':a.id,'name':a.name,'rules_version':a.rules_version,'rules':a.rules,
-             'score_spec':a.score_spec,'defaults':a.defaults} for a in _REGISTRY.values()]
+             'score_spec':a.score_spec,'defaults':a.defaults,
+             'information_policy':getattr(a,'information_policy',{})} for a in _REGISTRY.values()]
 
 
 register_game(SnakeAdapter())
 register_game(XiangqiAdapter())
+register_game(ArmyAdapter())
+register_game(GomokuAdapter())
+register_game(TetrisAdapter())
+register_game(PlatformerAdapter())

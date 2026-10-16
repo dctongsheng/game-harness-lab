@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "game-harness-lab"
-version = "0.2.0"
+version = "0.3.0"
 description = "Game adapters and shared Decision-only GEPA Harness evolution"
 requires-python = ">=3.11"
 dependencies = [
@@ -22,7 +22,11 @@ test = ["pytest>=8,<10"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-game_harness = ["static/*.html", "games/*.cjs", "games/vendor/*"]
+game_harness = ["static/*.html", "games/*.cjs", "games/*.ts", "games/vendor/*",
+  "games/vendor/arena-board/*", "games/vendor/arena-board/packages/games/src/*.ts",
+  "games/vendor/arena-board/packages/core/src/*.ts",
+  "games/vendor/arena-arcade/*", "games/vendor/arena-arcade/packages/games/src/arcade/*.ts",
+  "games/vendor/arena-arcade/packages/core/src/*.ts"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

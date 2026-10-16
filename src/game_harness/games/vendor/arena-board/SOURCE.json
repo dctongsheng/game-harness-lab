@@ -1,0 +1,41 @@
+{
+  "upstream": "https://github.com/dctongsheng/decison-arena",
+  "commit": "4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d",
+  "license": "MIT",
+  "copyright": "2026 Dougo",
+  "copied_files": {
+    "army.ts": {
+      "source_path": "packages/games/src/army.ts",
+      "sha256": "ea8711cbe6280d85a09a80d8504f90da461527854c30a47b950edfa7b9ba48bb",
+      "modified": false
+    },
+    "gomoku.ts": {
+      "source_path": "packages/games/src/gomoku.ts",
+      "sha256": "f3641d68f05ab81009618861a7cb319ed318ca91252132dc6683d770d7ae20a1",
+      "modified": false
+    },
+    "common.ts": {
+      "source_path": "packages/games/src/common.ts",
+      "sha256": "721f69b90dae1fdb54664b2dd2d225b5b0f0d955231b036f9b708bac9e5ec946",
+      "modified": false
+    }
+  },
+  "license_sha256": "6016eb567429fa2ed2aafe74fd740946e44be0d56e3ebe7d81b57e4bdde8cda1",
+  "modification_policy": "Sources copied byte-for-byte. Integration and projections are implemented in board_bridge.ts.",
+  "bundle": {
+    "path": "../../board_bridge.cjs",
+    "builder": "esbuild 0.28.2",
+    "target": "node18",
+    "format": "cjs",
+    "sha256": "5404b9217544d9d354022195e60749a56dfc18a1abe3a7c9ac9ba28756ae5994",
+    "integration_source_sha256": "8311864e65b86122471c1cb4001e39c02117f78dd0be7a882be3c98b5b0c36e3",
+    "build_flags": [
+      "--bundle",
+      "--platform=node",
+      "--target=node18",
+      "--format=cjs",
+      "--legal-comments=inline",
+      "MIT license banner"
+    ]
+  }
+}

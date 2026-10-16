@@ -11,6 +11,7 @@ from pathlib import Path
 
 from .providers import validate_candidate
 from .store import atomic_json, utcnow
+from .visibility import strip_private_fields
 
 
 def _safe_id(value):
@@ -101,12 +102,15 @@ def export_approved(root: Path, version: dict, job: dict, game_context: dict, br
     temporary=Path(tempfile.mkdtemp(prefix='.export-',dir=parent))
     try:
         context_keys = ('game_id','name','rules_version','rules','score_spec','config','opponent_policy',
-                        'scenario_policy','action_policy','evaluation','trial_design','opponent','limitations')
+                        'scenario_policy','action_policy','evaluation','trial_design','opponent','limitations',
+                        'source','information_policy','observation_mode','timing')
         game=_clean({'context':{k:game_context[k] for k in context_keys if k in game_context},
                      'brief':{k:brief[k] for k in ('background','goal','rules','precautions','strategy') if k in brief}})
         keys=('id','status','scope','parent_id','candidate_id','created_at','finished_at','gate',
               'baseline_score','candidate_score','mean_gain','pairs','decision','config')
         evaluation=_clean({key:job[key] for key in keys if key in job})
+        if game_context.get('information_policy', {}).get('seed_is_private'):
+            evaluation=strip_private_fields(evaluation)
         gepa=job.get('gepa',{})
         evaluation['search']={key:gepa[key] for key in ('engine','version','best_idx','best_score','val_aggregate_scores','candidate_count','total_metric_calls') if key in gepa}
         evaluation['evidence_type']='empirical paired evaluation; not a generalization or significance claim'

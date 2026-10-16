@@ -1,0 +1,22 @@
+{
+  "upstream_repository": "https://github.com/dctongsheng/decison-arena.git",
+  "upstream_commit": "4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d",
+  "license": "MIT",
+  "files": {
+    "packages/games/src/arcade/common.ts": "887e8d7628c59d5ec026bab4bae4cb82525e2b60741d80532299a193e265c1fe",
+    "packages/games/src/arcade/tetris.ts": "90a139342b70513a199225347f83c5d9dc6dfb5d2870c077bc7b200f7a56b79b",
+    "packages/games/src/arcade/platformer.ts": "adbfc375b136c36c507e3752f81552c9ffbc61b09720a8ddf3adf3116e1759ae",
+    "packages/core/src/arcade.ts": "0adf8e7f43961d81ac6972690ac54b6c333af74eb2411861111f352ea33395ff",
+    "packages/core/src/index.ts": "429dc0c0a61a56a8c7c89ce2bcf32816152960f635ec477daf138365b8a6b4eb",
+    "LICENSE": "6016eb567429fa2ed2aafe74fd740946e44be0d56e3ebe7d81b57e4bdde8cda1"
+  },
+  "source_snapshot_sha256": "caed8f2ba9665a5a51c00c103bd213f7e1c3cb4ceb7433bbfb4ca58558c487fe",
+  "modifications": "Source files copied byte-for-byte; adapter and pause-clock wrapper are outside vendor directory.",
+  "build": {
+    "tool": "esbuild",
+    "version": "0.28.2",
+    "working_directory": "src/game_harness/games",
+    "command": "esbuild arcade_bridge.ts --bundle --platform=node --target=node18 --format=cjs --outfile=arcade_bridge.cjs --alias:@decision-arena/core=./vendor/arena-arcade/packages/core/src/arcade.ts '--banner:js=/* Includes Decision Arena arcade engines: Copyright (c) 2026 Dougo, MIT. Full license: vendor/arena-arcade/LICENSE. */'",
+    "license_banner": "Includes Decision Arena arcade engines: Copyright (c) 2026 Dougo, MIT. Full license: vendor/arena-arcade/LICENSE."
+  }
+}

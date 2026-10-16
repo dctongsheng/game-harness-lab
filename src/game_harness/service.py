@@ -14,6 +14,7 @@ from .runtime import run_episode
 from .games import get_game, game_catalog
 from .exporting import export_approved, read_bundle, sync_bundle
 from .store import Store, atomic_json, utcnow
+from .visibility import public_payload
 
 
 DEFAULTS = {"game_id": "snake", "board_size": 8, "max_steps": 120, "train_games": 3,
@@ -105,8 +106,13 @@ class Lab:
 
     def log(self, message, stage=None, **extra):
         event = {"id": uuid.uuid4().hex, "time": utcnow(), "message": message,
-                 "stage": stage or self.status, **extra}
+                 "stage": stage or self.status, "game_id": self.config.get("game_id", "snake"), **extra}
         self.store.put("event", event)
+
+    def public(self, value):
+        restricted = {game['id'] for game in game_catalog()
+                      if game.get('information_policy', {}).get('seed_is_private')}
+        return public_payload(value, restricted)
 
     def state(self):
         with self.lock:
@@ -117,7 +123,7 @@ class Lab:
             for version in versions:
                 version["can_rollback"] = (version["scope"] == self.scope and
                     (version["provenance"].get("type") == "bootstrap" or version["id"] in approved))
-            return copy.deepcopy({"busy": self.busy, "status": self.status, "paused": self.paused,
+            return self.public({"busy": self.busy, "status": self.status, "paused": self.paused,
                                   "stop_requested": self.stop_event.is_set(), "error": self.error,
                                   "current_episode": self.current_episode, "active_harness": active,
                                   "episodes": self.store.list("episode", 120),
@@ -379,10 +385,11 @@ class Lab:
                 candidate_score = sum(p["candidate"] for p in pairs) / len(pairs)
                 # Explicit empirical V1 gate, NOT a claim of statistical significance.
                 minimum_gain = context["score_spec"].get("minimum_mean_gain", .5)
-                promoted = len(pairs) >= 4 and sum(delta) / len(delta) >= minimum_gain and min(delta) >= 0
+                minimum_pairs = max(4, context.get("evaluation", {}).get("minimum_pairs", 4))
+                promoted = len(pairs) >= minimum_pairs and sum(delta) / len(delta) >= minimum_gain and min(delta) >= 0
                 job.update(baseline_score=baseline_score, candidate_score=candidate_score,
                            mean_gain=candidate_score - baseline_score,
-                           gate={"version": "v1-empirical-paired", "minimum_pairs": 4,
+                           gate={"version": "v1-empirical-paired", "minimum_pairs": minimum_pairs,
                                  "minimum_mean_gain": minimum_gain, "no_pair_regression": True,
                                  "statistical_claim": False})
                 if promoted:

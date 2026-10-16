@@ -98,6 +98,6 @@ def create_app(data_dir: Path | None = None, settings: Settings | None = None):
         result = lab.store.load_episode(episode_id)
         if result is None:
             raise HTTPException(404, "回合不存在")
-        return result
+        return lab.public(result)
 
     return app
