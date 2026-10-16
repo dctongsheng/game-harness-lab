@@ -120,6 +120,47 @@ def test_switching_restores_new_game_defaults_and_discards_foreign_custom_settin
         lab.start({'game_id': 'army', 'gomoku_size': 9})
 
 
+def test_private_seed_is_fresh_on_entry_and_never_inherited_by_public_settings(lab, monkeypatch):
+    fake_worker(lab, monkeypatch)
+    lab.config['seed'] = 83451
+    generated = []
+
+    def private_seed(limit):
+        generated.append(limit)
+        return 1729415
+
+    monkeypatch.setattr('game_harness.service.secrets.randbelow', private_seed)
+    start(lab, {'game_id': 'army'})
+    assert generated == [2**31]
+    assert lab.config['seed'] == 1729415
+    assert lab.store.get('metadata', 'last_run')['config']['seed'] == 1729415
+    assert 'seed' not in lab.state()['settings']
+    start(lab, {'game_id': 'snake'})
+    assert generated == [2**31]
+    assert lab.config['seed'] == DEFAULTS['seed']
+    assert lab.state()['settings']['seed'] == DEFAULTS['seed']
+
+
+@pytest.mark.parametrize('source,target,options,expected_seed', [
+    ('snake', 'army', {'seed': 76901}, 76901),
+    ('army', 'snake', {'seed': 98301}, 98301),
+    ('army', 'army', {}, 1729415),
+    ('snake', 'snake', {}, 1729415),
+    ('snake', 'gomoku', {}, 1729415),
+])
+def test_seed_privacy_switch_preserves_explicit_and_compatible_reuse(lab, monkeypatch, source, target, options, expected_seed):
+    fake_worker(lab, monkeypatch)
+    lab.config = {**DEFAULTS, **get_game(source).defaults, 'game_id': source, 'seed': 1729415}
+
+    def no_generation(*args):
+        pytest.fail('Explicit seeds, same-game runs, and public switches must preserve existing behavior')
+
+    monkeypatch.setattr('game_harness.service.secrets.randbelow', no_generation)
+    start(lab, {'game_id': target, **options})
+    assert lab.config['seed'] == expected_seed
+    assert lab.store.get('metadata', 'last_run')['config']['seed'] == expected_seed
+
+
 def test_identical_policy_text_never_shares_scope_or_approval_between_new_games(lab, monkeypatch):
     fake_worker(lab, monkeypatch)
     snapshots = {}

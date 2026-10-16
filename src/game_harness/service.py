@@ -159,9 +159,17 @@ class Lab:
         unknown = set(options) - (set(DEFAULTS) | set(adapter.defaults))
         if unknown:
             raise ValueError("未知运行设置：" + ", ".join(sorted(unknown)))
-        switching = game_id != self.config.get("game_id", "snake")
+        previous_game_id = self.config.get("game_id", "snake")
+        switching = game_id != previous_game_id
         previous = {k:v for k,v in self.config.items() if k in DEFAULTS} if switching else self.config
         config = {**DEFAULTS, **adapter.defaults, **previous, **(adapter.defaults if switching else {}), **options, "game_id": game_id}
+        if switching and "seed" not in options:
+            # A private setup seed must neither inherit a previously public seed
+            # nor later become visible in another game's public settings.
+            if getattr(adapter, "information_policy", {}).get("seed_is_private"):
+                config["seed"] = secrets.randbelow(2**31)
+            elif getattr(get_game(previous_game_id), "information_policy", {}).get("seed_is_private"):
+                config["seed"] = DEFAULTS["seed"]
         for key, (low, high) in LIMITS.items():
             if type(config[key]) is not int or not low <= config[key] <= high:
                 raise ValueError(f"{key} 必须是 {low} 到 {high} 的整数")
