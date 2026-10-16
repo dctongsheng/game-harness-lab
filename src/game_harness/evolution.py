@@ -14,6 +14,7 @@ import json
 import math
 from pathlib import Path
 from typing import Any, Callable
+from .providers import ProviderError
 from .visibility import strip_private_fields
 
 
@@ -387,6 +388,10 @@ def evolve_harness(
             return proposed
         except EvolutionError as exc:
             failure = exc
+        except ProviderError as exc:
+            # ProviderError messages are controlled by our provider boundary;
+            # arbitrary exception bodies may contain headers or credentials.
+            failure = EvolutionInfrastructureError(f"Reflection failed (ProviderError): {exc}")
         except Exception as exc:
             failure = EvolutionInfrastructureError(f"Reflection failed ({type(exc).__name__})")
         if record is not None:

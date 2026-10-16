@@ -10,6 +10,7 @@ from game_harness.evolution import (
     EvolutionStopped,
     evolve_harness,
 )
+from game_harness.providers import ProviderError
 
 
 BASE = {"decision_instructions": "observe then choose", "strategy_notes": "baseline"}
@@ -149,6 +150,26 @@ def test_coach_failure_is_not_retried_by_gepa_and_does_not_leak_error_body(tmp_p
     assert "private-api-key" not in str(caught.value)
     assert "private-api-key" not in json.dumps(caught.value.partial_result)
     assert caught.value.partial_result["status"] == "failed"
+    assert str(caught.value) == "Reflection failed (ConnectionError)"
+    assert "private-api-key" not in (tmp_path / "job/evolution_result.json").read_text()
+
+
+def test_controlled_provider_diagnostic_survives_reflection_failure(tmp_path):
+    class BrokenCoach(Coach):
+        def complete(self, messages, purpose):
+            self.calls.append((messages, purpose))
+            raise ProviderError("教练 API HTTP 429")
+
+    coach = BrokenCoach()
+    with pytest.raises(EvolutionInfrastructureError) as caught:
+        run(tmp_path, coach=coach)
+    expected = "Reflection failed (ProviderError): 教练 API HTTP 429"
+    assert len(coach.calls) == 1
+    assert str(caught.value) == expected
+    assert caught.value.partial_result["error"] == expected
+    assert caught.value.partial_result["status"] == "failed"
+    saved = json.loads((tmp_path / "job/evolution_result.json").read_text())
+    assert saved["error"] == expected and saved["promotion"] == "not_performed"
 
 
 def test_user_cancellation_before_start_calls_neither_game_nor_coach(tmp_path):
