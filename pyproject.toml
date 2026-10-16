@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "game-harness-lab"
+version = "0.1.0"
+description = "Decision-only Snake with GEPA post-episode evolution"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+  "httpx[socks]>=0.27,<1",
+  "python-dotenv>=1,<2",
+  "gepa @ https://github.com/gepa-ai/gepa/archive/f1cfdee2856e9dc4b5b4dc5cc2e391d0aa20d819.zip"
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+game_harness = ["static/*.html"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

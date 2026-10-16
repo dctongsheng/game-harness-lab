@@ -1,0 +1,31 @@
+{
+  "schema_version": "0.1",
+  "artifact_status": "design_example",
+  "game_spec_id": "snake-paused-state-v1",
+  "action_catalog_id": "snake-four-directions-v1",
+  "control_mode": "strict_model_control",
+  "decision_instructions": "你是唯一玩家。依据当前棋盘、朝向、历史动作和游戏规则，从完整动作目录中选择下一步方向。目标是在固定回合预算内吃到更多食物。移动前判断碰撞和后续空间。所有建议只是参考，你必须自己做出动作选择。不可把反向按键误认为已经掉头；该环境会保持原方向。不要假定进入即将腾出的尾格安全，本版本在移除尾巴前检查碰撞。",
+  "state_presentation": ["board", "head_position", "direction", "food_position", "recent_steps", "remaining_decisions"],
+  "feature_ids": ["food_relative_offset", "adjacent_cell_occupancy"],
+  "memory": {
+    "history_window": 8,
+    "phase_labels": [],
+    "phase_selector": "disabled"
+  },
+  "strategy_notes": [
+    "先考虑立即碰撞风险，再比较接近食物和保留移动空间的收益；这条建议需要实验验证。",
+    "不能仅为了存活反复绕圈；本任务主要比较食物数量。"
+  ],
+  "knowledge_sources": [
+    {
+      "reference": "https://github.com/helpingstar/gym-snakegame/blob/a809354855d274cf63c92b6be1d9aa8d050f1636/gym_snakegame/envs/snake_game.py",
+      "claim_type": "verified_rule",
+      "applicability": "仅适用于该提交的方向转换和碰撞时序；适配后需要运行验证。"
+    },
+    {
+      "reference": "local:design-example:strategy-001",
+      "claim_type": "coach_hypothesis",
+      "applicability": "风险、空间与食物之间的权衡是待测建议，不是已证明有效策略。"
+    }
+  ]
+}

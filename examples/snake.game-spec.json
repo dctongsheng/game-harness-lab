@@ -1,0 +1,38 @@
+{
+  "schema_version": "0.1",
+  "artifact_status": "design_example",
+  "game_spec_id": "snake-paused-state-v1",
+  "game": "snake",
+  "upstream": {
+    "repository": "https://github.com/helpingstar/gym-snakegame",
+    "commit": "a809354855d274cf63c92b6be1d9aa8d050f1636",
+    "source_license": "MIT",
+    "integration_verified": false
+  },
+  "clock": {"mode": "paused_step", "wait_advances_game": false, "wall_time_recorded": true},
+  "observation": {
+    "mode": "structured_research",
+    "allowed_fields": ["board", "head_position", "direction", "food_position", "recent_steps", "remaining_decisions"],
+    "forbidden_fields": ["rng_internal_state", "future_food_positions", "sealed_test_manifest"],
+    "copy_on_capture": true
+  },
+  "actions": {
+    "catalog_id": "snake-four-directions-v1",
+    "abstraction": "primitive_direction",
+    "selection_owner": "decision_model",
+    "catalog_description": "up/right/down/left；保留撞墙和自咬选项；反向请求按该引擎规则转为继续前进并记录。",
+    "duration": "一次模型选择推进一格",
+    "strategy_pruning": false,
+    "requested_and_applied_logged": true
+  },
+  "scoring": {
+    "score_version": "snake-food-count-v1",
+    "raw_score": "裁判从实际吃食物事件累计的数量；不直接采用总 reward",
+    "primary_objective": "在固定步数预算内最大化食物数量",
+    "auxiliary_metrics": ["survival_steps", "collision_type", "no_progress_steps", "decision_latency_ms", "infra_failure_rate"],
+    "reward_is_raw_score": false,
+    "optimizer_can_edit": false
+  },
+  "limits": {"max_decisions": 500, "limit_status": "proposal_calibrate_before_benchmark"},
+  "prerequisites": ["适配后固定棋盘大小与初始长度", "验证观测复制、反向输入和尾格碰撞规则", "实现只读事实特征白名单"]
+}

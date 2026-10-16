@@ -1,0 +1,38 @@
+{
+  "schema_version": "0.1",
+  "artifact_status": "design_example",
+  "game_spec_id": "smb1-paused-buttons-state-v1",
+  "game": "super_mario_bros",
+  "upstream": {
+    "repository": "https://github.com/Kautenja/gym-super-mario-bros",
+    "commit": "7ba17c778e1df8240fd1cf99dbe5238d0e9b93aa",
+    "source_license": "Original code MIT; Nintendo ROMs excluded",
+    "integration_verified": false
+  },
+  "clock": {"mode": "paused_step", "wait_advances_game": false, "wall_time_recorded": true},
+  "observation": {
+    "mode": "structured_research",
+    "allowed_fields": ["player_position", "player_velocity", "viewport_tiles", "onscreen_entities", "timer", "score", "recent_steps", "remaining_decisions"],
+    "forbidden_fields": ["offscreen_enemies", "hidden_rng_state", "future_level_events", "sealed_test_manifest"],
+    "copy_on_capture": true
+  },
+  "actions": {
+    "catalog_id": "smb1-buttons-fixed-four-frames-v1",
+    "abstraction": "fixed_duration_buttons",
+    "selection_owner": "decision_model",
+    "catalog_description": "适配后固定的 NES 按钮组合目录；不能执行自动过坑/躲敌宏动作。",
+    "duration": "每次选择持有该按钮组合4模拟帧；4是待校准的固定动作规格，GEPA无权修改",
+    "strategy_pruning": false,
+    "requested_and_applied_logged": true
+  },
+  "scoring": {
+    "score_version": "smb1-completion-then-progress-v1",
+    "raw_score": "游戏计分板分数，与默认累计reward分开",
+    "primary_objective": "发布比较先看通关率，再看固定关卡长度归一化的最大推进距离；原分单列",
+    "auxiliary_metrics": ["game_score", "level_complete", "max_x_progress", "deaths", "game_ticks", "decision_latency_ms", "infra_failure_rate"],
+    "reward_is_raw_score": false,
+    "optimizer_can_edit": false
+  },
+  "limits": {"max_decisions": 6000, "limit_status": "proposal_calibrate_before_benchmark"},
+  "prerequisites": ["单独验证Python>=3.13与模拟器兼容", "使用具备权限的游戏资源，本项目不打包ROM", "适配器需实现屏内结构化实体提取，这不是现成视觉识别能力", "提议搜索标量为10倍通关指示加最大推进距离除固定关卡长度并截断到0至1；发布另要求通关率不退化；实验前冻结规则", "训练测试按关卡/起点/存档哈希分离"]
+}

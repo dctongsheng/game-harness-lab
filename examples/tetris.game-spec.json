@@ -1,0 +1,38 @@
+{
+  "schema_version": "0.1",
+  "artifact_status": "design_example",
+  "game_spec_id": "tetris-paused-keys-state-v1",
+  "game": "tetris",
+  "upstream": {
+    "repository": "https://github.com/Max-We/Tetris-Gymnasium",
+    "commit": "5ef067026180db7d46e6f8a9c7c9f1b96a642301",
+    "source_license": "MIT; retain upstream notices",
+    "integration_verified": false
+  },
+  "clock": {"mode": "paused_step", "wait_advances_game": false, "wall_time_recorded": true},
+  "observation": {
+    "mode": "structured_research",
+    "allowed_fields": ["board", "active_piece", "hold_piece", "visible_queue", "score", "recent_steps", "remaining_decisions"],
+    "forbidden_fields": ["rng_internal_state", "undisplayed_future_pieces", "sealed_test_manifest"],
+    "copy_on_capture": true
+  },
+  "actions": {
+    "catalog_id": "tetris-native-eight-keys-v1",
+    "abstraction": "primitive_key",
+    "selection_owner": "decision_model",
+    "catalog_description": "按固定提交提供的八个原生动作，适配时核实编号；无自动落点求解器。",
+    "duration": "一次决策执行一次原生 step，并按冻结规则施加重力",
+    "strategy_pruning": false,
+    "requested_and_applied_logged": true
+  },
+  "scoring": {
+    "score_version": "tetris-line-clear-score-v1",
+    "raw_score": "按固定实现的每次消行数平方乘棋盘宽度累计，不包含锁块存活奖励",
+    "primary_objective": "固定预算内最大化消行得分",
+    "auxiliary_metrics": ["lines_cleared", "pieces_locked", "top_out", "native_reward", "decision_latency_ms", "infra_failure_rate"],
+    "reward_is_raw_score": false,
+    "optimizer_can_edit": false
+  },
+  "limits": {"max_decisions": 2000, "limit_status": "proposal_calibrate_before_benchmark"},
+  "prerequisites": ["冻结重力、旋转、hold、预览队列长度和方块生成规则", "验证原始消行分与shaped reward分离", "落点选择模式以后独立建GameSpec"]
+}
