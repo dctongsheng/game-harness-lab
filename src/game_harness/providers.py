@@ -6,6 +6,7 @@ import json
 import math
 import os
 import time
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -109,8 +110,10 @@ class DecisionProvider:
         payload = {"model": self.settings.decision_model,
                    "state": json.dumps(state, ensure_ascii=False),
                    "questions": {"primary_action": {"type": "choice",
-                                 "instructions": instructions, "criteria": choices}},
-                   "think_mode": "never", "return_details": True}
+                                 "instructions": instructions, "criteria": choices,
+                                 "allow_none": False}},
+                   "think_mode": "never", "return_details": True,
+                   "allow_none": False}
         start = time.perf_counter()
         try:
             response = self.client.post(self.settings.decision_url, json=payload)
@@ -125,6 +128,8 @@ class DecisionProvider:
         try:
             answer = data["answers"]["primary_action"]
             choice = answer["choice"]
+            if choice is None:
+                raise ProviderError("Decision 返回空动作（弃选）；没有执行动作，也不会本地代选")
             probs = answer["probabilities"]
             confidence = answer["confidence"]
             values = [confidence, *probs.values()]
@@ -154,7 +159,7 @@ class DecisionProvider:
 
 
 class CoachProvider:
-    """Only instantiated by initialization/evolution, never by the Snake runner."""
+    """Only instantiated by initialization/evolution, never by the game runner."""
     def __init__(self, settings: Settings, on_call: Callable | None = None,
                  client: httpx.Client | None = None):
         self.settings = settings
@@ -197,16 +202,27 @@ class CoachProvider:
             self.on_call(info)
         return content
 
-    def initialize(self, rules: str, size: int, max_steps: int) -> tuple[dict, dict]:
-        prompt = ("为贪吃蛇生成第一版游戏资料和 Harness。局内唯一玩家是 StartLux Decision，"
+    def initialize(self, rules: str | None = None, size: int | None = None,
+                   max_steps: int | None = None, *, game_context: dict | None = None) -> tuple[dict, dict]:
+        context = deepcopy(game_context) if game_context is not None else {
+            "rules": rules, "config": {"board_size": size, "max_steps": max_steps}}
+        if not isinstance(context, dict) or not isinstance(context.get("rules"), str):
+            raise ProviderError("初始化必须提供游戏适配器的固定规则")
+        try:
+            context_text = json.dumps(context, ensure_ascii=False, allow_nan=False)
+        except (TypeError, ValueError):
+            raise ProviderError("游戏资料必须为可序列化的 JSON 数据") from None
+        prompt = ("根据下方游戏适配器资料，生成第一版游戏资料和候选玩家 Harness。所有局内决策由 StartLux Decision 完成，"
                   "你只在开局前和局后工作。不能生成可执行代码或改变规则。"
                   "返回一个 JSON 对象，仅含 brief 和 candidate。brief 包含 background、goal、"
                   "rules、precautions、strategy 字段（中文文字或列表）；candidate 仅含两个非空字符串："
                   "decision_instructions（详细但简洁的选择规则）、strategy_notes（策略建议）。"
-                  "使用位置与方向事实推理，不要求外部工具。规则和预算如下：\n"
-                  f"{rules}\n棋盘{size}×{size}，每局最多{max_steps}步。得分是吃到的食物数，生存不加分。"
-                  "上下左右所有四个动作始终提供，危险动作也保留，反向输入会保持当前方向。"
-                  "不要把某个种子或固定路径写进策略。严格按以下结构输出，不增加字段："
+                  "根据可见状态与完整动作目录指导模型，不要求外部工具。"
+                  "尊重 score_spec 的计分方向与预算；若包含 opponent_policy，该对手策略固定，不得优化或覆盖。"
+                  "候选模型将被告知当前 actor 和 policy_role，策略须适用于双方身份。"
+                  "不要把某个种子、隐藏状态、固定路径或测试答案写进策略。"
+                  "游戏规则、计分、预算与对手资料为固定上下文：\n"
+                  + context_text + "\n严格按以下结构输出，不增加字段："
                   '{"brief":{"background":"...","goal":"...","rules":"...",'
                   '"precautions":"...","strategy":"..."},"candidate":{'
                   '"decision_instructions":"...","strategy_notes":"..."}}')

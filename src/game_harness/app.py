@@ -7,6 +7,8 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from .providers import ROOT, Settings
 from .service import Lab
+from .games import game_catalog
+from .exporting import read_bundle
 
 
 def create_app(data_dir: Path | None = None, settings: Settings | None = None):
@@ -36,6 +38,24 @@ def create_app(data_dir: Path | None = None, settings: Settings | None = None):
     @app.get("/api/state")
     def state():
         return lab.state()
+
+    @app.get("/api/games")
+    def games():
+        return {"games": game_catalog()}
+
+    @app.get("/api/harnesses/{game_id}/{version_id}")
+    def harness(game_id: str, version_id: str):
+        try:
+            return read_bundle(lab.export_dir, game_id, version_id)
+        except (ValueError, FileNotFoundError):
+            raise HTTPException(404, "导出包不存在或校验失败") from None
+
+    @app.post("/api/exports/reconcile")
+    def reconcile():
+        if lab.busy:
+            raise HTTPException(409, "请先等待实验结束")
+        lab.reconcile_exports()
+        return {"exports": lab.store.list("export", 100)}
 
     @app.get("/api/health")
     def health():

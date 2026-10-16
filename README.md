@@ -1,81 +1,76 @@
-# Game Harness Lab · 贪吃蛇 V1
+# Game Harness Lab
 
-可运行的本地实验台：**StartLux Decision 全程玩贪吃蛇，GLM-5.3 初始化策略，每局结束后使用真实 GEPA 优化 Harness。**
+**通用游戏 Harness 进化框架：游戏适配器 + Decision 玩家 + GEPA 局后优化 + 验收后导出。** 当前支持贪吃蛇和中国象棋。
 
-首版只实现可暂停、逐步推进的贪吃蛇。俄罗斯方块、马里奥、实时游戏是后续扩展；`docs/architecture.md`、`contracts/` 和 `examples/` 保留最初的完整设计，不能视为已经实现的 SDK。
+所有局内动作都由 StartLux Decision 选择，显式 `think_mode=never`、`allow_none=false`。GLM-5.3 只负责初始化游戏资料与局后反思。适配器负责规则、完整动作集和计分，运行器负责模型调用与执行校验。
 
-## 打开和启动
+## 启动
 
-本机已安装依赖并配置模型，打开 **http://127.0.0.1:18765**。
-
-服务未启动时：
-
-```sh
-cd /Users/biws01/Desktop/003_chat/game-harness-lab
-./run.sh
-```
-
-新环境安装：
+需要 Python 3.11+；中国象棋额外需要 Node.js 18+。已在 macOS 验证。
 
 ```sh
 ./setup.sh
-# 在 .env 中填写自己的 COACH_API_KEY，其他参数参考 .env.example
+# 在 .env 配置自己的模型地址和 COACH_API_KEY；不要提交 .env
 ./run.sh
 ```
 
-页面点击「开始实验」。可设置棋盘、单局步数、训练/选优/发布场景数、反思轮数和连续游玩局数；支持暂停、继续、停止、回放和已批准版本之间切换。暂停或停止会等待当前网络请求返回，不再推进新的游戏步。
+打开 **http://127.0.0.1:18765**，选择「贪吃蛇」或「中国象棋」，点击开始实验。支持暂停、继续、停止、历史回放、资料/策略对比以及已批准版本回滚。
 
-## 模型职责
+本机配置的玩家为 `http://127.0.0.1:18090/v1/systemone` / `startlux-decision-27b-autothink`，教练为 `glm-5.3`。模型服务的全局思考默认值未改，每次玩家请求覆盖为 `never` 并验证遥测。
 
-| 环节 | 实现 |
-| --- | --- |
-| 所有局内动作，包括评测局 | 本地 `/v1/systemone`，固定 `startlux-decision-27b-autothink`；每次请求显式 `think_mode=never` |
-| 首局前 | `glm-5.3` 生成背景、目标、规则、注意事项、攻略及初版 Harness |
-| 正式游玩结束后 | GEPA 组织训练、反思和选优；GLM-5.3 生成候选 Harness |
-| 执行动作 | 固定游戏引擎仅应用模型返回的上下左右；没有寻路器或备用玩家 |
-| 决定是否发布 | 固定计分与新旧版本配对评测，不接受教练自报的“提升” |
-
-服务默认思考模式可能仍显示 `auto`；本项目不修改已有模型服务配置，实际请求统一覆盖为 `never`。记录每步返回的模型名、思考遥测、概率、原始响应和前后状态。返回错误时停止该局，不用脚本接管，也不把基础设施故障当作策略零分。
-
-## 每局发生什么
+## 如何进化
 
 ```mermaid
 flowchart LR
-    A[冻结本局 Harness] --> B[Decision 选择动作]
-    B --> C[游戏推进一步]
-    C -->|未结束| B
-    C -->|结束| D[保存得分和完整轨迹]
-    D --> E[GEPA + GLM 生成候选]
-    E --> F[训练与选优评测]
-    F --> G[新种子配对验收]
-    G -->|通过| H[下一局换新版本]
-    G -->|未通过| I[继续使用原版本]
-    H --> A
-    I --> A
+    A[游戏资料与初版 Harness] --> B[Decision 玩一局]
+    B --> C[保存轨迹和得分]
+    C --> D[GEPA + GLM 反思与选优]
+    D --> E[新旧版本配对验收]
+    E -->|通过| F[自动导出 + 下一局使用]
+    E -->|未通过| G[保留原版]
+    F --> B
+    G --> B
 ```
 
-得分就是吃到的食物数；不奖励空转生存。每个正式游玩回合恰好对应一个持久化优化任务，评测回合不递归生成任务。第一次初始化可能自动修复一次 JSON 格式，仍不合规则明确报错。
+每个正式回合创建一个优化任务，任务中的评测局不会递归优化。每局冻结策略；GEPA 只修改两个文本组件，不能改规则、分数、参考对手或执行器。GEPA 固定源码 commit，Python 依赖固定在 `requirements.lock`。
 
-V1 仅优化 `decision_instructions` 和 `strategy_notes` 两个文本字段，不能改规则、得分、动作集合或执行代码。GEPA 固定到 commit `f1cfdee2856e9dc4b5b4dc5cc2e391d0aa20d819`，全部 Python 依赖见 `requirements.lock`。
+| 游戏 | 动作与得分 | 额外说明 |
+| --- | --- | --- |
+| 贪吃蛇 | 上下左右四方向始终提供；食物数为得分 | 不用寻路器或安全动作过滤代打 |
+| 中国象棋 | 每步完整规则合法 ICCS 走法；双方均由 Decision 下棋 | 候选与固定参考策略对战；真实胜负与步数截断代理分明确区分 |
 
-发布门槛是**至少 4 对新场景、平均增加至少 0.5 个食物、每对均不退步**；不足 4 对只能检查流程，不会发布。这个小样本门槛不能证明泛化提升，也不保证每轮进步。搜索的选优分数不能冒充独立成绩。
+中国象棋参考 `decision-arena` 的规则集，使用固定 BSD 引擎。标准局面重复试验，种子奇偶交换候选执红黑；不同种子不代表不同开局。到步数上限只按固定子力差评分，不能当作获胜或胜率。
 
-## 文件和验证
+## Harness 保存在哪里
 
-- [首版总结](docs/project-summary-v1.md)：目标、已交付能力、真实结果、已知限制与后续顺序。
-- [V1 实现说明](docs/implementation-v1.md)：接口、数据、恢复机制和明确未实现的部分。
-- [实测记录](docs/validation-v1.md)：真实模型联调与自动测试证据。
-- [最初架构](docs/architecture.md)、[实施路线](docs/roadmap.md)。
-- 源码：`src/game_harness/`；单元/集成测试：`tests/`。
-- 本地实验数据：`data/registry.sqlite`、`data/episodes/`、`data/traces/`、`data/jobs/`、`data/versions/`。
-- 密钥仅放在被忽略的 `.env`；页面、实验导出和日志不包含该密钥。
+运行中的全部版本与轨迹位于本地 `data/`，不提交 Git。**通过配对验收的版本自动导出到：**
+
+```text
+harnesses/<游戏>/<版本>/
+  manifest.json
+  game.json
+  strategy.json
+  evaluation.json
+  README.md
+```
+
+包包含游戏资料、固定规则与评分、策略、版本血缘、验收结果和文件哈希。未通过候选不会导出成批准版本。[查看已导出 Harness](harnesses/)。
+
+`HARNESS_GIT_SYNC=1` 可在导出后自动提交该包并推送 `origin`，不暂存其他源码或用户改动；示例配置默认关闭。网络失败保留本地产物并标记待重试。详情见 [框架设计](docs/generic-framework-v2.md)。
+
+## 验证与文档
 
 ```sh
 .venv/bin/python -m pytest -q
+.venv/bin/python scripts/audit_saved_run.py
 ```
 
-测试中的模拟模型只用于协议和故障检查，不属于应用的玩家，也不算真实模型成绩。
+审计脚本根据保存的动作重放各游戏，核对完整候选目录、模型回执、思考模式、双方角色和最终得分，不再次调用模型。
 
-## 研究依据
+- [V2 通用框架与新增游戏接口](docs/generic-framework-v2.md)
+- [V2 实测结果](docs/validation-v2.md)
+- [V1 总结](docs/project-summary-v1.md)、[V1 历史实测](docs/validation-v1.md)
+- [原始长期架构提案](docs/architecture.md)、[路线图](docs/roadmap.md)
+- [第三方来源与许可证](THIRD_PARTY_NOTICES.md)
 
-[GEPA / JevHarness](docs/research-gepa-jev.md)、[Continual Harness / Voyager / OpenEvolve](docs/research-patterns.md)、[游戏环境](docs/research-games.md)。本实现自写游戏与调度器，没有复制许可证不明确的 JevHarness 代码。
+`contracts/` 和 `examples/` 中的完整声明式配置仍是长期设计提案；当前可运行接口在 `games/base.py`。俄罗斯方块、马里奥、实时控制和权重训练尚未实现。浏览器视觉与点击交互仍未实际验收，已有前端语法、接口和后端真实模型测试。

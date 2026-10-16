@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "game-harness-lab"
-version = "0.1.0"
-description = "Decision-only Snake with GEPA post-episode evolution"
+version = "0.2.0"
+description = "Game adapters and shared Decision-only GEPA Harness evolution"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115,<1",
@@ -22,7 +22,7 @@ test = ["pytest>=8,<10"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-game_harness = ["static/*.html"]
+game_harness = ["static/*.html", "games/*.cjs", "games/vendor/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

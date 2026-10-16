@@ -92,9 +92,11 @@ def test_decision_wire_protocol_has_all_actions_fixed_model_and_no_thinking(sett
     assert requests[0].url.path == "/v1/systemone"
     assert payload["model"] == settings.decision_model
     assert payload["think_mode"] == "never" and payload["return_details"] is True
+    assert payload["allow_none"] is False
     assert json.loads(payload["state"]) == state
     question = payload["questions"]["primary_action"]
     assert question["type"] == "choice"
+    assert question["allow_none"] is False
     assert list(question["criteria"]) == ["up", "right", "down", "left"]
     assert question["instructions"] == "fixed instructions"
     assert receipt["request_id"] == "request-9" and receipt["observation_revision"] == 9
@@ -102,6 +104,45 @@ def test_decision_wire_protocol_has_all_actions_fixed_model_and_no_thinking(sett
     assert receipt["thinking_verification"] == "verified"
     assert SECRET not in json.dumps(receipt)
     assert "authorization" not in requests[0].headers
+
+
+def test_decision_null_choice_with_valid_42_way_distribution_is_not_locally_argmaxed(settings):
+    criteria = [{"id": f"move-{i}", "label": f"Legal fixture move {i}"} for i in range(42)]
+    probabilities = {item["id"]: .25 / 41 for item in criteria}
+    probabilities["move-17"] = .75
+    body = response_body()
+    body["answers"]["primary_action"].update(
+        choice=None, confidence=.75, probabilities=probabilities)
+    requests = []
+    provider = make_decision(settings, body, requests)
+    try:
+        with pytest.raises(ProviderError, match="没有执行动作"):
+            provider.decide({"step": 3}, "Select one legal move", criteria, "request-null")
+    finally:
+        provider.close()
+    assert len(requests) == 1  # No retry or replacement decision was attempted.
+    payload = json.loads(requests[0].content)
+    assert payload["allow_none"] is False and payload["think_mode"] == "never"
+    assert payload["questions"]["primary_action"]["allow_none"] is False
+    assert set(payload["questions"]["primary_action"]["criteria"]) == set(probabilities)
+
+
+def test_null_decision_stops_game_before_any_move_despite_clear_probability_winner(settings):
+    body = response_body()
+    body["answers"]["primary_action"]["choice"] = None
+    requests = []
+    provider = make_decision(settings, body, requests)
+    try:
+        result = run_episode(provider, {"id": "h-null", "candidate": BASE},
+                             episode_id="ep-null", seed=0, max_steps=8)
+    finally:
+        provider.close()
+    assert len(requests) == 1
+    assert result["termination_reason"] == "infra_error"
+    assert result["infra_error"]["type"] == "ProviderError"
+    assert result["steps"] == result["final_state"]["step"] == 0
+    assert result["trace"] == []
+    assert result["thinking_verification"] == "not_reported"
 
 
 @pytest.mark.parametrize("mutate", [
@@ -270,6 +311,53 @@ def test_unapproved_candidate_cannot_be_activated_by_rollback(lab):
     listed = {v["id"]: v for v in lab.state()["versions"]}
     assert listed[child["id"]]["can_rollback"] is False
     assert listed[baseline["id"]]["can_rollback"] is True
+
+
+def test_resume_after_rollback_replays_trigger_with_current_baseline(lab, monkeypatch):
+    bootstrap = seed_active(lab)
+    previous = lab.version(CHILD, lab.scope, {"type": "gepa"}, bootstrap["id"])
+    lab.store.activate(lab.scope, previous["id"], bootstrap["id"], publication={
+        "id": "job-earlier-approval", "created_at": "2026-10-17T00:00:00Z", "status": "promoted",
+        "scope": lab.scope, "candidate_id": previous["id"]})
+    original = episode(previous, identity="ep-before-rollback")
+    lab.store.save_episode(original)
+    job = lab.new_job(original, dict(DEFAULTS), lab.scope)
+    job.update(status="interrupted")
+    lab.store.put("job", job)
+    lab.rollback(bootstrap["id"])
+    calls = []
+
+    def recovered_play(provider, harness, config, seed, purpose, job_id):
+        assert harness["id"] == bootstrap["id"]
+        assert seed == original["seed"] and purpose == "recovery" and job_id == job["id"]
+        calls.append("recovery")
+        result = episode(harness, identity="ep-after-rollback-recovery", purpose=purpose)
+        result["job_id"] = job_id
+        lab.store.save_episode(result)
+        return result
+
+    def evolution(**kwargs):
+        assert kwargs["candidate"] == bootstrap["candidate"]
+        assert kwargs["trigger_episode"]["harness_id"] == bootstrap["id"]
+        assert kwargs["trigger_episode"]["episode_id"] == "ep-after-rollback-recovery"
+        calls.append("evolve")
+        return {"candidate": deepcopy(BASE), "proposals": [], "gepa": {"fixture": True}}
+
+    monkeypatch.setattr(lab, "play", recovered_play)
+    monkeypatch.setattr("game_harness.evolution.evolve_harness", evolution)
+    lab.optimize(job, object(), object())
+    saved = lab.store.get("job", job["id"])
+    assert calls == ["recovery", "evolve"]
+    assert saved["status"] == "retained" and saved["parent_id"] == bootstrap["id"]
+    assert saved["episode_id"] == original["episode_id"]
+    assert saved["trigger_episode_id"] == "ep-after-rollback-recovery"
+    assert saved["train_seeds"] == job["train_seeds"]
+    assert lab.store.load_episode(original["episode_id"]) == original
+    assert lab.store.load_episode(saved["trigger_episode_id"])["job_id"] == job["id"]
+    assert lab.store.get("job", "job-" + saved["trigger_episode_id"]) is None
+    event = next(row for row in lab.store.list("event") if row.get("stage") == "recovery")
+    assert event["previous_harness_id"] == previous["id"]
+    assert event["baseline_harness_id"] == bootstrap["id"]
 
 
 def test_activation_rejects_stale_parent_and_cross_scope(lab):

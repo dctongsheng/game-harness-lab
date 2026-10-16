@@ -236,3 +236,64 @@ def test_long_trace_feedback_is_bounded_and_marked_as_sampled(tmp_path):
     assert len(feedback["trace_sampling"]["retained_indices"]) == 10
     assert len(coach.calls[0][0][1]["content"]) < 40_000
     assert "NEVER-SEND" not in json.dumps(coach.calls)
+
+
+TURN_CONTEXT = {
+    "game_id": "turn-fixture", "name": "Turn-based fixture",
+    "rules": "The candidate plays red or black according to its seat.",
+    "score_spec": {"min": -1.0, "max": 1.0, "direction": "maximize"},
+    "opponent_policy": {"decision_instructions": "FIXED_OPPONENT", "strategy_notes": "do not change"},
+}
+
+
+def test_generic_scores_support_signed_fractional_values_and_fixed_game_context(tmp_path):
+    coach = Coach()
+
+    def evaluator(candidate, seed, purpose):
+        result = episode(seed, score=0.75 if candidate == BETTER else -0.25)
+        result['game_id'] = 'turn-fixture'
+        result['trace'][0].update(policy_role='opponent', actor='black', criteria=[{'id': 'a0a1', 'label': 'move'}])
+        return result
+
+    result = evolve_harness(candidate=BASE, trigger_episode=evaluator(BASE, 1, 'play'),
+                            train_seeds=[2], validation_seeds=[101], evaluate_episode=evaluator,
+                            coach=coach, game_context=TURN_CONTEXT, run_dir=tmp_path / 'job')
+    assert result['candidate'] == BETTER
+    assert result['gepa']['best_score'] == 0.75
+    assert result['game_context'] == TURN_CONTEXT
+    system = coach.calls[0][0][0]['content']
+    payload = json.loads(coach.calls[0][0][1]['content'])
+    assert payload['immutable_game_context'] == TURN_CONTEXT
+    assert '贪吃蛇' not in system and '食物' not in system
+    assert payload['training_feedback'][0]['trace_sample'][0]['policy_role'] == 'opponent'
+    assert payload['training_feedback'][0]['trace_sample'][0]['actor'] == 'black'
+    manifest = json.loads((tmp_path / 'job/evolution_manifest.json').read_text())
+    assert manifest['score'] == TURN_CONTEXT['score_spec']
+
+
+@pytest.mark.parametrize('score', [-1.01, 1.01, float('inf')])
+def test_adapter_score_bounds_reject_evaluation_without_reflection(tmp_path, score):
+    coach = Coach()
+    with pytest.raises(EvolutionInfrastructureError):
+        evolve_harness(candidate=BASE, trigger_episode=episode(1, 0),
+                       train_seeds=[2], validation_seeds=[101],
+                       evaluate_episode=lambda c, seed, purpose: episode(seed, score),
+                       coach=coach, game_context=TURN_CONTEXT, run_dir=tmp_path / 'job')
+    assert coach.calls == []
+
+
+def test_other_game_result_is_rejected_even_when_score_is_in_bounds(tmp_path):
+    with pytest.raises(EvolutionInfrastructureError, match='different game'):
+        evolve_harness(candidate=BASE, trigger_episode={**episode(1, 0), 'game_id': 'another-game'},
+                       train_seeds=[2], validation_seeds=[101],
+                       evaluate_episode=lambda *args: pytest.fail('must validate trigger first'),
+                       coach=Coach(), game_context=TURN_CONTEXT, run_dir=tmp_path / 'job')
+
+
+@pytest.mark.parametrize('spec', [{'direction': 'minimize'}, {'min': 2, 'max': 1}, {'min': float('nan')}])
+def test_unsupported_or_invalid_adapter_scoring_is_rejected_before_optimizer(tmp_path, spec):
+    with pytest.raises(ValueError, match='score'):
+        evolve_harness(candidate=BASE, trigger_episode=episode(1, 0),
+                       train_seeds=[2], validation_seeds=[101],
+                       evaluate_episode=lambda *args: pytest.fail('must validate scoring first'),
+                       coach=Coach(), game_context={**TURN_CONTEXT, 'score_spec': spec}, run_dir=tmp_path / 'job')

@@ -2,20 +2,21 @@
 from __future__ import annotations
 
 import copy
-import random
+import os
 import secrets
 import threading
 import time
 import uuid
 from pathlib import Path
 
-from .providers import CoachProvider, DecisionProvider, ProviderError, Settings, digest, validate_candidate
+from .providers import CoachProvider, DecisionProvider, ProviderError, Settings, ROOT, digest, validate_candidate
 from .runtime import run_episode
-from .snake import GAME_RULES, RULES_VERSION, SnakeGame
+from .games import get_game, game_catalog
+from .exporting import export_approved, read_bundle, sync_bundle
 from .store import Store, atomic_json, utcnow
 
 
-DEFAULTS = {"board_size": 8, "max_steps": 120, "train_games": 3,
+DEFAULTS = {"game_id": "snake", "board_size": 8, "max_steps": 120, "train_games": 3,
             "validation_games": 3, "promotion_games": 4, "reflection_rounds": 1,
             "episodes": 1, "seed": 42}
 LIMITS = {"board_size": (5, 20), "max_steps": (8, 1000), "train_games": (1, 12),
@@ -28,7 +29,7 @@ class ExperimentStopped(InterruptedError):
 
 
 class Lab:
-    def __init__(self, settings: Settings, data_dir: Path):
+    def __init__(self, settings: Settings, data_dir: Path, export_dir: Path | None = None):
         self.settings = settings
         self.store = Store(data_dir)
         self.store.recover_episode_indexes()
@@ -43,13 +44,16 @@ class Lab:
         self.scope = None
         self.provider_health = {}
         self.worker = None
+        production = data_dir.resolve() == (ROOT / "data").resolve()
+        self.export_dir = export_dir or (ROOT / "harnesses" if production else data_dir / "exports")
+        self.git_sync = production and os.getenv("HARNESS_GIT_SYNC", "0") == "1"
         for job in self.store.list("job", 10000):
             if job.get("status") in {"running", "pending", "evaluating"}:
                 job.update(status="interrupted", error="服务重启，下一次同配置运行会重试此优化任务")
                 self.store.put("job", job)
         last = self.store.get("metadata", "last_run")
         if last:
-            self.config = last["config"]
+            self.config = {**DEFAULTS, **last["config"]}
             self.scope = last["scope"]
         # Close the crash window between durable episode completion and job creation.
         for episode in reversed(self.store.list("episode", 100000)):
@@ -58,6 +62,46 @@ class Lab:
                     result = self.store.load_episode(episode["episode_id"])
                     if result:
                         self.new_job(result, episode["config"], episode["scope"])
+        self.reconcile_exports()
+
+    def inherited_brief(self, version):
+        visited = set()
+        while version and version["id"] not in visited:
+            visited.add(version["id"])
+            if version.get("brief"):
+                return version["brief"]
+            version = self.store.get("version", version.get("parent_id"))
+        return {}
+
+    def export_version(self, job):
+        version = self.store.get("version", job["candidate_id"])
+        config = {**DEFAULTS, **job.get("config", {})}
+        adapter = get_game(version.get("game_id", config["game_id"]))
+        context = version.get("game_context") or adapter.context(config)
+        manifest = export_approved(self.export_dir, version, job, context, self.inherited_brief(version))
+        record = {"id": version["id"], "version_id": version["id"], "game_id": adapter.id,
+                  "path": f"harnesses/{adapter.id}/{version['id']}/", "created_at": manifest["created_at"],
+                  "score_summary": manifest["score_summary"], "status": "exported", "approval_job_id": manifest["approval_job_id"]}
+        if self.git_sync:
+            try:
+                record["git"] = sync_bundle(ROOT, self.export_dir / adapter.id / version["id"])
+            except Exception as exc:
+                record["git"] = {"status": "pending", "error": str(exc)[:300]}
+        self.store.put("export", record)
+        return record
+
+    def reconcile_exports(self):
+        for job in reversed(self.store.list("job", 100000)):
+            if job.get("status") == "promoted":
+                try:
+                    record = self.store.get("export", job["candidate_id"])
+                    if record and (self.export_dir / record["game_id"] / record["version_id"]).is_dir():
+                        read_bundle(self.export_dir, record["game_id"], record["version_id"])
+                        if not self.git_sync or record.get("git", {}).get("status") == "synced":
+                            continue
+                    self.export_version(job)
+                except Exception as exc:
+                    self.log("Harness 导出待重试：" + str(exc)[:300], "export_error", job_id=job["id"])
 
     def log(self, message, stage=None, **extra):
         event = {"id": uuid.uuid4().hex, "time": utcnow(), "message": message,
@@ -79,6 +123,8 @@ class Lab:
                                   "episodes": self.store.list("episode", 120),
                                   "jobs": self.store.list("job", 30),
                                   "versions": versions,
+                                  "games": game_catalog(),
+                                  "exports": self.store.list("export", 100),
                                   "logs": self.store.list("event", 60),
                                   "settings": {**self.config, "decision_url": self.settings.decision_url,
                                                "decision_model": self.settings.decision_model,
@@ -102,19 +148,23 @@ class Lab:
             return copy.deepcopy(self.provider_health)
 
     def start(self, options):
-        unknown = set(options) - set(DEFAULTS)
+        game_id = options.get("game_id", self.config.get("game_id", "snake"))
+        adapter = get_game(game_id)
+        unknown = set(options) - (set(DEFAULTS) | set(adapter.defaults))
         if unknown:
             raise ValueError("未知运行设置：" + ", ".join(sorted(unknown)))
-        config = {**self.config, **options}
+        switching = game_id != self.config.get("game_id", "snake")
+        previous = {k:v for k,v in self.config.items() if k in DEFAULTS} if switching else self.config
+        config = {**DEFAULTS, **adapter.defaults, **previous, **(adapter.defaults if switching else {}), **options, "game_id": game_id}
         for key, (low, high) in LIMITS.items():
             if type(config[key]) is not int or not low <= config[key] <= high:
                 raise ValueError(f"{key} 必须是 {low} 到 {high} 的整数")
+        adapter.validate_config(config)
         with self.lock:
             if self.busy:
                 raise ValueError("已有实验正在运行")
             self.config = config
-            self.scope = digest({"rules": RULES_VERSION, "size": config["board_size"],
-                                 "max_steps": config["max_steps"], "model": self.settings.decision_model,
+            self.scope = digest({"game_context": adapter.context(config), "model": self.settings.decision_model,
                                  "endpoint": self.settings.decision_url, "think_mode": "never"})[:20]
             self.store.put("metadata", {"id": "last_run", "scope": self.scope, "config": config})
             self.stop_event.clear()
@@ -160,28 +210,35 @@ class Lab:
         self.log("GLM-5.3 完成" + ("初始化" if info["purpose"] == "initialization" else "反思"),
                  "coach", call=info)
 
-    def version(self, candidate, scope, provenance, parent=None, brief=None):
+    def version(self, candidate, scope, provenance, parent=None, brief=None, game_context=None):
         candidate = validate_candidate(candidate)
         if brief is None and parent:
-            brief = (self.store.get("version", parent) or {}).get("brief")
+            brief = self.inherited_brief(self.store.get("version", parent))
+        game_context = game_context or get_game(self.config.get("game_id", "snake")).context(self.config)
         identity = "h-" + digest({"candidate": candidate, "scope": scope})[:16]
         existing = self.store.get("version", identity)
         if existing:
             return existing
         result = {"id": identity, "candidate": candidate, "scope": scope, "parent_id": parent,
                   "provenance": provenance, "brief": brief, "created_at": utcnow(),
-                  "rules_version": RULES_VERSION, "decision_model": self.settings.decision_model,
+                  "game_id": game_context["game_id"], "game_context": game_context,
+                  "rules_version": game_context["rules_version"], "decision_model": self.settings.decision_model,
                   "think_mode": "never", "identity_verification": "service_reported_name"}
         atomic_json(self.store.root / "versions" / f"{identity}.json", result)
         return self.store.put("version", result)
 
     def play(self, provider, harness, config, seed, purpose, job_id=None):
         self.guard()
+        adapter = get_game(config.get("game_id", "snake"))
         identity = "ep-" + uuid.uuid4().hex[:16]
-        initial = SnakeGame(size=config["board_size"], seed=seed, max_steps=config["max_steps"]).snapshot()
+        preview = adapter.create(seed, config)
+        try:
+            initial = preview.snapshot()
+        finally:
+            preview.close()
         with self.lock:
             self.status = "playing" if purpose == "play" else "evaluating"
-            self.current_episode = {"episode_id": identity, "purpose": purpose,
+            self.current_episode = {"episode_id": identity, "purpose": purpose, "game_id": adapter.id,
                                     "harness_id": harness["id"], "snapshot": initial,
                                     "last_action": None, "last_latency_ms": None}
 
@@ -193,10 +250,11 @@ class Lab:
 
         result = run_episode(provider, harness, episode_id=identity, seed=seed,
                              size=config["board_size"], max_steps=config["max_steps"],
+                             adapter=adapter, config=config,
                              on_step=on_step, should_stop=self.stop_event.is_set,
                              wait_if_paused=self.wait_if_paused,
                              log_path=self.store.root / "traces" / f"{identity}.jsonl")
-        result.update(purpose=purpose, job_id=job_id, created_at=utcnow(), scope=harness["scope"],
+        result.update(purpose=purpose, job_id=job_id, created_at=utcnow(), scope=harness["scope"], game_id=adapter.id,
                       config=dict(config))
         self.store.save_episode(result)
         self.log(f"{'游玩' if purpose == 'play' else '评测'}结束：{result['score']} 分 / {result['steps']} 步 / {result['termination_reason']}",
@@ -211,20 +269,23 @@ class Lab:
         used = {row["seed"] for row in self.store.list("episode", 100000)}
         used.add(result["seed"])
 
-        def seeds(n):
+        context = get_game(config.get("game_id", "snake")).context(config)
+        modulus = context.get("evaluation", {}).get("seed_modulus", 1)
+
+        def seeds(n, stratified=False, start_class=0):
             values = []
             while len(values) < n:
                 seed = secrets.randbelow(2**31)
-                if seed not in used:
+                if seed not in used and (not stratified or seed % modulus == (start_class + len(values)) % modulus):
                     used.add(seed)
                     values.append(seed)
             return values
 
-        job = {"id": identity, "episode_id": result["episode_id"], "scope": scope,
+        job = {"id": identity, "episode_id": result["episode_id"], "scope": scope, "game_id": config.get("game_id", "snake"),
                "status": "pending", "parent_id": result["harness_id"], "config": config,
-               "train_seeds": [result["seed"], *seeds(config["train_games"] - 1)],
-               "validation_seeds": seeds(config["validation_games"]),
-               "promotion_seeds": seeds(config["promotion_games"]),
+               "train_seeds": [result["seed"], *seeds(config["train_games"] - 1, stratified=True, start_class=result["seed"] + 1)],
+               "validation_seeds": seeds(config["validation_games"], stratified=True),
+               "promotion_seeds": seeds(config["promotion_games"], stratified=True),
                "attempts": 0, "created_at": utcnow(), "decision": "等待局后 GEPA 优化"}
         return self.store.put("job", job)
 
@@ -233,6 +294,8 @@ class Lab:
 
         self.guard()
         config = job["config"]
+        adapter = get_game(config.get("game_id", "snake"))
+        context = adapter.context(config)
         baseline = self.store.active(job["scope"])
         trigger = self.store.load_episode(job.get("trigger_episode_id", job["episode_id"]))
         job.update(status="running", attempts=job.get("attempts", 0) + 1,
@@ -247,7 +310,7 @@ class Lab:
 
         def evaluate(candidate, seed, purpose):
             self.guard()
-            harness = self.version(candidate, job["scope"], {"type": "gepa_candidate", "job_id": job["id"]}, baseline["id"])
+            harness = self.version(candidate, job["scope"], {"type": "gepa_candidate", "job_id": job["id"]}, baseline["id"], game_context=context)
             result = self.play(provider, harness, config, seed, purpose, job["id"])
             if result["termination_reason"] == "stopped":
                 raise ExperimentStopped("用户停止评测")
@@ -263,8 +326,11 @@ class Lab:
                      "optimizing", job_id=job["id"], detail=data)
 
         try:
-            if trigger.get("infra_error") or trigger.get("termination_reason") == "stopped":
-                self.log("原局因故障或停止中断：先在同种子重跑，取得有效反馈后再优化", "recovery", job_id=job["id"])
+            if (trigger.get("infra_error") or trigger.get("termination_reason") == "stopped"
+                    or trigger.get("harness_id") != baseline["id"]):
+                self.log("原局中断或策略版本与当前基线不同：先按当前基线同种子重跑，再进行反思", "recovery",
+                         job_id=job["id"], previous_trigger_episode_id=trigger["episode_id"],
+                         previous_harness_id=trigger.get("harness_id"), baseline_harness_id=baseline["id"])
                 recovered = self.play(provider, baseline, config, trigger["seed"], "recovery", job["id"])
                 if recovered["termination_reason"] == "stopped":
                     raise ExperimentStopped("用户停止故障恢复")
@@ -277,13 +343,13 @@ class Lab:
                                      train_seeds=job["train_seeds"], validation_seeds=job["validation_seeds"],
                                      evaluate_episode=evaluate, coach=coach, run_dir=workdir / "gepa",
                                      reflection_rounds=config["reflection_rounds"], on_event=event,
-                                     should_stop=self.stop_event.is_set)
+                                     should_stop=self.stop_event.is_set, game_context=context)
             self.guard()
             atomic_json(workdir / "outcome.json", outcome)
             job["proposals"] = outcome.get("proposals", [])
             job["gepa"] = outcome.get("gepa", {})
             selected = self.version(outcome["candidate"], job["scope"],
-                                    {"type": "gepa", "job_id": job["id"]}, baseline["id"])
+                                    {"type": "gepa", "job_id": job["id"]}, baseline["id"], game_context=context)
             job["candidate_id"] = selected["id"]
             if selected["id"] == baseline["id"]:
                 job.update(status="retained", decision="GEPA 未选出更优候选，保留当前版本")
@@ -312,11 +378,12 @@ class Lab:
                 baseline_score = sum(p["baseline"] for p in pairs) / len(pairs)
                 candidate_score = sum(p["candidate"] for p in pairs) / len(pairs)
                 # Explicit empirical V1 gate, NOT a claim of statistical significance.
-                promoted = len(pairs) >= 4 and sum(delta) / len(delta) >= .5 and min(delta) >= 0
+                minimum_gain = context["score_spec"].get("minimum_mean_gain", .5)
+                promoted = len(pairs) >= 4 and sum(delta) / len(delta) >= minimum_gain and min(delta) >= 0
                 job.update(baseline_score=baseline_score, candidate_score=candidate_score,
                            mean_gain=candidate_score - baseline_score,
                            gate={"version": "v1-empirical-paired", "minimum_pairs": 4,
-                                 "minimum_mean_gain": .5, "no_pair_regression": True,
+                                 "minimum_mean_gain": minimum_gain, "no_pair_regression": True,
                                  "statistical_claim": False})
                 if promoted:
                     job.update(status="promoted", decision="通过小样本配对门槛，下一局使用新版本；不代表泛化证明")
@@ -337,6 +404,11 @@ class Lab:
             self.store.put("job", job)
             raise
         # A later log failure must never downgrade an already committed publication.
+        if job["status"] == "promoted":
+            try:
+                self.export_version(job)
+            except Exception as exc:
+                self.log("版本已发布，导出待重试：" + str(exc)[:300], "export_error", job_id=job["id"])
         self.log(job["decision"], "optimization_complete", job_id=job["id"])
 
     def _run(self, config, scope):
@@ -348,12 +420,16 @@ class Lab:
             with self.lock:
                 self.provider_health["decision"] = health
             self.guard()
+            preflight = get_game(config["game_id"]).create(config["seed"], config)
+            preflight.close()
             active = self.store.active(scope)
             if active is None:
+                adapter = get_game(config["game_id"])
+                context = adapter.context(config)
                 self.log("GLM-5.3 正在生成游戏背景、规则说明与初版 Harness", "initializing")
-                brief, candidate = coach.initialize(GAME_RULES, config["board_size"], config["max_steps"])
+                brief, candidate = coach.initialize(adapter.rules, config["board_size"], config["max_steps"], game_context=context)
                 self.guard()
-                active = self.version(candidate, scope, {"type": "bootstrap", "coach": self.settings.coach_model}, brief=brief)
+                active = self.version(candidate, scope, {"type": "bootstrap", "coach": self.settings.coach_model}, brief=brief, game_context=context)
                 self.store.activate(scope, active["id"], None)
                 self.log("初始化完成：" + active["id"], "initializing")
             # Every interrupted gameplay episode keeps one durable job; resume before new gameplay.
