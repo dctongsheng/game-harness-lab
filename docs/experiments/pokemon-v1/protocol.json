@@ -1,0 +1,145 @@
+{
+  "schema": "pokemon-real-cycle/v1",
+  "created_at": "2026-10-17T07:15:09.540707+00:00",
+  "runtime_fingerprint": {
+    "showdown_dist": {
+      "files": 556,
+      "sha256": "8c7c542fd40536176b6a8b8fee588c0812da87d531f1fd2f3fd74754441901ee"
+    },
+    "poke_env_package": {
+      "files": 76,
+      "sha256": "8130fc1b1f37fa49511ec55c720fab264641dc9c12ef00d168d0a6aa358e27b8"
+    },
+    "node": "v26.2.0",
+    "python": "3.13.13"
+  },
+  "source_hashes": {
+    "src/game_harness/__init__.py": "d62ebde25ffdac07b9ac02027e29cc5abf01561dbb7493e419861365eb02461f",
+    "src/game_harness/__main__.py": "47c4457a8014127610118d15f2873cc230c395b6e06b2dafda542cc9cdf8bd62",
+    "src/game_harness/app.py": "34defd693636740c270df8a2d42e246a61b800ee9ef8e4b083458771942c4ccd",
+    "src/game_harness/evolution.py": "b3511c8ec78d6c00c30133dd2524465e000c9613c79d0283878e1eb86172e6d1",
+    "src/game_harness/exporting.py": "9d1e33c182d63a74f0330b73439a907c4b79b74aeb99da795d6f1c8bdf8a7520",
+    "src/game_harness/feedback.py": "6065e24fd0c791989c6cfd2d9b0c4031803e9fc1df1cff9eaf071170296ef845",
+    "src/game_harness/initialization_contract.py": "aa6a639056a811f166a68c668014e038ad5730e037d9885aa4ced52c8abe3600",
+    "src/game_harness/providers.py": "e7efe9f4c27ad0e2242af84f281fd1e3f164ffc51d94043fe8743f0d1feb3ca2",
+    "src/game_harness/runtime.py": "79f204831eda758df718ac5fa0d7bce579a1bb0a2d549e5e8b0c1af1c7cab464",
+    "src/game_harness/scoring.py": "589028f8bb6e182c9048523216ff6dc260a9328de1f9d432253509c7adba0d6f",
+    "src/game_harness/service.py": "9b92369cc207cfceec47ca7c3b8c31a94f4c9dbf101805f6825ae0539ddf4448",
+    "src/game_harness/snake.py": "2380db374c6759443823a0aa98d2c8c9132588e45dfaa165521e62e89bedda66",
+    "src/game_harness/store.py": "c09e78c22924ae7bfce534c90d610a93450353b584186d2ce16766332e461d92",
+    "src/game_harness/tetris_context.py": "25683a67db4a9e80e0ec476a034aef496fbf69e85b92729da3e5c42872288756",
+    "src/game_harness/tetris_control.py": "d2d2ae4e3abe464222750b9be183a7746f78243414be4b536b1715bf91e51383",
+    "src/game_harness/tetris_features.py": "9232ea144bd5b95e73686b9d4eb3850817425dcc5f35c8e4a13c531a88119bc8",
+    "src/game_harness/visibility.py": "d04f499c1ef4cbc2c38d114a50904b2ff414eba3b3693f9740260ed919514109",
+    "src/game_harness/games/__init__.py": "ffa65b86b9cbf64c6012eb9cbf59133d067142a5ea050a6c32e2b68835d25053",
+    "src/game_harness/games/pokemon.py": "2d7a4013b0185e8ecd010cceae701b50254b8608398ad777ead96bd304bf5863",
+    "src/game_harness/games/pokemon_bridge.cjs": "65bad42a4d83b1f813e62274e427905e56cdfe3b45467cc5b81c6073f9f0ac04",
+    "src/game_harness/games/node_bridge.py": "c2d756c6ca90f74adff315cd7227bd6aa7a7ef884f54ad56f5be2393a035820f",
+    "scripts/run_overcooked.py": "f6a7f69f9dda046abebadc17f546f46e88ceb588fe39a2581f31e4a7fc50dce3",
+    "scripts/setup_pokemon.sh": "0959929c7c89fffee8afaad44b8d5839551f80b5019ae49941a1af6a1c537417",
+    "scripts/run_pokemon.py": "c9b7749ed2ea249bc0495a7d07d0e30280fd7fd108776e3746050935a1cf6f6a",
+    "scripts/audit_pokemon_run.py": "cce94bfc332ebc3e23a8b00c1a7e99240c31c4c5455742db2f2974d57ed848ad",
+    "requirements-pokemon.lock": "aabb11f87f3460d078e9ae5ebe1912564f7e72ffa916a31e185c4468855ed751"
+  },
+  "game_context": {
+    "game_id": "pokemon",
+    "name": "宝可梦对战 · poke-env（第三世代3v3）",
+    "rules_version": "game-harness-lab/pokemon-gen3-private-v1-7244fe8",
+    "rules": "宝可梦第三世代单打3v3，由固定版本Pokemon Showdown执行完整原生对战规则，poke-env解析双方各自可见信息。\n双方所有招式与换人选择都由Decision模型完成；候选使用可优化Harness，对手使用冻结参考Harness。等待推理时世界完全暂停。\n每方有3只50级宝可梦，每只4招；没有队伍预览、太晶化、极巨化、Mega或Z招式。初始出场是环境生成队伍的第一只，不参与选队优化。\n双方在同一回合分别秘密提交动作，再由原生优先级、速度和随机因素决定执行顺序。换人通常先于普通攻击；被击倒后出现仅换人的强制请求。等待方不需要行动。\n完整合法目录列出move:<当前招式序号>和switch:<当前队伍序号>；序号随原生请求变化，必须只选择当前目录中的ID。无战术过滤、排序、推荐招式、伤害搜索、随机兜底或默认代走。\n动作标签和team中的招式资料是规则事实，不是动作评分。第三世代物理/特殊分类由属性决定，不能套用第四世代以后各招式单独分类：普通、格斗、飞行、毒、地面、岩石、虫、幽灵、钢为物理，其余当时存在的属性为特殊。\n属性相克、同属性加成、命中率、PP、状态、能力阶段与交换重置等均按第三世代原生规则执行。Protect连续使用可能失败；Recover回复自己；Calm Mind提高特攻与特防。Struggle仅当原生规则使其合法时列出，仍须Decision选择。\n本方team包含自己的完整队伍、真实HP和能力值。opponent_team只含已登场或已由原生公开协议揭示的信息；未揭示的宝可梦、招式、物品、能力值及对方本回合选择不可读取或推断为事实。对方HP只提供公开百分比，不能访问对方真实精确HP。\nrecent_events只含最近公开对战事件，不含未执行的秘密选择。原生事件和模型提交次数不同；step计Decision提交，native_turn计原生回合。\n胜100、负0、原生平局50。预算到达则result=unresolved、truncated=true、score=50仅为兼容存储的占位值，不是平局或能力得分，不得纳入评测、优化选优或发布验收。\n私有种子改变环境队伍、出场顺序及原生随机序列，奇偶决定候选席位；不向模型或反思暴露种子或完整对手队伍。固定小型队伍池的实验不代表天梯实力或跨世代泛化。\n",
+    "score_spec": {
+      "id": "pokemon-gen3-native-outcome-v1",
+      "min": 0,
+      "max": 100,
+      "direction": "maximize",
+      "minimum_mean_gain": 2.0,
+      "perspective": "candidate_seat",
+      "win": 100,
+      "loss": 0,
+      "draw": 50,
+      "cutoff": 50,
+      "cutoff_is_draw": false,
+      "cutoff_is_scored": false,
+      "requires_native_terminal": true,
+      "description": "只比较原生胜/负/平局100/0/50。截断50仅存储占位，未完赛必须排除优化与验收，不采用血量或存活数代理分。"
+    },
+    "config": {
+      "max_steps": 160,
+      "generation": 3,
+      "game_type": "singles",
+      "team_size": 3,
+      "fixture_pool": "six-species-disjoint-3v3-v1",
+      "team_preview": false,
+      "showdown_format": "gen3customgame",
+      "debug": false,
+      "hp_percentage_mod": true,
+      "candidate_seat": "seed_parity",
+      "reference_policy_version": "pokemon-reference-v1",
+      "clock": "paused_native_request_barrier",
+      "cutoff_policy": "unscored_unresolved"
+    },
+    "opponent_policy": {
+      "decision_instructions": "你是固定参考对手，目标是赢得当前第三世代单打3v3。只依据本方team、已揭示的opponent_team和当前完整合法目录选择一项。考虑属性相克、同属性加成、第三世代物理/特殊分类、威力命中率、自身能力与HP；不利对位可换人，强制换人时选择能应对当前对手的存活队员。不要假设对方未揭示的招式或队伍，不读取私有种子，不故意让棋。",
+      "strategy_notes": "pokemon-reference-v1：冻结参考Harness，双方动作均由相同Decision模型选出。保持合理进攻与换人；对手未公开数据保持未知。"
+    },
+    "information_policy": {
+      "feedback_visibility": "candidate_before_only",
+      "seed_is_private": true,
+      "public_projection": "public_view"
+    },
+    "evaluation": {
+      "seed_modulus": 2,
+      "require_native_terminal": true,
+      "primary_metric": "native_candidate_outcome",
+      "exclude_truncated": true
+    },
+    "source": {
+      "poke_env_repository": "https://github.com/hsahovic/poke-env",
+      "poke_env_commit": "7ff6212e4e738efd46f1ea52035b37a8bba1e386",
+      "poke_env_version": "0.16.1",
+      "poke_env_license": "MIT",
+      "showdown_repository": "https://github.com/smogon/pokemon-showdown",
+      "showdown_commit": "7244fe8e28fa8bc4d0809ae30d183c608b62bb2b",
+      "showdown_license": "MIT",
+      "bridge_sha256": "65bad42a4d83b1f813e62274e427905e56cdfe3b45467cc5b81c6073f9f0ac04"
+    },
+    "scenario_policy": "private_seeded_disjoint_three_of_six_species_parties_and_native_rng",
+    "trial_design": "私有种子确定双方三只队伍、出场顺序、原生PRNG；奇偶决定候选席位；同种子新旧Harness配对。只覆盖固定六种宝可梦池，不构成天梯或跨世代泛化。",
+    "action_policy": "全部合法招式与换人由Decision逐项选择。双边请求秘密屏障，强制换人仍须Decision；原生wait无需提交。无默认、脚本或自动战斗选手。",
+    "limitations": "第三世代单打3v3固定小队伍池，不包含选队、队伍预览或现代特殊机制。未完赛不评分、不选优、不发布。"
+  },
+  "config": {
+    "game_id": "pokemon",
+    "board_size": 8,
+    "max_steps": 160,
+    "train_games": 1,
+    "validation_games": 1,
+    "promotion_games": 4,
+    "reflection_rounds": 1,
+    "episodes": 1
+  },
+  "decision_model": "startlux-decision-27b-autothink",
+  "coach_model": "glm-5.3",
+  "think_mode": "never",
+  "identity_verification": "service_reported_name",
+  "schedule": {
+    "train_scenarios": 1,
+    "selection_scenarios": 1,
+    "planned_promotion_pairs": 4,
+    "planned_candidate_seats": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "private_seed_values_omitted": true
+  },
+  "budget": {
+    "max_episodes": 14,
+    "decision_request_attempts_max": 2240,
+    "coach_attempts_max": 4,
+    "gepa_reflections": 1
+  },
+  "interpretation": "Paired private seeds freeze team composition, lead order and initial native RNG; candidate seats alternate. Different policies can consume RNG differently. Remote model sampling is not controlled. Fixed six-species pool, no ladder or unseen-team generalization or statistical significance claim.",
+  "protocol": "GLM initial Harness; real trigger; GEPA train/selection; only if selected changes, 4 alternating-order held-out-seed empirical pairs, balanced by candidate seat. Budget cutoffs are censored and cannot enter training, selection or promotion. No manual policy editing, shaped score, retries, or forced promotion.",
+  "original_private_protocol_sha256": "5f15b26445922d7401067324c17dc59545c1416bd7a09f7b9d8bac3e231a79c5"
+}

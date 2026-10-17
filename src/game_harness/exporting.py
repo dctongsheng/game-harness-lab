@@ -73,6 +73,15 @@ def export_approved(root: Path, version: dict, job: dict, game_context: dict, br
     if job.get('status') != 'promoted' or job.get('candidate_id') != version['id'] or job.get('scope') != version['scope']:
         raise ValueError('Only a matching approved evaluation can be exported')
     pairs=job.get('pairs',[])
+    if game_context.get('evaluation', {}).get('require_native_terminal'):
+        for pair in pairs:
+            for label in ('candidate', 'baseline'):
+                if (pair.get(label + '_native_terminal') is not True
+                        or pair.get(label + '_truncated') is not False
+                        or pair.get(label + '_result') not in {'win', 'loss', 'draw'}):
+                    raise ValueError('Export requires native terminal outcomes, never budget cutoffs')
+                if pair.get(label) != game_context['score_spec'].get(pair[label + '_result']):
+                    raise ValueError('Native outcome differs from promotion score')
     for pair in pairs:
         for key in ('candidate','baseline'):
             value = pair.get(key)

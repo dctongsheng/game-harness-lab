@@ -15,6 +15,7 @@ from .games import get_game, game_catalog
 from .exporting import export_approved, read_bundle, sync_bundle
 from .store import Store, atomic_json, utcnow
 from .visibility import public_payload
+from .scoring import require_evaluable_result
 
 
 DEFAULTS = {"game_id": "snake", "board_size": 8, "max_steps": 120, "train_games": 3,
@@ -330,6 +331,7 @@ class Lab:
                 raise ExperimentStopped("用户停止评测")
             if result.get("infra_error"):
                 raise ProviderError("评测发生基础设施错误，未将其记为策略零分")
+            require_evaluable_result(result, context)
             return result
 
         def event(data):
@@ -353,6 +355,7 @@ class Lab:
                 trigger = recovered
                 job["trigger_episode_id"] = recovered["episode_id"]
                 self.store.put("job", job)
+            require_evaluable_result(trigger, context)
             outcome = evolve_harness(candidate=baseline["candidate"], trigger_episode=trigger,
                                      train_seeds=job["train_seeds"], validation_seeds=job["validation_seeds"],
                                      evaluate_episode=evaluate, coach=coach, run_dir=workdir / "gepa",
@@ -383,8 +386,12 @@ class Lab:
                             raise ExperimentStopped()
                         if res.get("infra_error"):
                             raise ProviderError("发布验收发生基础设施错误，保留旧版")
+                        require_evaluable_result(res, context)
                         pair[label] = res["score"]
                         pair[label + "_episode_id"] = res["episode_id"]
+                        if context.get('evaluation', {}).get('require_native_terminal'):
+                            for field in ('native_terminal', 'truncated', 'result'):
+                                pair[label + '_' + field] = res['final_state'][field]
                     pairs.append(pair)
                     job["pairs"] = pairs
                     self.store.put("job", job)

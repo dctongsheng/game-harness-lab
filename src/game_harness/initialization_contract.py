@@ -55,6 +55,11 @@ def _shape(value):
 
 
 _GAME_GUIDANCE = {
+    "pokemon": {
+        "observations": "第三世代单打3v3。team是本方完整队伍，含精确HP、stats、types、boosts、状态、已拥有招式与PP；opponent_team仅含已公开宝可梦和已见招式，对方HP为公开百分比，未公开数据未知。native_turn为原生回合，step为模型提交次数。recent_events为最近12条公开协议，不包含尚未执行的秘密选择。actor及policy_role说明当前选手。",
+        "actions": "完整合法目录move:<槽位>与switch:<槽位>，标签附规则事实；每次选一个ID，双方秘密提交后原生引擎一起结算。force_switch时只有换人，wait方无需动作。没有选队、队伍预览和现代特殊机制；第三世代物理/特殊由招式属性决定。不能编造伤害计算器、对手招式集、历史记忆或推荐动作。",
+        "design_focus": "为关闭思考的单步choice写清简短条件优先级：当前对位、自己的属性/能力/HP/PP、第三世代属性分类、已知免疫与状态、何时攻击/回复/强化/换人。考虑反复换人或无效招式，但只能用实际提供的当前状态及公开recent_events判断；不能假定跨步目标记忆。胜负分100/0，原生平局50；预算截断不评分，不能通过拖延获取平局分。",
+    },
     "overcooked": {
         "observations": "terrain公开厨房静态网格；players含两厨师位置position、朝向orientation及held_object；pots含ingredients、is_cooking、is_ready、cook_time_remaining，objects为锅或台面物品，orders是原生有效配方。acting_player为0或1，actor为chef_0/chef_1。joint_history只含最近4个已经完成的联合tick事实，不能假定存在更早历史或目标记忆。",
         "actions": "north/south/east/west/stay/interact完整六项；方向动作遇阻仍改变朝向，interact只作用于面前相邻格。空手朝含食材锅interact开火，满锅不自动烹饪。先问厨师0再问厨师1，两动作一起推进1tick；后一人看不到前一人当前未提交选择。step为Decision次数，native_tick才是厨房时间。",

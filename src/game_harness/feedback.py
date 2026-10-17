@@ -16,7 +16,7 @@ COMPLETE_FORMAT = 'complete_events_v1'
 LEGACY_FORMAT = 'legacy_excerpt_v1'
 FORMATS = {COMPLETE_FORMAT, LEGACY_FORMAT}
 _PRIVATE_KEYS = {'seed', 'evaluation_seed', 'train_seeds', 'validation_seeds',
-                 'promotion_seeds', 'raw_request', 'raw_response', 'probabilities'}
+                 'promotion_seeds', 'raw_request', 'raw_response', 'request_payload', 'request_evidence', 'probabilities'}
 _COMMON = ('step', 'score', 'done', 'reason', 'result', 'winner', 'truncated',
            'turn', 'candidate_seat', 'candidate_color', 'viewer_seat', 'tick')
 _ARMY_RANKS = dict(zip(('司令', '军长', '师长', '旅长', '团长', '营长', '连长', '排长', '工兵'),
@@ -91,6 +91,63 @@ def _army_visible_bounds(state):
     return bounds
 
 
+_POKEMON_MOVE_COLUMNS = ('type', 'category', 'base_power', 'accuracy', 'priority')
+_POKEMON_MOVE_EFFECTS = ('boosts', 'status', 'heal', 'drain', 'recoil', 'protect')
+
+
+def _pokemon_move_context(frames):
+    """Deduplicate rule facts from authorized candidate views only.
+
+    These are a move dictionary, not a catalogue of the opponent's unobserved
+    moves. Variable facts stay in the corresponding event instead of becoming
+    a misleading episode-wide constant.
+    """
+    facts, effects, variable = {}, {}, set()
+    for frame in frames:
+        for pokemon in [*frame.get('team', []), *frame.get('opponent_team', [])]:
+            for move in pokemon.get('moves', []):
+                identity = move.get('id')
+                if not isinstance(identity, str):
+                    continue
+                rule = [_clean(move.get(key)) for key in _POKEMON_MOVE_COLUMNS]
+                effect = {key: _clean(move[key]) for key in _POKEMON_MOVE_EFFECTS
+                          if move.get(key) not in (None, False, 0, {}, [])}
+                if identity in facts and (facts[identity] != rule or effects[identity] != effect):
+                    variable.add(identity)
+                facts[identity], effects[identity] = rule, effect
+    return {'move_rule_columns': list(_POKEMON_MOVE_COLUMNS),
+            'move_rules': {key: value for key, value in facts.items() if key not in variable},
+            'move_effects': {key: value for key, value in effects.items() if value and key not in variable},
+            'pokemon_encoding': 'hp is [current,max], exact only for own team and public percentage otherwise; '
+                'omitted boost entries are zero, missing status/item/ability are unknown or absent as in source, missing active means false; hp=0 means fainted. '
+                'Species is omitted only when it equals the normalized ident suffix. Move rules are facts, not opponent move inventories. '
+                'Own move pp/max_pp and own team slot remain per-event; opponent slots and unobserved moves are absent.'}
+
+
+def _pokemon_mon(pokemon, private, context):
+    result = _pick(pokemon, ('ident', 'species', 'types'))
+    if isinstance(pokemon.get('ident'), str) and isinstance(pokemon.get('species'), str):
+        suffix = re.sub(r'[^a-z0-9]', '', pokemon['ident'].split(':', 1)[-1].lower())
+        if suffix == re.sub(r'[^a-z0-9]', '', pokemon['species'].lower()):
+            result.pop('species', None)
+    result.update({key: _clean(pokemon[key]) for key in ('active', 'status', 'ability', 'item')
+                   if pokemon.get(key) not in (None, False)})
+    result['hp'] = [_clean(pokemon.get('current_hp')), _clean(pokemon.get('max_hp'))]
+    boosts = {key: _clean(value) for key, value in pokemon.get('boosts', {}).items() if value != 0}
+    if boosts:
+        result['boosts'] = boosts
+    if private:
+        result.update(_pick(pokemon, ('stats', 'slot')))
+    moves = []
+    for move in pokemon.get('moves', []):
+        record = _pick(move, ('id', 'pp', 'max_pp') if private else ('id',))
+        if move.get('id') not in context.get('move_rules', {}):
+            record.update(_pick(move, (*_POKEMON_MOVE_COLUMNS, *_POKEMON_MOVE_EFFECTS)))
+        moves.append(record)
+    result['moves'] = moves
+    return result
+
+
 def _static_context(trace, game, private):
     rows = [row for row in trace if isinstance(row, dict)
             and (not private or row.get('policy_role') == 'candidate')]
@@ -109,6 +166,9 @@ def _static_context(trace, game, private):
             'visible_bounds uses zero-based flat cell index: rank strictly above rank_above, OR mine if or_mine is true.')
     if game == 'army' and all(f.get('terrain') == frames[0].get('terrain') for f in frames):
         context.update(_pick(frames[0], ('terrain',)))
+    if game == 'pokemon':
+        context.update(_pick(frames[0], ('format', 'format_label')))
+        context.update(_pokemon_move_context(frames))
     if game == 'overcooked':
         for key in ('layout', 'rows', 'cols', 'terrain', 'terrain_legend', 'orders', 'max_ticks'):
             if key in frames[0] and all(f.get(key) == frames[0][key] for f in frames):
@@ -145,6 +205,19 @@ def compact_state(state, game, context=None):
         result.update(_pick(state, ('winning_line',)))
         if 'terrain' not in context:
             result.update(_pick(state, ('terrain',)))
+    elif game == 'pokemon':
+        result.update(_pick(state, ('actor', 'viewer_seat', 'native_turn', 'native_terminal',
+            'opponent_unrevealed_count', 'force_switch', 'trapped',
+            'weather', 'fields', 'side_conditions', 'opponent_side_conditions',
+            'recent_events')))
+        if 'team' in state:
+            result['team'] = [_pokemon_mon(p, True, context) for p in state['team']]
+        if 'opponent_team' in state:
+            result['opponent_team'] = [_pokemon_mon(p, False, context) for p in state['opponent_team']]
+        if 'players' in state:
+            result['players'] = [{**_pick(p, ('seat', 'unrevealed_count')),
+                                  'team': [_pokemon_mon(mon, False, context) for mon in p.get('team', [])]}
+                                 for p in state['players']]
     elif game == 'overcooked':
         result.update(_pick(state, ('actor', 'acting_player', 'native_tick', 'players', 'pots',
                                    'objects', 'deliveries', 'delivery_counts', 'last_joint_actions',
@@ -191,9 +264,34 @@ def _public_result(state, game, context):
     # Only public_view supplies board data. Top-level scalar outcomes are public;
     # never copy either player's observation/cells or candidate-specific values.
     public = _pick(state, ('step', 'score', 'done', 'reason', 'result', 'winner', 'truncated', 'turn'))
-    public.update(_pick(view, ('cells', 'rows', 'cols', 'turn', 'terrain')))
+    if game == 'pokemon':
+        public.update(_pick(view, ('players', 'recent_events', 'native_turn', 'weather', 'fields')))
+    else:
+        public.update(_pick(view, ('cells', 'rows', 'cols', 'turn', 'terrain')))
     result = compact_state(public, game, context)
     result['visibility'] = 'public_common_knowledge'
+    return result
+
+
+def _pokemon_public_transition(before, after, context):
+    """Keep the public result without repeating privately staged no-op views."""
+    result = _public_result(after, 'pokemon', context)
+    if result.get('unavailable') or not isinstance(before, dict):
+        return result
+    old, new = before.get('public_view'), after.get('public_view')
+    if not isinstance(old, dict) or not isinstance(new, dict):
+        return result
+    if old.get('players') == new.get('players'):
+        result.pop('players', None)
+        result['players_unchanged'] = True
+    previous, current = old.get('recent_events', []), new.get('recent_events', [])
+    overlap = 0
+    if isinstance(previous, list) and isinstance(current, list):
+        for count in range(1, min(len(previous), len(current)) + 1):
+            if previous[-count:] == current[:count]:
+                overlap = count
+        result['new_public_events'] = _clean(current[overlap:])
+        result.pop('recent_events', None)
     return result
 
 
@@ -348,6 +446,9 @@ def complete_episode(episode, summary, game_context=None, budget=8000):
         'omission_semantics': 'inclusive trace-index ranges; retained indices contain complete projected events',
         'privacy_exclusion_scope': 'opponent private views only; public followups are counted separately',
     }
+    if game == 'pokemon':
+        result['trace_sampling']['projection_omissions'].append(
+            'repeated move rule facts use observation_context; public result players_unchanged means same public party state as preceding view; new_public_events removes the exact overlapping history prefix')
     events, previous, seen, first_tags = [], None, set(), set()
     for index in eligible:
         row = trace[index]
@@ -361,16 +462,20 @@ def complete_episode(episode, summary, game_context=None, budget=8000):
         tag_row = {**row, 'after': _public_result(row.get('after'), game, observation_context)} if private else row
         event['selection_reasons'] = _tags(tag_row, game, previous)
         if private:
-            event['public_result'] = _public_result(row.get('after'), game, observation_context)
+            event['public_result'] = (_pokemon_public_transition(row.get('before'), row.get('after'), observation_context)
+                                      if game == 'pokemon' else _public_result(row.get('after'), game, observation_context))
             followups = []
             for followup_index in range(index + 1, len(trace)):
                 followup = trace[followup_index]
                 if not isinstance(followup, dict) or followup.get('policy_role') == 'candidate':
                     break
-                public_after = _public_result(followup.get('after'), game, observation_context)
+                public_after = (_pokemon_public_transition(followup.get('before'), followup.get('after'), observation_context)
+                                if game == 'pokemon' else _public_result(followup.get('after'), game, observation_context))
                 if not public_after.get('unavailable'):
-                    followups.append({'trace_index': followup_index, 'policy_role': 'opponent',
-                                      'action': _clean(followup.get('action')), 'public_result': public_after})
+                    item = {'trace_index': followup_index, 'policy_role': 'opponent', 'public_result': public_after}
+                    if game != 'pokemon':
+                        item['action'] = _clean(followup.get('action'))
+                    followups.append(item)
                     if public_after.get('done'):
                         event['selection_reasons'].append('public_terminal_followup')
             event['public_followups'] = followups

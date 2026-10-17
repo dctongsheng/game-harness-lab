@@ -1,0 +1,98 @@
+{
+  "id": "h-4ed0bc307e8c027f",
+  "parent_id": null,
+  "game_id": "pokemon",
+  "candidate": {
+    "decision_instructions": "每次只从当前criteria里选一个ID。按顺序判断：1) force_switch为真：选switch:中一只非fainted、属性克制当前对方active（其types见opponent_team）且hp_fraction较高的队员。2) 我方active的hp_fraction≤0.35且目录中有heal>0且PP>0的move：选它。3) 枚举我方可 PP>0、accuracy≥70 的攻击move（base_power>0），按：对方active的types对我方move.type的相克倍率 × base_power ×（move.type与自身types有相同则×1.5）排序，选乘积最高者；若对某招倍率为0（免疫）则跳过该招。4) 若最佳乘积倍率≤0.5（对方明显抵抗我方全部攻击）且我方被克制，则switch:到存活的、对该对方types克制倍率最高的队员。5) 其余情况选第3步最优攻击move；全部PP耗尽时按目录中剩余move选择（含Struggle）。",
+    "strategy_notes": "对手是同款冻结参考模型，双方信息对称，通用第三世代打法即可，不需针对特定队伍。进攻优先：本游戏只有胜负计分且截断不评分，拖延和反复换人都亏。换人会重置自身boosts并放弃一回合，只在对位明显不利（我方被克制且对方抗我攻击）时使用。Calm Mind类强化仅在对方对我威胁低且我方能稳住时偶用，默认走攻击/回复主线。Protect不要连续使用。对方未揭示的队员与招式按未知处理，不要替对方设想配置。"
+  },
+  "brief": {
+    "background": "这是基于Pokemon Showdown/poke-env的第三世代单打3v3宝可梦对战。候选与冻结参考对手的动作均由同一个关闭思考的单步choice Decision模型在各自回合选出；观察只含双方公开信息（本方team完整、对方仅已登场/已揭示个体）。",
+    "goal": "在原生引擎下击败对手全队：使对方3只全部倒下即胜（100分）；自己全灭为负（0分）；原生平局50分。预算160步截断时不评分（score=50仅占位），拖延无收益，应以有效进攻尽快结束对局。",
+    "rules": [
+      "每回合双方秘密提交一个动作（move:<槽位> 或 switch:<槽位>），由原生优先级、速度与随机因素结算；换人通常先于攻击。",
+      "被击倒后出现force_switch，只能从目录中的switch项里选一只存活队员。wait方无需提交。",
+      "第三世代物理/特殊由属性决定：普/格斗/飞/毒/地/岩/虫/幽灵/钢为物理，其余为特殊；不要按招式名套用后世分类。",
+      "属性相克、STAB、命中、PP、状态、能力阶段（换人重置）均按第三世代规则。Protect连用可能失败；Recover回血；Calm Mind升特攻特防。",
+      "对方信息只有公开HP百分比和已见招式，未揭示的队员/招式/物品未知；recent_events只是最近12条公开事件。",
+      "对手策略为冻结参考Harness，不修改、不针对其优化；私有种子决定席位与队伍，策略须适用于任一方/任何席位。"
+    ],
+    "precautions": [
+      "单步choice：每次只从当前criteria（完整合法目录）选一个ID；目录序号随请求变化，绝不能沿用上一次的ID或编造ID。",
+      "think_mode=never且无跨步记忆：不能要求记住之前的计划、对方上回合动作或PP消耗推断；一切判断只能基于当前snapshot（team、opponent_team、recent_events、boosts、PP等当前值）。",
+      "无工具、无搜索、无伤害计算器、无推荐招式：不允许引用winning_actions/safe_actions/历史字段等不存在信息。",
+      "对方HP为百分比、招式只有已见部分，不得假设对方配置；不要把教学样本的Blastoise/Charizard当作固定局面。",
+      "评分只认原生胜负平；截断=unresolved不评分，不能用消耗战术换取'平局分'；避免PP耗尽后的Struggle局面和无意义反复换人。"
+    ],
+    "strategy": "设计依据：观察中可用的判断输入是（1）本方active的types/stats/boosts/status/PP与四个招式的type/base_power/accuracy/priority/heal/protect等事实标签；（2）对方active的公开types、HP百分比、boosts与已见招式（moves_information/moves为空时按未知处理）；（3）recent_events中最近公开的换人、命中、失败信息。动作语义是单选ID、秘密同时提交、换人先手——因此优先级必须是短规则：先按相克倍率与第三世代分类挑期望伤害最高且命中可接受的攻击招式；本方低血且目录中有回复招时优先回复；免疫（对方属性使我方招式×0）或我方被明显压制时换到相克对位的存活队员；force_switch时选对当前对方有属性优势且血量较好的。每条规则都能从当前字段直接判出，不需要记忆或计算器，适合关闭思考的模型单步执行；进攻优先以保证在预算内分出胜负（截断不评分）。"
+  },
+  "decision_model": "startlux-decision-27b-autothink",
+  "rules_version": "game-harness-lab/pokemon-gen3-private-v1-7244fe8",
+  "status": "bootstrap_active_not_promotion_approved",
+  "game_context": {
+    "game_id": "pokemon",
+    "name": "宝可梦对战 · poke-env（第三世代3v3）",
+    "rules_version": "game-harness-lab/pokemon-gen3-private-v1-7244fe8",
+    "rules": "宝可梦第三世代单打3v3，由固定版本Pokemon Showdown执行完整原生对战规则，poke-env解析双方各自可见信息。\n双方所有招式与换人选择都由Decision模型完成；候选使用可优化Harness，对手使用冻结参考Harness。等待推理时世界完全暂停。\n每方有3只50级宝可梦，每只4招；没有队伍预览、太晶化、极巨化、Mega或Z招式。初始出场是环境生成队伍的第一只，不参与选队优化。\n双方在同一回合分别秘密提交动作，再由原生优先级、速度和随机因素决定执行顺序。换人通常先于普通攻击；被击倒后出现仅换人的强制请求。等待方不需要行动。\n完整合法目录列出move:<当前招式序号>和switch:<当前队伍序号>；序号随原生请求变化，必须只选择当前目录中的ID。无战术过滤、排序、推荐招式、伤害搜索、随机兜底或默认代走。\n动作标签和team中的招式资料是规则事实，不是动作评分。第三世代物理/特殊分类由属性决定，不能套用第四世代以后各招式单独分类：普通、格斗、飞行、毒、地面、岩石、虫、幽灵、钢为物理，其余当时存在的属性为特殊。\n属性相克、同属性加成、命中率、PP、状态、能力阶段与交换重置等均按第三世代原生规则执行。Protect连续使用可能失败；Recover回复自己；Calm Mind提高特攻与特防。Struggle仅当原生规则使其合法时列出，仍须Decision选择。\n本方team包含自己的完整队伍、真实HP和能力值。opponent_team只含已登场或已由原生公开协议揭示的信息；未揭示的宝可梦、招式、物品、能力值及对方本回合选择不可读取或推断为事实。对方HP只提供公开百分比，不能访问对方真实精确HP。\nrecent_events只含最近公开对战事件，不含未执行的秘密选择。原生事件和模型提交次数不同；step计Decision提交，native_turn计原生回合。\n胜100、负0、原生平局50。预算到达则result=unresolved、truncated=true、score=50仅为兼容存储的占位值，不是平局或能力得分，不得纳入评测、优化选优或发布验收。\n私有种子改变环境队伍、出场顺序及原生随机序列，奇偶决定候选席位；不向模型或反思暴露种子或完整对手队伍。固定小型队伍池的实验不代表天梯实力或跨世代泛化。\n",
+    "score_spec": {
+      "id": "pokemon-gen3-native-outcome-v1",
+      "min": 0,
+      "max": 100,
+      "direction": "maximize",
+      "minimum_mean_gain": 2.0,
+      "perspective": "candidate_seat",
+      "win": 100,
+      "loss": 0,
+      "draw": 50,
+      "cutoff": 50,
+      "cutoff_is_draw": false,
+      "cutoff_is_scored": false,
+      "requires_native_terminal": true,
+      "description": "只比较原生胜/负/平局100/0/50。截断50仅存储占位，未完赛必须排除优化与验收，不采用血量或存活数代理分。"
+    },
+    "config": {
+      "max_steps": 160,
+      "generation": 3,
+      "game_type": "singles",
+      "team_size": 3,
+      "fixture_pool": "six-species-disjoint-3v3-v1",
+      "team_preview": false,
+      "showdown_format": "gen3customgame",
+      "debug": false,
+      "hp_percentage_mod": true,
+      "candidate_seat": "seed_parity",
+      "reference_policy_version": "pokemon-reference-v1",
+      "clock": "paused_native_request_barrier",
+      "cutoff_policy": "unscored_unresolved"
+    },
+    "opponent_policy": {
+      "decision_instructions": "你是固定参考对手，目标是赢得当前第三世代单打3v3。只依据本方team、已揭示的opponent_team和当前完整合法目录选择一项。考虑属性相克、同属性加成、第三世代物理/特殊分类、威力命中率、自身能力与HP；不利对位可换人，强制换人时选择能应对当前对手的存活队员。不要假设对方未揭示的招式或队伍，不读取私有种子，不故意让棋。",
+      "strategy_notes": "pokemon-reference-v1：冻结参考Harness，双方动作均由相同Decision模型选出。保持合理进攻与换人；对手未公开数据保持未知。"
+    },
+    "information_policy": {
+      "feedback_visibility": "candidate_before_only",
+      "seed_is_private": true,
+      "public_projection": "public_view"
+    },
+    "evaluation": {
+      "seed_modulus": 2,
+      "require_native_terminal": true,
+      "primary_metric": "native_candidate_outcome",
+      "exclude_truncated": true
+    },
+    "source": {
+      "poke_env_repository": "https://github.com/hsahovic/poke-env",
+      "poke_env_commit": "7ff6212e4e738efd46f1ea52035b37a8bba1e386",
+      "poke_env_version": "0.16.1",
+      "poke_env_license": "MIT",
+      "showdown_repository": "https://github.com/smogon/pokemon-showdown",
+      "showdown_commit": "7244fe8e28fa8bc4d0809ae30d183c608b62bb2b",
+      "showdown_license": "MIT",
+      "bridge_sha256": "65bad42a4d83b1f813e62274e427905e56cdfe3b45467cc5b81c6073f9f0ac04"
+    },
+    "scenario_policy": "private_seeded_disjoint_three_of_six_species_parties_and_native_rng",
+    "trial_design": "私有种子确定双方三只队伍、出场顺序、原生PRNG；奇偶决定候选席位；同种子新旧Harness配对。只覆盖固定六种宝可梦池，不构成天梯或跨世代泛化。",
+    "action_policy": "全部合法招式与换人由Decision逐项选择。双边请求秘密屏障，强制换人仍须Decision；原生wait无需提交。无默认、脚本或自动战斗选手。",
+    "limitations": "第三世代单打3v3固定小队伍池，不包含选队、队伍预览或现代特殊机制。未完赛不评分、不选优、不发布。"
+  }
+}

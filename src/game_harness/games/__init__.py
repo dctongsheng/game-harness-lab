@@ -7,6 +7,7 @@ from .gomoku import GomokuAdapter
 from .tetris import TetrisAdapter
 from .platformer import PlatformerAdapter
 from .overcooked import OvercookedAdapter
+from .pokemon import PokemonAdapter
 
 _REGISTRY = {}
 
@@ -39,3 +40,4 @@ register_game(GomokuAdapter())
 register_game(TetrisAdapter())
 register_game(PlatformerAdapter())
 register_game(OvercookedAdapter())
+register_game(PokemonAdapter())

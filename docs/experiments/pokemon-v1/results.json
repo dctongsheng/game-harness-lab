@@ -1,0 +1,182 @@
+{
+  "schema": "pokemon-real-results/v1",
+  "date": "2026-10-17",
+  "status": "completed",
+  "job_status": "retained",
+  "initial_harness": "h-4ed0bc307e8c027f",
+  "proposed_harness": "h-f9d5b8cb2467c75c",
+  "active_harness": "h-4ed0bc307e8c027f",
+  "approved_export": null,
+  "decision_attempts": 66,
+  "coach_calls": [
+    {
+      "purpose": "initialization",
+      "requested_model": "glm-5.3",
+      "returned_model": "glm-5.3",
+      "usage": {
+        "completion_tokens": 1159,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 5913,
+        "prompt_tokens_details": {
+          "cached_tokens": 320
+        },
+        "total_tokens": 7072
+      },
+      "elapsed_ms": 23758.41,
+      "response_hash": "a597135ab2bb97ec54ca483b15c0bbcf39b6ec34aa8886af046bdbd03e25ecdb"
+    },
+    {
+      "purpose": "reflection",
+      "requested_model": "glm-5.3",
+      "returned_model": "glm-5.3",
+      "usage": {
+        "completion_tokens": 652,
+        "completion_tokens_details": {
+          "reasoning_tokens": 67
+        },
+        "prompt_tokens": 8097,
+        "prompt_tokens_details": {
+          "cached_tokens": 192
+        },
+        "total_tokens": 8749
+      },
+      "elapsed_ms": 11911.89,
+      "response_hash": "65015d82e394f71eedaed275a024d8f72b56c206c77fcb9cc103a313449dab31"
+    }
+  ],
+  "think_mode": "never",
+  "thinking_off_verified_calls": 66,
+  "initialization_llm_generated": true,
+  "proposal_llm_generated": true,
+  "manually_edited_policy": false,
+  "gepa": {
+    "engine": "gepa.optimize",
+    "version": "0.1.4",
+    "best_idx": 0,
+    "best_score": 0.0,
+    "val_aggregate_scores": [
+      0.0
+    ],
+    "parents": [
+      [
+        null
+      ]
+    ],
+    "candidate_count": 1,
+    "total_metric_calls": 3,
+    "max_metric_calls": 5
+  },
+  "phase_results": [
+    {
+      "episode_id": "ep-049b91f6fd3f48b5",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "play",
+      "score": 100,
+      "result": "win",
+      "decision_calls": 13,
+      "native_turn": 5,
+      "candidate_seat": 0
+    },
+    {
+      "episode_id": "ep-07656df8c4a34a79",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "search_train",
+      "score": 100,
+      "result": "win",
+      "decision_calls": 13,
+      "native_turn": 5,
+      "candidate_seat": 0
+    },
+    {
+      "episode_id": "ep-0c9023b14bdc4729",
+      "harness_id": "h-f9d5b8cb2467c75c",
+      "purpose": "search_train",
+      "score": 100,
+      "result": "win",
+      "decision_calls": 15,
+      "native_turn": 6,
+      "candidate_seat": 0
+    },
+    {
+      "episode_id": "ep-0ea4565e483440dc",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "search_validation",
+      "score": 0,
+      "result": "loss",
+      "decision_calls": 25,
+      "native_turn": 11,
+      "candidate_seat": 1
+    }
+  ],
+  "promotion_pairs_completed": 0,
+  "evidence_limits": [
+    "Trigger and baseline train replay the same private scenario; they are not independent samples.",
+    "Baseline selection loss is not fed to reflection, preserving train/selection separation.",
+    "Proposal only played the training scenario; grouped wins or win rates cannot compare policies.",
+    "Strict training improvement gate rejects 100 -> 100 before candidate selection or promotion.",
+    "No independent promotion, unseen-team, ladder or significance claim."
+  ],
+  "feedback": {
+    "trigger_retained": 1,
+    "trigger_eligible": 6,
+    "train_retained": 1,
+    "train_eligible": 6,
+    "retained_trace_index": [
+      11
+    ],
+    "public_followup_index": [
+      12
+    ],
+    "trigger_chars": 7205,
+    "train_chars": 7195,
+    "terminal_events_included": true,
+    "selection_failure_in_reflection": false
+  },
+  "findings": [
+    {
+      "kind": "confirmed_contract_mismatch",
+      "detail": "Both LLM policies require accuracy >= 70; actual move accuracy is a 0..1 fraction. No ablation proves this alone caused the loss."
+    },
+    {
+      "kind": "observed_bad_actions",
+      "episode_id": "ep-0ea4565e483440dc",
+      "candidate_steps": [
+        12,
+        17
+      ],
+      "detail": "Venusaur used resisted Sludge Bomb twice against revealed rock/ground Golem; public opponent HP changed 71 -> 65 -> 59 percent."
+    },
+    {
+      "kind": "observed_bad_switch",
+      "episode_id": "ep-0ea4565e483440dc",
+      "candidate_step": 14,
+      "detail": "After Earthquake had been revealed, candidate switched to Raichu; it fainted from the same-turn super-effective Earthquake."
+    },
+    {
+      "kind": "environment_fact_check",
+      "detail": "Inputs correctly classify Gen3 Razor Leaf as grass/special and Sludge Bomb as poison/physical; no evidence of adapter category error."
+    }
+  ],
+  "validation": {
+    "pytest_passed": 782,
+    "subtests_passed": 9,
+    "excluded_unrelated_tests": [
+      "tests/test_hok1v1.py",
+      "tests/test_hok_bridge.py",
+      "tests/test_hok_cli.py"
+    ],
+    "source_hash_files": 26,
+    "source_hashes_match": true,
+    "runtime_fingerprint_matches": true,
+    "all_native_states_replayed": true,
+    "http_requests_audited": 66,
+    "native_finished_episodes": 4,
+    "cutoffs": 0,
+    "infra_failures": 0,
+    "browser_replay_verified": true,
+    "browser_console_errors": 0
+  },
+  "protocol_sha256": "5f15b26445922d7401067324c17dc59545c1416bd7a09f7b9d8bac3e231a79c5"
+}

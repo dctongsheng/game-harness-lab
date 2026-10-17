@@ -3,6 +3,7 @@
 !.env.example
 .venv/
 .venv-overcooked/
+.runtime/
 data/
 __pycache__/
 .pytest_cache/

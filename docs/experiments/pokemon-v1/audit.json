@@ -1,0 +1,164 @@
+{
+  "schema": "pokemon-native-audit-v1",
+  "model_requests_made_by_audit": 0,
+  "episode_count": 4,
+  "native_completed_episodes": 4,
+  "excluded_cutoff_episodes": 0,
+  "excluded_incomplete_episodes": 0,
+  "audited_decision_calls": 66,
+  "recorded_request_count": 66,
+  "all_calls_explicitly_report_thinking_off": true,
+  "all_recorded_states_replayed": true,
+  "both_sides_use_frozen_decision_policies": true,
+  "complete_native_legal_catalogs_verified": true,
+  "cutoffs_excluded_from_score_and_win_rate": true,
+  "statistical_claim": false,
+  "by_harness": {
+    "h-4ed0bc307e8c027f": {
+      "native_completed": 3,
+      "incomplete": 0,
+      "cutoffs": 0,
+      "wins": 2,
+      "losses": 1,
+      "draws": 0,
+      "scores": [
+        100,
+        100,
+        0
+      ],
+      "mean_score": 66.66666666666667,
+      "native_win_rate": 0.6666666666666666
+    },
+    "h-f9d5b8cb2467c75c": {
+      "native_completed": 1,
+      "incomplete": 0,
+      "cutoffs": 0,
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "scores": [
+        100
+      ],
+      "mean_score": 100,
+      "native_win_rate": 1.0
+    }
+  },
+  "episodes": [
+    {
+      "episode_id": "ep-049b91f6fd3f48b5",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "play",
+      "candidate_seat": 0,
+      "steps": 13,
+      "native_turn": 5,
+      "actors": {
+        "p1": 6,
+        "p2": 7
+      },
+      "roles": {
+        "candidate": 6,
+        "opponent": 7
+      },
+      "status": "audited_native_terminal",
+      "valid_for_evaluation": true,
+      "native_terminal": true,
+      "truncated": false,
+      "result": "win",
+      "score": 100,
+      "observed_compatibility_score": null,
+      "termination_reason": "native_win",
+      "recorded_request_count": 13,
+      "decision_calls": 13,
+      "thinking_off_verified_calls": 13,
+      "decision_latency_total_ms": 3796.593,
+      "source_hash": "fd8e79866983c5afdc43cb57eb40663205bb3e9a681812e9913c22090ac13401"
+    },
+    {
+      "episode_id": "ep-07656df8c4a34a79",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "search_train",
+      "candidate_seat": 0,
+      "steps": 13,
+      "native_turn": 5,
+      "actors": {
+        "p1": 6,
+        "p2": 7
+      },
+      "roles": {
+        "candidate": 6,
+        "opponent": 7
+      },
+      "status": "audited_native_terminal",
+      "valid_for_evaluation": true,
+      "native_terminal": true,
+      "truncated": false,
+      "result": "win",
+      "score": 100,
+      "observed_compatibility_score": null,
+      "termination_reason": "native_win",
+      "recorded_request_count": 13,
+      "decision_calls": 13,
+      "thinking_off_verified_calls": 13,
+      "decision_latency_total_ms": 3773.896,
+      "source_hash": "7de5cc6a7f5479fe194796cd26c39857bafe0b61df4a000037fa09cb6f3fc99c"
+    },
+    {
+      "episode_id": "ep-0c9023b14bdc4729",
+      "harness_id": "h-f9d5b8cb2467c75c",
+      "purpose": "search_train",
+      "candidate_seat": 0,
+      "steps": 15,
+      "native_turn": 6,
+      "actors": {
+        "p1": 7,
+        "p2": 8
+      },
+      "roles": {
+        "candidate": 7,
+        "opponent": 8
+      },
+      "status": "audited_native_terminal",
+      "valid_for_evaluation": true,
+      "native_terminal": true,
+      "truncated": false,
+      "result": "win",
+      "score": 100,
+      "observed_compatibility_score": null,
+      "termination_reason": "native_win",
+      "recorded_request_count": 15,
+      "decision_calls": 15,
+      "thinking_off_verified_calls": 15,
+      "decision_latency_total_ms": 4492.803,
+      "source_hash": "cfe74a07ec588114dfb85c8d55ace1076e7271b330927de7c5dc760b664d762e"
+    },
+    {
+      "episode_id": "ep-0ea4565e483440dc",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "search_validation",
+      "candidate_seat": 1,
+      "steps": 25,
+      "native_turn": 11,
+      "actors": {
+        "p1": 12,
+        "p2": 13
+      },
+      "roles": {
+        "opponent": 12,
+        "candidate": 13
+      },
+      "status": "audited_native_terminal",
+      "valid_for_evaluation": true,
+      "native_terminal": true,
+      "truncated": false,
+      "result": "loss",
+      "score": 0,
+      "observed_compatibility_score": null,
+      "termination_reason": "native_win",
+      "recorded_request_count": 25,
+      "decision_calls": 25,
+      "thinking_off_verified_calls": 25,
+      "decision_latency_total_ms": 8244.553,
+      "source_hash": "107c519e5c1913bdf446f8af7362bb58dff71203cc53ccdd41af418d7cb35ea3"
+    }
+  ]
+}

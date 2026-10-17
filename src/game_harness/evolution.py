@@ -18,6 +18,7 @@ from .providers import ProviderError
 from .visibility import strip_private_fields
 from .feedback import COMPLETE_FORMAT, LEGACY_FORMAT, FORMATS, complete_episode, fit_pack
 from .initialization_contract import build_runtime_contract
+from .scoring import require_evaluable_result
 
 
 COMPONENTS = ("decision_instructions", "strategy_notes")
@@ -109,6 +110,7 @@ def _summary(episode: dict, *, include_trace: bool, game_context: dict | None = 
         raise EvolutionInfrastructureError("Episode reported an infrastructure failure; it cannot be scored")
     if episode.get("termination_reason") == "stopped":
         raise EvolutionStopped("Stopped episodes are incomplete and cannot be used as evaluation scores")
+    require_evaluable_result(episode, game_context or {})
     score = episode.get("score")
     if isinstance(score, bool) or not isinstance(score, (int, float)) or not math.isfinite(score):
         raise EvolutionInfrastructureError("Episode score must be a finite number")

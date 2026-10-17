@@ -93,6 +93,34 @@ def test_game_specific_minimum_gain_is_enforced(tmp_path, approved):
         export(tmp_path, approved)
 
 
+@pytest.mark.parametrize('change', [
+    {'candidate_native_terminal': False}, {'baseline_truncated': True},
+    {'candidate_result': 'unresolved'}, {'candidate_result': 'loss'},
+])
+def test_native_outcome_export_rejects_cutoff_or_inconsistent_score(tmp_path, approved, change):
+    context, job = approved[2], approved[1]
+    context['evaluation'] = {'require_native_terminal': True}
+    context['score_spec'].update(win=100, loss=0, draw=50)
+    for pair in job['pairs']:
+        pair.update(baseline=0, candidate=100, baseline_result='loss', candidate_result='win',
+                    baseline_native_terminal=True, candidate_native_terminal=True,
+                    baseline_truncated=False, candidate_truncated=False)
+    job['pairs'][0].update(change)
+    with pytest.raises(ValueError, match='[Nn]ative'):
+        export(tmp_path, approved)
+
+
+def test_native_outcome_export_accepts_only_completed_matching_pairs(tmp_path, approved):
+    context, job = approved[2], approved[1]
+    context['evaluation'] = {'require_native_terminal': True}
+    context['score_spec'].update(win=100, loss=0, draw=50)
+    for pair in job['pairs']:
+        pair.update(baseline=0, candidate=100, baseline_result='loss', candidate_result='win',
+                    baseline_native_terminal=True, candidate_native_terminal=True,
+                    baseline_truncated=False, candidate_truncated=False)
+    assert export(tmp_path, approved)['version_id'] == approved[0]['id']
+
+
 @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
 def test_non_finite_scores_cannot_satisfy_approval(tmp_path, approved, bad):
     approved[1]["pairs"][0]["candidate"] = bad
