@@ -112,8 +112,19 @@ def _audit_episode(episode, versions):
         require(episode['score'] == final['score'], 'score differs from immutable rules replay')
         require(episode['final_state'] == final, 'final board/state mismatch')
         require(episode['termination_reason'] == final['reason'], 'terminal reason mismatch')
-        return {'receipts': receipts, 'thinking_verified': thinking_verified,
-                'compatibility': 'adapter' if modern else 'legacy_snake_v1'}
+        result = {'receipts': receipts, 'thinking_verified': thinking_verified,
+                  'compatibility': 'adapter' if modern else 'legacy_snake_v1'}
+        context_config = episode.get('tetris_context_config')
+        expected_context = version.get('tetris_context_config') if modern else None
+        require(context_config == expected_context, 'episode context differs from frozen Harness')
+        if context_config is not None:
+            require(game_id == 'tetris', 'Tetris context on another game')
+            from game_harness.tetris_context import audit_context_episode
+            result['context_audit'] = audit_context_episode(episode, version)
+        else:
+            require(not any('tetris_context' in r for r in receipts),
+                    'context receipts without a frozen context configuration')
+        return result
     finally:
         if session is not None and hasattr(session, 'close'):
             session.close()

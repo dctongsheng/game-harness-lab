@@ -117,6 +117,8 @@ def public_settings(settings):
               "coach_base_url": settings.coach_base_url, "coach_model": settings.coach_model,
               "decision_timeout": settings.decision_timeout, "coach_timeout": settings.coach_timeout,
               "think_mode": "never"}
+    if settings.decision_api_key_file:
+        values["decision_auth"] = "bearer_key_file"
     for name in ("decision_url", "coach_base_url"):
         url = urlsplit(values[name])
         if url.username or url.password or url.query or url.fragment:

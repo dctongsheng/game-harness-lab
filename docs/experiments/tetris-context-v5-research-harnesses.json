@@ -1,0 +1,434 @@
+{
+  "schema": "tetris-context-research-harnesses/v1",
+  "status": "evaluated_no_promotion",
+  "published": false,
+  "parent": {
+    "id": "ctx-parent-b7751860862ff813",
+    "brief": {
+      "background": "俄罗斯方块原生按键Harness：80步决策预算，每个决策只选一个原生按键（含时长），没有落点预测或评分。四组共用同一策略，仅tetris_features与decision_goal_memory可选存在，出现时才使用。",
+      "goal": "在有限步数内定目标、逐键执行、及时锁块，铺平棋盘并消行，最大化原生points。",
+      "rules": "10×20棋盘+2行生成区；7-bag五块预览；每块hold一次；软降每3tick一行；横移按住9tick后每3tick重复；100/300/1000ms分别推进6/18/60tick；旋转/硬降/hold仅新按下边沿触发一次；硬降按当前位置与朝向直接落底锁定。消1/2/3/4行得100/300/500/800乘消行前等级。columns[].height是列顶高度非占用数；active.cells是实际占用格。",
+      "precautions": "短按横移不保证一格，动作后必须按实际cells核对；软降100ms约推进两行；每个新块先定目标旋转，再平移，到位立即硬降；避免同块内来回横移不锁定（历史大量left:300/right:1000摆动得0分）；目标不可达时自行clear或换目标，程序不代选；无目标记忆时不得假设已保存目标。",
+      "strategy": "每块流程：读棋盘（有tetris_features用height/hole_ys，否则读board.rows）→有decision_goal_memory则沿用target.leftmost_column/rotation，否则按“落最矮列、铺平补洞”自选→先rotate到目标朝向（差3次用rotate-ccw），再按列距选left/right时长逐步靠近并核对，到位立即hard-drop。每块控制在6-8步，避免在中央堆高。"
+    },
+    "experience_summary": [
+      {
+        "claim": "长按横移来回摆动导致80步内几乎不锁块、得分为0",
+        "evidence_episode_ids": [
+          "exp-b2903c427bed3f6bff55b256",
+          "exp-c5de200f86f44455366de11a",
+          "exp-411e927fe9faddb34ffc0531",
+          "exp-115c151b10ddf8f76f216a21"
+        ],
+        "limitations": "证据来自动作计数摘要，未见逐步细节；成因可能是目标缺失或过度修正。"
+      },
+      {
+        "claim": "同一方块内先left:300后right:1000式的方向反转频繁出现，浪费步数",
+        "evidence_episode_ids": [
+          "exp-b2903c427bed3f6bff55b256",
+          "exp-25ca3f79e209f4a8c61890d4"
+        ],
+        "limitations": "仅两个含明细的轨迹索引，未观察全部步骤。"
+      }
+    ],
+    "candidate": {
+      "decision_instructions": "每步按当前observation决策：(1)目标：若输入含decision_goal_memory且target有效，沿用target.leftmost_column与target.rotation；若target明显不可达（被障碍挡住或形状不合）则clear或自选新目标：I竖放补最矮列或平铺整行缺口、O放两列等高处、T/S/Z/J/L选能铺平或补洞的朝向与列；有tetris_features用columns[].height与hole_ys选最低高度列，无则读board.rows估算。输入无该字段时每步即时重判，不引用不存在的保存目标。(2)执行：先旋转——active.rotation≠目标朝向时选rotate-cw:100（差3选rotate-ccw:100），每步只转一次并核对；再平移——比较active.cells最左列与目标列，差≥4选left/right:1000，差2-3选300，差1选100，动作后按实际cells校正（短按可能多于一格）；旋转与列均到位时立即hard-drop:100锁定。(3)约束：方向已对准不再反转；每块尽量≤7步；grounded且位置正确时直接hard-drop；绝不向明显更高的列硬降；hold仅在当前块无处可放且holdAvailable时用一次。",
+      "strategy_notes": "核心修复历史两大失败模式：来回横移不锁定（目标缺失）与盲目硬降堆高TOP_OUT，改为“定目标—逐键执行—到位即锁”的短循环。利用next[0..4]粗略规划：若待铺行缺口为4列宽且预览中有I，保留I做四行消除（消4行得800乘消行前等级，消2/3行分别为300/500乘等级）；其余块优先铺平最矮列、用hole_ys识别并填补洞而非制造新洞。height是列顶高度不是占用数。有记忆组目标跨动作保留减少重复决策，无记忆组每步重读棋盘即时判断。所有调用think_mode=never，推演保持一两步内：只判断“当前朝向/列是否等于目标，否则选最接近目标的单个按键”。"
+    },
+    "game_id": "tetris",
+    "config": {
+      "game_id": "tetris",
+      "max_steps": 80
+    },
+    "game_context": {
+      "game_id": "tetris",
+      "name": "俄罗斯方块",
+      "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+      "rules": "俄罗斯方块为Decision Arena的MIT规则实现，10×20可见格，上方两行生成区。\n7-bag，预览五块，每块hold一次。初始每48tick下一行，每10行加快3tick，最低6tick；\n接地30tick锁定，最多15次移动/旋转重置锁定计时。左右按住9tick后每3tick重复，软降每3tick一行。\nSRS顺/逆时针旋转，硬降只将当前横向位置与朝向下的方块落到底并锁定，不自动寻找落点。\n消1/2/3/4行得100/300/500/800乘消行前等级；等级=1+累计消行数整除10。\n没有软硬降分、T-spin或combo奖励。顶部锁块或生成受阻结束，引擎最多7200tick。\n观察包含完整当前棋盘（含两行生成区）、当前方块、五块可见预览、暂存、重力与锁定计时；隐藏随机状态不暴露。\n目标是在决策预算与物理时钟内最大化原生points。\n本框架采用可暂停的决策步进。模型等待期间推进0物理tick；一个决策仅选择一个原生按键候选。\n候选中的100/300/1000毫秒分别执行6/18/60个60Hz物理tick；noop:100松键后也推进6tick。\n若引擎在这段期间自然结束，则立即结束，不再推进剩余tick。每次输入替换整组按住的键，到期自动松键。\n跳跃、旋转、硬降、暂存只在新按下的边沿触发一次，持续按住不自动重复；每个完整动作结束后已自然松键，\n下一次同键候选会产生新的按下边沿。横移按原生加速度/重复规则运行，没有寻路、自动跳跃、落点选择或危险动作过滤。\nstep是Decision决策次数，tick是物理时钟。到max_steps记step_limit截断，保留原生points，不授予生存奖励。\n本项目评分只用原生points；不使用参考竞技场compare的存活或其他平局排序。",
+      "score_spec": {
+        "id": "arena-tetris-points-v1",
+        "min": 0,
+        "max": 16594560000,
+        "direction": "maximize",
+        "unit": "原生消行积分",
+        "minimum_mean_gain": 100,
+        "description": "只使用原生消行points；1/2/3/4行得100/300/500/800乘消行前等级。软硬降和存活不加分。",
+        "upper_bound_basis": "保守上界：7200tick×每tick最多一次锁块×800×最高等级2881；不是实际可达到的目标。"
+      },
+      "config": {
+        "max_steps": 80,
+        "clock": "paused_native_input_duration",
+        "tick_rate": 60
+      },
+      "opponent_policy": null,
+      "scenario_policy": "整数seed转字符串，驱动参考引擎的确定性7-bag；仅可见五块预览，没有rng或其余队列。",
+      "action_policy": "本框架采用可暂停的决策步进。模型等待期间推进0物理tick；一个决策仅选择一个原生按键候选。\n候选中的100/300/1000毫秒分别执行6/18/60个60Hz物理tick；noop:100松键后也推进6tick。\n若引擎在这段期间自然结束，则立即结束，不再推进剩余tick。每次输入替换整组按住的键，到期自动松键。\n跳跃、旋转、硬降、暂存只在新按下的边沿触发一次，持续按住不自动重复；每个完整动作结束后已自然松键，\n下一次同键候选会产生新的按下边沿。横移按原生加速度/重复规则运行，没有寻路、自动跳跃、落点选择或危险动作过滤。\nstep是Decision决策次数，tick是物理时钟。到max_steps记step_limit截断，保留原生points，不授予生存奖励。\n本项目评分只用原生points；不使用参考竞技场compare的存活或其他平局排序。",
+      "evaluation": {
+        "seed_modulus": 1,
+        "minimum_pairs": 4,
+        "seed_semantics": "seed controls deterministic seven-bag piece order"
+      },
+      "source": {
+        "upstream_repository": "https://github.com/dctongsheng/decison-arena.git",
+        "upstream_commit": "4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d",
+        "license": "MIT",
+        "source_snapshot_sha256": "caed8f2ba9665a5a51c00c103bd213f7e1c3cb4ceb7433bbfb4ca58558c487fe",
+        "bridge_sha256": "e54a104324234f8c71d1b9e48601bb4ffb517f09daf13113ad443b523a940f41"
+      }
+    },
+    "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+    "decision_model": "startlux-decision-27b-autothink",
+    "think_mode": "never",
+    "created_at": "2026-10-17T03:23:07.941474+00:00"
+  },
+  "initialization": {
+    "coach_model": "glm-5.3",
+    "source_input_hash": "36d4987c944a039b049aa7d7eafea9579038ddfa3de50759a0a6d04e9d0126f7",
+    "coach_response_hash": "d927b7f904703d2b1daa0739521d8768348d726c2177a40b7bc8e46295a80350",
+    "context_contract_hash": "6617e3708811eb16ce039ea47294d8a5c45fe7f74159c8bdc8f75106e0dfbde0",
+    "coach_calls_total": 2,
+    "valid_experience_count": 2,
+    "rejected_experience_count": 2,
+    "additional_recovery_calls": 0,
+    "no_test_results_seen": true
+  },
+  "arm_context": {
+    "baseline": {
+      "schema": "tetris-context-v1",
+      "structured_facts": false,
+      "decision_goal_memory": false,
+      "replan_every_actions": 4
+    },
+    "facts": {
+      "schema": "tetris-context-v1",
+      "structured_facts": true,
+      "decision_goal_memory": false,
+      "replan_every_actions": 4
+    },
+    "memory": {
+      "schema": "tetris-context-v1",
+      "structured_facts": false,
+      "decision_goal_memory": true,
+      "replan_every_actions": 4
+    },
+    "both": {
+      "schema": "tetris-context-v1",
+      "structured_facts": true,
+      "decision_goal_memory": true,
+      "replan_every_actions": 4
+    }
+  },
+  "scenario_plan": {
+    "calibration": [
+      {
+        "id": "calibration-00",
+        "seed": 1256368473,
+        "order": [
+          "baseline",
+          "facts",
+          "memory",
+          "both"
+        ]
+      },
+      {
+        "id": "calibration-01",
+        "seed": 1466555447,
+        "order": [
+          "facts",
+          "memory",
+          "both",
+          "baseline"
+        ]
+      }
+    ],
+    "evaluation": [
+      {
+        "id": "evaluation-00",
+        "seed": 688614854,
+        "order": [
+          "baseline",
+          "facts",
+          "memory",
+          "both"
+        ]
+      },
+      {
+        "id": "evaluation-01",
+        "seed": 1581199265,
+        "order": [
+          "facts",
+          "memory",
+          "both",
+          "baseline"
+        ]
+      },
+      {
+        "id": "evaluation-02",
+        "seed": 820156647,
+        "order": [
+          "memory",
+          "both",
+          "baseline",
+          "facts"
+        ]
+      },
+      {
+        "id": "evaluation-03",
+        "seed": 1592759214,
+        "order": [
+          "both",
+          "baseline",
+          "facts",
+          "memory"
+        ]
+      },
+      {
+        "id": "evaluation-04",
+        "seed": 57369070,
+        "order": [
+          "baseline",
+          "facts",
+          "memory",
+          "both"
+        ]
+      },
+      {
+        "id": "evaluation-05",
+        "seed": 1816024810,
+        "order": [
+          "facts",
+          "memory",
+          "both",
+          "baseline"
+        ]
+      },
+      {
+        "id": "evaluation-06",
+        "seed": 1706491921,
+        "order": [
+          "memory",
+          "both",
+          "baseline",
+          "facts"
+        ]
+      },
+      {
+        "id": "evaluation-07",
+        "seed": 203271312,
+        "order": [
+          "both",
+          "baseline",
+          "facts",
+          "memory"
+        ]
+      },
+      {
+        "id": "evaluation-08",
+        "seed": 1857640880,
+        "order": [
+          "baseline",
+          "facts",
+          "memory",
+          "both"
+        ]
+      },
+      {
+        "id": "evaluation-09",
+        "seed": 1072718353,
+        "order": [
+          "facts",
+          "memory",
+          "both",
+          "baseline"
+        ]
+      },
+      {
+        "id": "evaluation-10",
+        "seed": 1157982129,
+        "order": [
+          "memory",
+          "both",
+          "baseline",
+          "facts"
+        ]
+      },
+      {
+        "id": "evaluation-11",
+        "seed": 799307376,
+        "order": [
+          "both",
+          "baseline",
+          "facts",
+          "memory"
+        ]
+      }
+    ]
+  },
+  "excluded_environment_seeds": [
+    500,
+    501,
+    3943812,
+    34243082,
+    65139475,
+    78173806,
+    120288893,
+    136944670,
+    201387034,
+    216913128,
+    248205064,
+    249776852,
+    261001089,
+    323692425,
+    392405837,
+    394970432,
+    418372384,
+    431412461,
+    464455112,
+    474176444,
+    475322852,
+    602352629,
+    707521810,
+    940280112,
+    982114003,
+    992162465,
+    1040469928,
+    1078736626,
+    1102289242,
+    1120054564,
+    1124250886,
+    1139277783,
+    1170414732,
+    1188414775,
+    1192064188,
+    1247889896,
+    1424806537,
+    1461638712,
+    1475065126,
+    1542170367,
+    1617938269,
+    1677071946,
+    1681598144,
+    1699062210,
+    1703263442,
+    1706391134,
+    1788753006,
+    1794773833,
+    1839907672,
+    1854399569,
+    1881237911,
+    1908365853,
+    1916029380,
+    2017229331,
+    2023560888,
+    2045083668
+  ],
+  "statistics": {
+    "bootstrap_seed": 74105,
+    "bootstrap_resamples": 10000,
+    "bootstrap_unit": "one paired environment bag seed; all four arms stay together",
+    "primary_comparisons": [
+      "facts-baseline",
+      "memory-baseline",
+      "both-baseline"
+    ],
+    "primary_metric": "native line-clear points",
+    "secondary_metric": "native cleared lines",
+    "confidence_levels": [
+      0.95,
+      0.9833333333333333
+    ],
+    "bonferroni_comparisons": 3,
+    "interaction": "both - facts - memory + baseline; exploratory, not a promotion test"
+  },
+  "screening_gate": {
+    "minimum_mean_gain": 100,
+    "no_pair_regression": true,
+    "familywise_bootstrap_lower_greater_than": 0
+  },
+  "code_hashes": {
+    "pyproject.toml": "a0ad6cb6eb17d84f923c9cdd82876b2547f8a8682a000c1f9a7227f50362a896",
+    "scripts/audit_saved_run.py": "fd3eb8b32c6a2ac8cec84b81dbb360582995fa64e4753e315e319f507bdca61e",
+    "scripts/initialize_tetris_context_harness.py": "aff2b590f36056e5d98bf1a62d661df157e3119118f6f8483b3dfb559b987cdc",
+    "scripts/run_feedback_experiment.py": "d48f8930c09119797e2d51bede736cdf94868c2c8004f5b85c4ac11f310f0f20",
+    "scripts/run_tetris_context_experiment.py": "f290f963bc7d8eca7dbecd9d16be13a394101d6416bf65447b273a215eebcd0d",
+    "src/game_harness/__init__.py": "d62ebde25ffdac07b9ac02027e29cc5abf01561dbb7493e419861365eb02461f",
+    "src/game_harness/__main__.py": "47c4457a8014127610118d15f2873cc230c395b6e06b2dafda542cc9cdf8bd62",
+    "src/game_harness/app.py": "34defd693636740c270df8a2d42e246a61b800ee9ef8e4b083458771942c4ccd",
+    "src/game_harness/evolution.py": "dc5f59f0acd37294f98a13e2ef626a77b8ebece0c40fdc7232b93cec7ef314d4",
+    "src/game_harness/exporting.py": "5ded02daf021aeb095833e35c9faec46cfbbb31e559f78a9b0a2864d86da137e",
+    "src/game_harness/feedback.py": "eacb3fc872fd9cd87abaf1749259d4ba8ff63382c7eed97abee425ce752bfce1",
+    "src/game_harness/games/__init__.py": "1c0d7bb6ddbb091991360520fe952954327881f8f4faf2c607e1c58eedeb97f4",
+    "src/game_harness/games/arcade.py": "1926d5a1e1f8bdff2fe05c6d7dd1293468d0ec8ad39969494964772d407d8e33",
+    "src/game_harness/games/arcade_bridge.cjs": "e54a104324234f8c71d1b9e48601bb4ffb517f09daf13113ad443b523a940f41",
+    "src/game_harness/games/arcade_bridge.ts": "431f88acadd8e46b04d4f277dde7772c21e33843a008de5cd4243245088ba946",
+    "src/game_harness/games/army.py": "fc04e6ad550bea569dcb0030b67ba4eabdb3e16074d836b65579ff6633acd689",
+    "src/game_harness/games/base.py": "9e146477f54f6fab777b55d8f4a910c5aafdba75dd6d00d1e7ba60aa46319588",
+    "src/game_harness/games/board_bridge.cjs": "5404b9217544d9d354022195e60749a56dfc18a1abe3a7c9ac9ba28756ae5994",
+    "src/game_harness/games/board_bridge.ts": "8311864e65b86122471c1cb4001e39c02117f78dd0be7a882be3c98b5b0c36e3",
+    "src/game_harness/games/gomoku.py": "c70c19da162bb5eb29c38e80dea20b9ad387d269a48c72deaf791d6e08416086",
+    "src/game_harness/games/node_bridge.py": "c2d756c6ca90f74adff315cd7227bd6aa7a7ef884f54ad56f5be2393a035820f",
+    "src/game_harness/games/platformer.py": "c41b12c1ae64595c968e34891cd1c906b1900c7e68df1e7d3e9e3bb301e0bc03",
+    "src/game_harness/games/snake.py": "c5cbb46fad32de652d8bc92f41ae678cb7a2a24ec16ee77fac8655e467593cf5",
+    "src/game_harness/games/tetris.py": "d7d50f8c3015c53a8af0b42004ce955c891a00e769644add49d5a6cd25c6d3d4",
+    "src/game_harness/games/vendor/LICENSE.xiangqi": "48095c80be59c5ab41f730d9fa5291b539495bc818be3d54e6ac9f602ebeaa9e",
+    "src/game_harness/games/vendor/arena-arcade/LICENSE": "6016eb567429fa2ed2aafe74fd740946e44be0d56e3ebe7d81b57e4bdde8cda1",
+    "src/game_harness/games/vendor/arena-arcade/SOURCE.json": "985268f80ac3476e1570c3974dc939ec06015d088bc3d01715c50bf13c384106",
+    "src/game_harness/games/vendor/arena-arcade/packages/core/src/arcade.ts": "0adf8e7f43961d81ac6972690ac54b6c333af74eb2411861111f352ea33395ff",
+    "src/game_harness/games/vendor/arena-arcade/packages/core/src/index.ts": "429dc0c0a61a56a8c7c89ce2bcf32816152960f635ec477daf138365b8a6b4eb",
+    "src/game_harness/games/vendor/arena-arcade/packages/games/src/arcade/common.ts": "887e8d7628c59d5ec026bab4bae4cb82525e2b60741d80532299a193e265c1fe",
+    "src/game_harness/games/vendor/arena-arcade/packages/games/src/arcade/platformer.ts": "adbfc375b136c36c507e3752f81552c9ffbc61b09720a8ddf3adf3116e1759ae",
+    "src/game_harness/games/vendor/arena-arcade/packages/games/src/arcade/tetris.ts": "90a139342b70513a199225347f83c5d9dc6dfb5d2870c077bc7b200f7a56b79b",
+    "src/game_harness/games/vendor/arena-board/LICENSE": "6016eb567429fa2ed2aafe74fd740946e44be0d56e3ebe7d81b57e4bdde8cda1",
+    "src/game_harness/games/vendor/arena-board/SOURCE.json": "ca178a4a0ea836f221ee8a27ebb2440eb85c0453d8bf01077b3798585f6990c3",
+    "src/game_harness/games/vendor/arena-board/army.ts": "ea8711cbe6280d85a09a80d8504f90da461527854c30a47b950edfa7b9ba48bb",
+    "src/game_harness/games/vendor/arena-board/common.ts": "721f69b90dae1fdb54664b2dd2d225b5b0f0d955231b036f9b708bac9e5ec946",
+    "src/game_harness/games/vendor/arena-board/gomoku.ts": "f3641d68f05ab81009618861a7cb319ed318ca91252132dc6683d770d7ae20a1",
+    "src/game_harness/games/vendor/xiangqi.cjs": "f2de592d3a81cf79cd36f0d09e6efbb4bdb357082c2d421bf76d2d8eb7c619fe",
+    "src/game_harness/games/xiangqi.py": "03343bb259f000134b890ba57737addf53f939a1fcae9abf21cf694ec775c6c6",
+    "src/game_harness/games/xiangqi_bridge.cjs": "21e71657c8d5243696b898dd9d60185ab64d8e7e2e3afbc984ee2f17b940f4ba",
+    "src/game_harness/initialization_contract.py": "a041006948548eabc9a08e1a6517fc67a271da7f5971ada2d67d4e001f780c3e",
+    "src/game_harness/providers.py": "e7efe9f4c27ad0e2242af84f281fd1e3f164ffc51d94043fe8743f0d1feb3ca2",
+    "src/game_harness/runtime.py": "79f204831eda758df718ac5fa0d7bce579a1bb0a2d549e5e8b0c1af1c7cab464",
+    "src/game_harness/service.py": "f331e0d73a46798298d82de8f5a85c830f683cd122b893c238b8f6e198f9cf34",
+    "src/game_harness/snake.py": "2380db374c6759443823a0aa98d2c8c9132588e45dfaa165521e62e89bedda66",
+    "src/game_harness/static/index.html": "45f82f530a38da8315fa4bbd7b0ae2d80bfe4a783a715c432620bcb593578244",
+    "src/game_harness/store.py": "c09e78c22924ae7bfce534c90d610a93450353b584186d2ce16766332e461d92",
+    "src/game_harness/tetris_context.py": "ed373af1848f1ae8d7b200df22840a7026f2be6edddd5bcc14d97b86e07249a3",
+    "src/game_harness/tetris_features.py": "9232ea144bd5b95e73686b9d4eb3850817425dcc5f35c8e4a13c531a88119bc8",
+    "src/game_harness/visibility.py": "52438516646f8beec9e854f4e7fbca26dfd681bdbf788670ce08918dbb1c6cc7",
+    "src/game_harness_lab.egg-info/PKG-INFO": "ebbfc73f224245a78e705b250e1ea69c0e6bf37bc2add15ac95f28ae1c12fe57",
+    "src/game_harness_lab.egg-info/SOURCES.txt": "108694bd54a042d42e7efad1865abe465769dcbf44f9de8e4dc81bf1e0ac9cb2",
+    "src/game_harness_lab.egg-info/dependency_links.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "src/game_harness_lab.egg-info/requires.txt": "57edcb8246ee96563e2e7e8d5a8ce763b5fa05c849788065fa9a04412f8a37fa",
+    "src/game_harness_lab.egg-info/top_level.txt": "1fdf19bee9ae8d436b0d2b4cfcd71768fa6e40c61b9894216872177f95f1f0cd"
+  },
+  "manifest_sha256": "26cd62969e76f8375b981980c7d5809fa0650481a6789eac657a95953a167f33",
+  "constraints": {
+    "publish": false,
+    "registry_writes": false,
+    "automatic_export": false,
+    "gepa": false,
+    "in_game_coach": false,
+    "arm_policy_text_changes": false,
+    "scoring_early_stop": false,
+    "score_dependent_extra_trials": false,
+    "calibration_is_independent_test": false,
+    "evaluation_requires_calibration_complete_only": true,
+    "failed_attempts": "Stop on any infrastructure/audit error; retain evidence; never score a failed episode as zero."
+  },
+  "limitations": [
+    "Twelve unique bag seeds give limited statistical power; bootstrap intervals are descriptive, not proof of universal game ability.",
+    "Calibration cannot change policy, context, gates, sample count or evaluation seeds within this frozen study.",
+    "Decision goal memory adds Decision calls and a fixed goal interface; its comparison does not isolate memory from extra inference budget.",
+    "Episode identifiers differ between arms and are opaque; provider nondeterminism and service drift remain possible.",
+    "Fresh seed IDs avoid all discovered prior scheduled or played seeds; distinct IDs are not a guarantee of distinct full seven-bag sequences.",
+    "Passing a screening gate never publishes or promotes an experimental Harness."
+  ],
+  "experiment_id": "tetris-context-v5b-20261017",
+  "decision_auth": "bearer_key_file",
+  "superseded_before_gameplay": {
+    "id": "tetris-context-v5-20261017",
+    "game_calls": 0,
+    "health_failed": 1
+  }
+}

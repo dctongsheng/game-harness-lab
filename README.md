@@ -2,7 +2,7 @@
 
 **通用游戏 Harness 进化框架：游戏适配器 + Decision 玩家 + GEPA 局后优化 + 验收后导出。** 当前支持贪吃蛇、中国象棋、军棋、五子棋、俄罗斯方块和原创平台跳跃。
 
-所有局内动作都由 StartLux Decision 选择，显式 `think_mode=never`、`allow_none=false`。GLM-5.3 只负责初始化游戏资料与局后反思。适配器负责规则、完整动作集和计分，运行器负责模型调用与执行校验。
+所有局内动作都由 StartLux Decision 选择，显式 `think_mode=never`、`allow_none=false`。GLM-5.3 负责游戏资料、策略设计、历史经验提取与局后反思。适配器负责规则、完整动作集和计分，运行器负责模型调用与执行校验。
 
 ## 启动
 
@@ -16,7 +16,7 @@
 
 打开 **http://127.0.0.1:18765**，选择游戏，点击开始实验。支持暂停、继续、停止、历史回放、资料/策略对比以及已批准版本回滚。
 
-本机配置的玩家为 `http://127.0.0.1:18090/v1/systemone` / `startlux-decision-27b-autothink`，教练为 `glm-5.3`。模型服务的全局思考默认值未改，每次玩家请求覆盖为 `never` 并验证遥测。
+本机配置的玩家为 `http://127.0.0.1:18080/v1/systemone` / `startlux-decision-27b-autothink`，教练为 `glm-5.3`。需要认证时，在本地 `.env` 设置 `DECISION_API_KEY_FILE=~/.config/startlux-decision/api.key`；密钥只进入 HTTP Authorization，不进入模型 state、实验 manifest 或 Git。模型服务的全局思考默认值未改，每次玩家请求覆盖为 `never` 并验证遥测。
 
 ## 如何进化
 
@@ -51,6 +51,8 @@ flowchart LR
 
 ## Harness 保存在哪里
 
+0.5.0 新增俄罗斯方块的实验性上下文组件：可独立启用结构化棋盘事实，以及由 Decision 自己更新的每块目标与短期动作记忆。四组对照命令及真实结果见 [V5 实验文档](docs/tetris-context-validation-v5.md)。这些选项通过实验运行器显式启用，网页常规运行默认关闭。LLM 可参与上下文整理；本轮在对局前完成历史经验提取并冻结，以隔离两个实验因素。
+
 运行中的全部版本与轨迹位于本地 `data/`，不提交 Git。**通过配对验收的版本自动导出到：**
 
 ```text
@@ -80,6 +82,7 @@ harnesses/<游戏>/<版本>/
 - [V3 四游戏适配与验证边界](docs/additional-games-v3.md)
 - [六游戏 RSI 诊断与实验设计](docs/rsi-diagnosis-v1.md)
 - [V4 完整反馈与真实对照实验](docs/feedback-validation-v4.md)
+- [V5 俄罗斯方块结构事实与目标记忆](docs/tetris-context-validation-v5.md)
 - [V1 总结](docs/project-summary-v1.md)、[V1 历史实测](docs/validation-v1.md)
 - [原始长期架构提案](docs/architecture.md)、[路线图](docs/roadmap.md)
 - [第三方来源与许可证](THIRD_PARTY_NOTICES.md)

@@ -121,6 +121,13 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
     if type(step_budget) is not int or step_budget < 1:
         raise ValueError("max_steps must be a positive integer")
     frozen_harness = deepcopy(harness)
+    tetris_context_config = frozen_harness.get("tetris_context_config")
+    if tetris_context_config is not None:
+        if adapter.id != "tetris":
+            raise ValueError("Tetris context is only valid for the Tetris adapter")
+        from .tetris_context import TetrisDecisionHarness, validate_config
+        tetris_context_config = validate_config(tetris_context_config)
+        provider = TetrisDecisionHarness(provider, tetris_context_config)
     frozen_context = deepcopy(adapter.context(frozen_config))
     _canonical(frozen_context)
     rules = frozen_context.get("rules", adapter.rules)
@@ -160,6 +167,8 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
                 details["rejected_or_pending_receipt"] = deepcopy(pending_receipt)
             except (TypeError, ValueError, RecursionError):
                 details["receipt_unserializable"] = True
+        if tetris_context_config is not None and getattr(provider, "pending_context", None) is not None:
+            details["tetris_pending_context"] = deepcopy(provider.pending_context)
         return details
 
     try:
@@ -271,6 +280,8 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
             ) else "not_reported"
         ),
     }
+    if tetris_context_config is not None:
+        result["tetris_context_config"] = deepcopy(tetris_context_config)
     try:
         log({"type": "episode_end", **{k: v for k, v in result.items() if k != "trace"}})
     except Exception as exc:

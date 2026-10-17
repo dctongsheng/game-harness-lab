@@ -37,6 +37,7 @@ class Settings:
     coach_model: str
     coach_api_key: str
     coach_timeout: float
+    decision_api_key_file: str = ""
 
     @classmethod
     def load(cls):
@@ -51,6 +52,7 @@ class Settings:
             os.getenv("COACH_MODEL", "glm-5.3"),
             os.getenv("COACH_API_KEY", ""),
             float(os.getenv("COACH_TIMEOUT", "180")),
+            os.getenv("DECISION_API_KEY_FILE", ""),
         )
 
 
@@ -86,12 +88,21 @@ def validate_candidate(candidate: dict) -> dict[str, str]:
 class DecisionProvider:
     def __init__(self, settings: Settings, client: httpx.Client | None = None):
         self.settings = settings
+        self._headers = {}
+        if settings.decision_api_key_file:
+            try:
+                key = Path(settings.decision_api_key_file).expanduser().read_text().strip()
+            except (OSError, UnicodeError):
+                raise ProviderError("无法读取 Decision 认证密钥文件") from None
+            if not key or any(character.isspace() for character in key):
+                raise ProviderError("Decision 认证密钥文件为空或格式无效")
+            self._headers["Authorization"] = "Bearer " + key
         self.client = client or httpx.Client(timeout=settings.decision_timeout, trust_env=False)
 
     def health(self) -> dict:
         base = self.settings.decision_url.split("/v1/", 1)[0]
         try:
-            response = self.client.get(base + "/health", timeout=8)
+            response = self.client.get(base + "/health", timeout=8, headers=self._headers)
             response.raise_for_status()
             data = response.json()
             model = data.get("model")
@@ -118,7 +129,7 @@ class DecisionProvider:
                    "allow_none": False}
         start = time.perf_counter()
         try:
-            response = self.client.post(self.settings.decision_url, json=payload)
+            response = self.client.post(self.settings.decision_url, json=payload, headers=self._headers)
             if response.status_code != 200:
                 raise ProviderError(f"Decision HTTP {response.status_code}；没有执行动作")
             data = response.json()

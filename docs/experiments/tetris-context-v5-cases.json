@@ -1,0 +1,1911 @@
+{
+  "schema": "tetris-context-cases/v1",
+  "experiment_id": "tetris-context-v5b-20261017",
+  "step_indexing": "zero_based",
+  "cases": [
+    {
+      "trial": "calibration-00-both",
+      "episode_id": "exp-1216538e9a69a952f85b2b87",
+      "source_file_sha256": "73807f4331701d4eef76790b5e44b3c32b67a56745819750bab8641e232d82eb",
+      "seed": 1256368473,
+      "score": 0,
+      "lines": 0,
+      "steps": 80,
+      "reason": "step_limit",
+      "selection_note": "Calibration diagnostic; overshoot and a later successful one-cell move.",
+      "selected_steps": [
+        {
+          "step": 3,
+          "piece_id": 3,
+          "piece_type": "S",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 4,
+              "y": -2
+            },
+            {
+              "x": 5,
+              "y": -2
+            },
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "right:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [
+            "target:6:0"
+          ],
+          "before_min_x": 3,
+          "after_active_min_x": 7,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:3:afd938bd0c52ed4f",
+            "response_hash": "ab2425a27e8d59faf02ee058ac8143206384e06efd8e7170d9127beb0872b86c",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 4,
+          "piece_id": 3,
+          "piece_type": "S",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 8,
+              "y": -2
+            },
+            {
+              "x": 9,
+              "y": -2
+            },
+            {
+              "x": 7,
+              "y": -1
+            },
+            {
+              "x": 8,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "left:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 7,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:4:215ecd680999fda4",
+            "response_hash": "8f2a68ae20a809dc86ecec180fca7fb6eabe0713cc43c3e8d03451bcb496a798",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 5,
+          "piece_id": 3,
+          "piece_type": "S",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 4,
+              "y": -2
+            },
+            {
+              "x": 5,
+              "y": -2
+            },
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "right:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 3,
+          "after_active_min_x": 7,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:5:bbf3e16e3d2caba3",
+            "response_hash": "4a40d275dcd32bcb126eeff91b354f97c5beccea03fb42173e52e999b0162984",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 6,
+          "piece_id": 3,
+          "piece_type": "S",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 8,
+              "y": -1
+            },
+            {
+              "x": 9,
+              "y": -1
+            },
+            {
+              "x": 7,
+              "y": 0
+            },
+            {
+              "x": 8,
+              "y": 0
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "left:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 7,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:6:0437e665e9c34815",
+            "response_hash": "a8e94fce1cefb542d415396e424b13fb7465df605be254c62a9a152db803adaf",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 7,
+          "piece_id": 3,
+          "piece_type": "S",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            },
+            {
+              "x": 3,
+              "y": 0
+            },
+            {
+              "x": 4,
+              "y": 0
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "right:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [
+            "target:6:0"
+          ],
+          "before_min_x": 3,
+          "after_active_min_x": 7,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:7:472695c5408c9161",
+            "response_hash": "d93422cd8bd8928d0ec8c58f165d465213612097d63feba678f1ea4bb3cb9e6f",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 8,
+          "piece_id": 3,
+          "piece_type": "S",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 8,
+              "y": -1
+            },
+            {
+              "x": 9,
+              "y": -1
+            },
+            {
+              "x": 7,
+              "y": 0
+            },
+            {
+              "x": 8,
+              "y": 0
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "left:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 7,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:8:8f1725aa92908da9",
+            "response_hash": "e8abcb5d560ded17e5bda41aa42b46f4bcd6878dfca2770b931ff603999414d1",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 75,
+          "piece_id": 5,
+          "piece_type": "I",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            },
+            {
+              "x": 6,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 5,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 1
+          },
+          "action": "rotate-cw:100",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "....SS....",
+            "...SS.....",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "....SS....",
+            "...SS.....",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [
+            "target:6:1"
+          ],
+          "before_min_x": 3,
+          "after_active_min_x": 5,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:75:22706afbb2414e8c",
+            "response_hash": "b56a53bf5fffbbd0a328de07d3c084e8f685a61669a544560771d7f31e5d8652",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 76,
+          "piece_id": 5,
+          "piece_type": "I",
+          "rotation": 1,
+          "before_active_cells": [
+            {
+              "x": 5,
+              "y": -2
+            },
+            {
+              "x": 5,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": 0
+            },
+            {
+              "x": 5,
+              "y": 1
+            }
+          ],
+          "after_piece_id": 5,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 1
+          },
+          "action": "right:100",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "....SS....",
+            "...SS.....",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "....SS....",
+            "...SS.....",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 5,
+          "after_active_min_x": 6,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:76:62023a7ae5ba3110",
+            "response_hash": "2085b1a9a1bfa1c4ea885fe8675a71cedd087c006c182e7aff7ef9ca62395114",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 77,
+          "piece_id": 5,
+          "piece_type": "I",
+          "rotation": 1,
+          "before_active_cells": [
+            {
+              "x": 6,
+              "y": -2
+            },
+            {
+              "x": 6,
+              "y": -1
+            },
+            {
+              "x": 6,
+              "y": 0
+            },
+            {
+              "x": 6,
+              "y": 1
+            }
+          ],
+          "after_piece_id": 6,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 1
+          },
+          "action": "hard-drop:100",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "....SS....",
+            "...SS.....",
+            "ZZ..OO....",
+            ".ZZ.OO...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "....SSI...",
+            "...SS.I...",
+            "ZZ..OOI...",
+            ".ZZ.OOI..."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 6,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-1216538e9a69a952f85b2b87:step:77:a8a1c6c504cbfe3a",
+            "response_hash": "e104481562ab911b826bab06a0905762b2aeafa097e5079ea5dbff9bc391e792",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        }
+      ]
+    },
+    {
+      "trial": "evaluation-01-both",
+      "episode_id": "exp-d0c9bc5738fd8c44cd9adc22",
+      "source_file_sha256": "a74e2c2ad56b3b7696f07be5bbce6571a739ef2c9ce29f691277fff47fb0497d",
+      "seed": 1581199265,
+      "score": 100,
+      "lines": 1,
+      "steps": 80,
+      "reason": "step_limit",
+      "selection_note": "First observed positive formal episode; selected after completion for illustration, not representative sampling.",
+      "selected_steps": [
+        {
+          "step": 0,
+          "piece_id": 1,
+          "piece_type": "J",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 3,
+              "y": -2
+            },
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 1,
+          "target": {
+            "leftmost_column": 0,
+            "rotation": 0
+          },
+          "action": "left:1000",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".........."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".........."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [
+            "target:0:0"
+          ],
+          "before_min_x": 3,
+          "after_active_min_x": 0,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:0:4d4a5f06592d8be7",
+            "response_hash": "0dbc6038767647e94bb2461d8a583dc2679171b8e00d2b5cc6cc4215d9a1b780",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 1,
+          "piece_id": 1,
+          "piece_type": "J",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 0,
+              "y": -1
+            },
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 2,
+              "y": 0
+            }
+          ],
+          "after_piece_id": 2,
+          "target": {
+            "leftmost_column": 0,
+            "rotation": 0
+          },
+          "action": "hard-drop:100",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".........."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J.........",
+            "JJJ......."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 0,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:1:629d8f1a89ad9fa5",
+            "response_hash": "4d65080ddc15169496d8620bb19843b95d94249823c4a12c36356949e6333680",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 2,
+          "piece_id": 2,
+          "piece_type": "T",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 4,
+              "y": -2
+            },
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 3,
+            "rotation": 0
+          },
+          "action": "hard-drop:100",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J.........",
+            "JJJ......."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [
+            "target:3:0"
+          ],
+          "before_min_x": 3,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:2:d5b37246e312e792",
+            "response_hash": "2831056d10df0bf311e60eb2718b2d8eda0dfe0972f012e4d4de8c7e4795c8fc",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 3,
+          "piece_id": 3,
+          "piece_type": "L",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 5,
+              "y": -2
+            },
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "right:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [
+            "target:6:0"
+          ],
+          "before_min_x": 3,
+          "after_active_min_x": 7,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:3:879f15a58fb37814",
+            "response_hash": "e0bdccf9b0c3cb82e3993ae82e371eb5324f0520f1f318c02307b44db2bc5b61",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 4,
+          "piece_id": 3,
+          "piece_type": "L",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 9,
+              "y": -2
+            },
+            {
+              "x": 7,
+              "y": -1
+            },
+            {
+              "x": 8,
+              "y": -1
+            },
+            {
+              "x": 9,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "left:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 7,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:4:5e63999863afcd73",
+            "response_hash": "62c1ad3e12e6b6f5fab3f3546a88b295f053c05158905e9c1eacbe0d34338ed3",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 50,
+          "piece_id": 3,
+          "piece_type": "L",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 9,
+              "y": 15
+            },
+            {
+              "x": 7,
+              "y": 16
+            },
+            {
+              "x": 8,
+              "y": 16
+            },
+            {
+              "x": 9,
+              "y": 16
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "left:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 7,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:50:a9fdd1ae6714b4d4",
+            "response_hash": "9114fa8809ebece80d34269020317eeba597ed2f80ced052a5667168e5503090",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 51,
+          "piece_id": 3,
+          "piece_type": "L",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 5,
+              "y": 16
+            },
+            {
+              "x": 3,
+              "y": 17
+            },
+            {
+              "x": 4,
+              "y": 17
+            },
+            {
+              "x": 5,
+              "y": 17
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "right:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [
+            "target:6:0"
+          ],
+          "before_min_x": 3,
+          "after_active_min_x": 7,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:51:09bebbbb8713f628",
+            "response_hash": "8505687a717e001459f8ff17ffe4c6d584360c5afa3709aaf3c5b09b079660e1",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 52,
+          "piece_id": 3,
+          "piece_type": "L",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 9,
+              "y": 16
+            },
+            {
+              "x": 7,
+              "y": 17
+            },
+            {
+              "x": 8,
+              "y": 17
+            },
+            {
+              "x": 9,
+              "y": 17
+            }
+          ],
+          "after_piece_id": 3,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "left:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 7,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:52:242c8e19b7e1fb25",
+            "response_hash": "9fe078677cff4535da52b4e1d86b1f9b55cbd6d81985d807a10663e0e7e64f4f",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 53,
+          "piece_id": 3,
+          "piece_type": "L",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 5,
+              "y": 16
+            },
+            {
+              "x": 3,
+              "y": 17
+            },
+            {
+              "x": 4,
+              "y": 17
+            },
+            {
+              "x": 5,
+              "y": 17
+            }
+          ],
+          "after_piece_id": 4,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "hard-drop:100",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [],
+          "before_min_x": 3,
+          "after_active_min_x": 3,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:53:f5f19a1c378caf9d",
+            "response_hash": "bebf184e062e3e446ce825350ee7234faf53bbfaeba0472c103e3417c472ab3f",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 54,
+          "piece_id": 4,
+          "piece_type": "I",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            },
+            {
+              "x": 6,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 4,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "right:300",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "lines_before": 0,
+          "lines_after": 0,
+          "points_before": 0,
+          "points_after": 0,
+          "goal_choices_this_step": [
+            "target:6:0"
+          ],
+          "before_min_x": 3,
+          "after_active_min_x": 6,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:54:c9eb87b3a2deccc5",
+            "response_hash": "03518d4f1c97d4fffd344a92139ba6ea53f27404dc57b6b5a27e104546191a23",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        },
+        {
+          "step": 55,
+          "piece_id": 4,
+          "piece_type": "I",
+          "rotation": 0,
+          "before_active_cells": [
+            {
+              "x": 6,
+              "y": -1
+            },
+            {
+              "x": 7,
+              "y": -1
+            },
+            {
+              "x": 8,
+              "y": -1
+            },
+            {
+              "x": 9,
+              "y": -1
+            }
+          ],
+          "after_piece_id": 5,
+          "target": {
+            "leftmost_column": 6,
+            "rotation": 0
+          },
+          "action": "hard-drop:100",
+          "board_rows_before": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "J...T.....",
+            "JJJTTT...."
+          ],
+          "board_rows_after": [
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            ".....L....",
+            "...LLL....",
+            "J...T....."
+          ],
+          "lines_before": 0,
+          "lines_after": 1,
+          "points_before": 0,
+          "points_after": 100,
+          "goal_choices_this_step": [],
+          "before_min_x": 6,
+          "after_active_min_x": 4,
+          "receipt": {
+            "request_id": "exp-d0c9bc5738fd8c44cd9adc22:step:55:fd6a33797d2f7dd4",
+            "response_hash": "297275e47fb448beee3c7fd8b1adfb0f7d2a6e9cfee4ad0d44095b713a41ec28",
+            "model": "startlux-decision-27b-autothink",
+            "think_mode": "never",
+            "think_used": false,
+            "reasoning_tokens": 0
+          }
+        }
+      ]
+    }
+  ],
+  "interpretation": "Exploratory cases only; use all twelve paired seeds to assess effects. Matching a target is not proof of an optimal move.",
+  "board_rows_encoding": "Array index 0 is y=-2, index 21 is y=19; each string is x=0..9; dot is empty. Locked board only."
+}

@@ -1,0 +1,252 @@
+"""Optional, auditable Tetris observations and Decision-owned goal memory.
+
+This module never steps a game or selects a native input. Goals are unranked
+declarations selected by the same Decision provider, not executable macros.
+"""
+from __future__ import annotations
+
+from copy import deepcopy
+import math
+from types import SimpleNamespace
+
+from .runtime import ReceiptError, _digest, _policy_instructions, _validate_receipt
+from .tetris_features import build_tetris_features
+
+
+CONTEXT_CONTRACT = """可选玩家接口合同（四组共用）：
+若输入有 tetris_features，它仅是当前可见棋盘的确定性结构事实；不是动作、落点评分或建议。没有该字段时读取原始 observation。
+若输入有 decision_goal_memory，它包含当前方块有效的 target、age_actions 和最近最多4个已选择并在后续步骤确认执行的原生动作及其前坐标。
+target.leftmost_column 表示目标朝向下实际占用格最左列（0..9），不是 active.x 局部框原点；target.rotation 是原生0..3朝向。
+目标由Decision自己选择；候选完整列举40种列与朝向组合，加keep/clear，不按棋盘过滤、搜索或排序，也不保证目标可达或安全。
+同一方块、类型与已锁定棋盘未变时目标会保留；新块（包括hold生成）、棋盘改变或新局使旧目标失效。移动、旋转、下落本身不会清目标。
+每个新有效期和同一有效期每4次游戏动作，Decision另外更新一次目标；clear后等到下一固定更新点，不立即重问。
+每个实际游戏按键依然必须由Decision从完整原生目录另选。达到目标不会自动硬降，无法达到也不会由程序改目标或代选。
+left/right:100 不保证一格；原生横移计时器可能跨短动作保留，必须观察实际占用格与计时器。所有调用think_mode=never。
+"""
+
+GOAL_INSTRUCTIONS = """本次只更新目标记忆，不执行游戏按键。
+从完整目录选一项：keep保留已有目标（无目标时保持无目标）；clear主动清空；target选择当前块的目标最左占用列与朝向。
+结合当前可见棋盘、冻结策略、现有目标与近期动作，自行决定是否保留或更换目标。目录不会告诉你哪个目标最好或可达。
+目标只是你下一次选择游戏动作时的参考，不是移动指令；不要把active.x误当成最左占用列。
+"""
+
+
+class TetrisContextError(ReceiptError):
+    pass
+
+
+def validate_config(config):
+    expected = {"schema", "structured_facts", "decision_goal_memory", "replan_every_actions"}
+    if not isinstance(config, dict) or set(config) != expected:
+        raise TetrisContextError("Tetris context requires its exact frozen configuration")
+    if config["schema"] != "tetris-context-v1":
+        raise TetrisContextError("Unknown Tetris context schema")
+    if any(type(config[key]) is not bool for key in ("structured_facts", "decision_goal_memory")):
+        raise TetrisContextError("Tetris context feature flags must be booleans")
+    if type(config["replan_every_actions"]) is not int or config["replan_every_actions"] != 4:
+        raise TetrisContextError("Tetris context v1 replans every four game actions")
+    return deepcopy(config)
+
+
+def goal_catalog():
+    """Same forty coordinate pairs plus keep/clear on every planning call."""
+    return [{"id": "keep", "label": "保持当前目标；当前无目标则继续无目标"},
+            {"id": "clear", "label": "清空目标，本次不设新目标"}] + [
+        {"id": f"target:{column}:{rotation}",
+         "label": f"目标最左占用列={column}，目标朝向={rotation}；不保证可达或安全"}
+        for column in range(10) for rotation in range(4)
+    ]
+
+
+def _require(condition, message):
+    if not condition:
+        raise TetrisContextError(message)
+
+
+def _scope(state):
+    observation = state.get("observation", {})
+    active = observation.get("active")
+    _require(state.get("game_id") == "tetris", "Tetris context cannot wrap another game")
+    _require(isinstance(state.get("episode_id"), str) and state["episode_id"], "Missing episode identity")
+    _require(type(state.get("step")) is int and state["step"] >= 0, "Invalid observation revision")
+    _require(type(observation.get("pieceId")) is int and observation["pieceId"] > 0, "Invalid piece identity")
+    _require(isinstance(active, dict) and active.get("type") in {"I", "O", "T", "S", "Z", "J", "L"}, "Missing active piece")
+    rows = observation.get("board", {}).get("rows")
+    _require(isinstance(rows, list) and len(rows) == 22, "Missing locked board rows")
+    return {"episode_id": state["episode_id"], "piece_id": observation["pieceId"],
+            "piece_type": active["type"], "locked_board_hash": _digest(rows)}
+
+
+def _check_receipt(receipt, state, criteria, request_id, expected_model):
+    _validate_receipt(receipt, request_id, state["step"], _digest(criteria),
+                      {item["id"] for item in criteria})
+    raw = receipt["raw_response"]
+    _require(isinstance(raw, dict) and receipt.get("response_hash") == _digest(raw), "Raw response hash mismatch")
+    answer = raw.get("answers", {}).get("primary_action", {})
+    _require(answer.get("choice") == receipt["choice_id"], "Raw response choice mismatch")
+    _require(raw.get("model") == receipt["model"], "Raw response model mismatch")
+    if expected_model is not None:
+        _require(receipt["model"] == expected_model, "Decision model changed between goal and action")
+    probabilities = answer.get("probabilities")
+    _require(isinstance(probabilities, dict) and set(probabilities) == {c["id"] for c in criteria},
+             "Response probabilities do not cover the complete catalog")
+    values = [answer.get("confidence"), *probabilities.values()]
+    _require(all(type(value) in (float, int) and math.isfinite(value) and 0 <= value <= 1 for value in values),
+             "Invalid response probabilities")
+    _require(abs(sum(probabilities.values()) - 1) <= .02, "Response probabilities do not sum to one")
+    thought = answer.get("details", {}).get("thought", {})
+    _require(thought.get("used") is False and type(thought.get("tokens")) is int and thought["tokens"] == 0,
+             "Tetris experiment requires explicit thinking-off telemetry")
+    _require(receipt.get("think_used") is False and type(receipt.get("reasoning_tokens")) is int
+             and receipt["reasoning_tokens"] == 0, "Receipt thinking telemetry mismatch")
+
+
+class TetrisDecisionHarness:
+    """A per-episode context wrapper; calls a real provider for every selection.
+
+    ``pending_context`` retains planning evidence even when the following action
+    fails. The runtime should attach it to failed-episode diagnostics.
+    """
+    def __init__(self, provider, config):
+        self.provider = provider
+        self.config = validate_config(config)
+        self.settings = getattr(provider, "settings", None)
+        self.pending_context = None
+        self._episode = self._scope = self._target = self._created_step = None
+        self._scope_actions = 0
+        self._history = []
+        self._last_step = None
+        self._model = getattr(self.settings, "decision_model", None)
+
+    def _memory(self, step):
+        return {"scope": deepcopy(self._scope), "target": deepcopy(self._target),
+                "age_actions": None if self._created_step is None else step - self._created_step,
+                "recent_actions": deepcopy(self._history)}
+
+    def _call(self, purpose, state, instructions, criteria, request_id):
+        event = {"purpose": purpose, "input_state": deepcopy(state), "input_hash": _digest(state),
+                 "instructions_hash": _digest(instructions), "catalog": deepcopy(criteria),
+                 "candidate_hash": _digest(criteria), "request_id": request_id, "status": "pending"}
+        self.pending_context["calls"].append(event)
+        state_copy, catalog_copy = deepcopy(state), deepcopy(criteria)
+        try:
+            receipt = self.provider.decide(state, instructions, criteria, request_id)
+            event["receipt"] = deepcopy(receipt)
+            _require(state == state_copy and criteria == catalog_copy, "Provider mutated its request")
+            _check_receipt(receipt, state, criteria, request_id, self._model)
+            self._model = receipt["model"]
+            event["status"] = "validated"
+            return deepcopy(receipt)
+        except Exception as exc:
+            event["status"] = "failed"
+            event["error"] = {"type": type(exc).__name__, "message": str(exc)}
+            raise
+
+    def decide(self, state, instructions, criteria, request_id):
+        self.pending_context = None
+        state = deepcopy(state)
+        criteria = deepcopy(criteria)
+        _require(not any(key in state for key in ("tetris_features", "decision_goal_memory")),
+                 "Raw runtime state already contains context fields")
+        scope = _scope(state)
+        new_episode = state["episode_id"] != self._episode
+        if not new_episode:
+            _require(state["step"] == self._last_step + 1, "Context requests must follow executed game steps")
+        before = self._memory(state["step"])
+        if new_episode:
+            self._episode, self._last_step = state["episode_id"], None
+            self._model = getattr(self.settings, "decision_model", None)
+        changed = new_episode or scope != self._scope
+        if changed:
+            self._scope, self._target, self._created_step = scope, None, None
+            self._scope_actions, self._history = 0, []
+        self.pending_context = {"schema": "tetris-context-ledger-v1", "config": deepcopy(self.config),
+                                "raw_input_hash": _digest(state), "scope_changed": changed,
+                                "memory_before": before, "calls": []}
+        if self.config["structured_facts"]:
+            state["tetris_features"] = build_tetris_features(state)
+        if self.config["decision_goal_memory"]:
+            state["decision_goal_memory"] = self._memory(state["step"])
+        action_instructions = instructions + "\n" + CONTEXT_CONTRACT
+        due = self.config["decision_goal_memory"] and self._scope_actions % self.config["replan_every_actions"] == 0
+        if due:
+            planning_state = deepcopy(state)
+            planning_state["selection_purpose"] = "update_goal_memory_only"
+            planning_state["candidates"] = goal_catalog()
+            planning_id = f"{request_id}:goal"
+            receipt = self._call("goal", planning_state, action_instructions + "\n" + GOAL_INSTRUCTIONS,
+                                 goal_catalog(), planning_id)
+            choice = receipt["choice_id"]
+            if choice == "clear":
+                self._target, self._created_step = None, None
+            elif choice != "keep":
+                _, column, rotation = choice.split(":")
+                self._target = {"leftmost_column": int(column), "rotation": int(rotation)}
+                self._created_step = state["step"]
+            state["decision_goal_memory"] = self._memory(state["step"])
+        self.pending_context["memory_after_planning"] = self._memory(state["step"])
+        self.pending_context.update({"action_input_state": deepcopy(state), "action_input_hash": _digest(state),
+                                     "instructions_hash": _digest(action_instructions), "request_id": request_id,
+                                     "action_catalog": deepcopy(criteria)})
+        receipt = self._call("game_action", state, action_instructions, criteria, request_id)
+        if self.config["decision_goal_memory"]:
+            active = state["observation"]["active"]
+            self._history.append({"step": state["step"], "action": receipt["choice_id"],
+                                  "before_active": {key: deepcopy(active[key]) for key in
+                                                    ("type", "x", "y", "rotation", "cells")}})
+            self._history = self._history[-4:]
+        self._scope_actions += 1
+        self._last_step = state["step"]
+        self.pending_context["memory_after_action"] = self._memory(state["step"] + 1)
+        receipt["tetris_context"] = deepcopy(self.pending_context)
+        return receipt
+
+
+def audit_context_episode(episode, harness):
+    """Reconstruct all goals and actual inputs using saved receipts, no network."""
+    config = validate_config(episode.get("tetris_context_config"))
+    _require(config == harness.get("tetris_context_config"), "Episode/harness context configuration mismatch")
+    expected_calls = []
+    for step in episode["trace"]:
+        ledger = step["receipt"].get("tetris_context")
+        _require(isinstance(ledger, dict), "Missing Tetris context ledger")
+        expected_calls.extend(deepcopy(ledger.get("calls", [])))
+
+    class ReplayProvider:
+        def __init__(self):
+            self.index = 0
+            self.settings = SimpleNamespace(decision_model=harness["decision_model"])
+
+        def decide(self, state, instructions, criteria, request_id):
+            _require(self.index < len(expected_calls), "Missing recorded Decision call")
+            expected = expected_calls[self.index]
+            self.index += 1
+            _require(expected["input_state"] == state and expected["input_hash"] == _digest(state),
+                     "Recorded Decision input differs from reconstruction")
+            _require(expected["instructions_hash"] == _digest(instructions), "Recorded Decision instructions changed")
+            _require(expected["catalog"] == criteria and expected["candidate_hash"] == _digest(criteria),
+                     "Recorded Decision catalog changed")
+            _require(expected["request_id"] == request_id and expected["status"] == "validated",
+                     "Recorded Decision call identity/status changed")
+            return deepcopy(expected["receipt"])
+
+    replay = ReplayProvider()
+    wrapper = TetrisDecisionHarness(replay, config)
+    rules = episode["game_context"]["rules"]
+    instructions = _policy_instructions(harness["candidate"], rules)
+    goals = actions = 0
+    for step in episode["trace"]:
+        before = step["before"]
+        state = deepcopy(before)
+        state.update({"episode_id": episode["episode_id"], "observation_hash": _digest(before),
+                      "candidates": deepcopy(step["criteria"]),
+                      "remaining_steps": episode["config"]["max_steps"] - before["step"]})
+        request_id = f"{episode['episode_id']}:step:{before['step']}:{_digest(before)[:16]}"
+        reconstructed = wrapper.decide(state, instructions, deepcopy(step["criteria"]), request_id)
+        _require(reconstructed == step["receipt"], "Tetris context receipt/ledger differs from reconstruction")
+        goals += sum(call["purpose"] == "goal" for call in reconstructed["tetris_context"]["calls"])
+        actions += 1
+        _require(reconstructed["model"] == episode["model"] == harness["decision_model"], "Context model identity changed")
+    _require(replay.index == len(expected_calls), "Unexpected extra Decision calls")
+    return {"game_actions": actions, "goal_calls": goals, "thinking_off_goal_calls": goals,
+            "actual_inputs_verified": True, "memory_replay_verified": True}
