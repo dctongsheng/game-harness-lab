@@ -11,6 +11,7 @@ from types import SimpleNamespace
 
 from .runtime import ReceiptError, _digest, _policy_instructions, _validate_receipt
 from .tetris_features import build_tetris_features
+from .tetris_control import CONTROL_CONTRACT, TetrisControlFeedback
 
 
 CONTEXT_CONTRACT = """可选玩家接口合同（四组共用）：
@@ -37,15 +38,32 @@ class TetrisContextError(ReceiptError):
 
 def validate_config(config):
     expected = {"schema", "structured_facts", "decision_goal_memory", "replan_every_actions"}
+    schema = config.get("schema") if isinstance(config, dict) else None
+    if schema == "tetris-context-v2":
+        expected = expected | {"control_feedback"}
     if not isinstance(config, dict) or set(config) != expected:
         raise TetrisContextError("Tetris context requires its exact frozen configuration")
-    if config["schema"] != "tetris-context-v1":
+    if schema not in ("tetris-context-v1", "tetris-context-v2"):
         raise TetrisContextError("Unknown Tetris context schema")
     if any(type(config[key]) is not bool for key in ("structured_facts", "decision_goal_memory")):
         raise TetrisContextError("Tetris context feature flags must be booleans")
     if type(config["replan_every_actions"]) is not int or config["replan_every_actions"] != 4:
-        raise TetrisContextError("Tetris context v1 replans every four game actions")
+        raise TetrisContextError("Tetris context replans every four game actions")
+    if schema == "tetris-context-v2":
+        if config["structured_facts"] is not True or config["decision_goal_memory"] is not True:
+            raise TetrisContextError("Tetris context v2 requires structural facts and Decision goal memory")
+        if type(config["control_feedback"]) is not bool:
+            raise TetrisContextError("Tetris control feedback flag must be boolean")
     return deepcopy(config)
+
+
+def context_instructions(instructions, config):
+    """Exact shared instructions, retaining v1 bytes when feedback is off."""
+    frozen = validate_config(config)
+    result = instructions + "\n" + CONTEXT_CONTRACT
+    if frozen.get("control_feedback", False):
+        result += "\n" + CONTROL_CONTRACT
+    return result
 
 
 def goal_catalog():
@@ -117,6 +135,7 @@ class TetrisDecisionHarness:
         self._history = []
         self._last_step = None
         self._model = getattr(self.settings, "decision_model", None)
+        self._control = TetrisControlFeedback() if self.config.get("control_feedback", False) else None
 
     def _memory(self, step):
         return {"scope": deepcopy(self._scope), "target": deepcopy(self._target),
@@ -146,7 +165,10 @@ class TetrisDecisionHarness:
         self.pending_context = None
         state = deepcopy(state)
         criteria = deepcopy(criteria)
-        _require(not any(key in state for key in ("tetris_features", "decision_goal_memory")),
+        context_fields = ("tetris_features", "decision_goal_memory")
+        if self.config["schema"] == "tetris-context-v2":
+            context_fields += ("tetris_control_facts",)
+        _require(not any(key in state for key in context_fields),
                  "Raw runtime state already contains context fields")
         scope = _scope(state)
         new_episode = state["episode_id"] != self._episode
@@ -163,11 +185,15 @@ class TetrisDecisionHarness:
         self.pending_context = {"schema": "tetris-context-ledger-v1", "config": deepcopy(self.config),
                                 "raw_input_hash": _digest(state), "scope_changed": changed,
                                 "memory_before": before, "calls": []}
+        if self._control is not None:
+            self._control.observe(state, scope)
         if self.config["structured_facts"]:
             state["tetris_features"] = build_tetris_features(state)
         if self.config["decision_goal_memory"]:
             state["decision_goal_memory"] = self._memory(state["step"])
-        action_instructions = instructions + "\n" + CONTEXT_CONTRACT
+        if self._control is not None:
+            state["tetris_control_facts"] = self._control.facts(self._target)
+        action_instructions = context_instructions(instructions, self.config)
         due = self.config["decision_goal_memory"] and self._scope_actions % self.config["replan_every_actions"] == 0
         if due:
             planning_state = deepcopy(state)
@@ -184,11 +210,15 @@ class TetrisDecisionHarness:
                 self._target = {"leftmost_column": int(column), "rotation": int(rotation)}
                 self._created_step = state["step"]
             state["decision_goal_memory"] = self._memory(state["step"])
+            if self._control is not None:
+                state["tetris_control_facts"] = self._control.facts(self._target)
         self.pending_context["memory_after_planning"] = self._memory(state["step"])
         self.pending_context.update({"action_input_state": deepcopy(state), "action_input_hash": _digest(state),
                                      "instructions_hash": _digest(action_instructions), "request_id": request_id,
                                      "action_catalog": deepcopy(criteria)})
         receipt = self._call("game_action", state, action_instructions, criteria, request_id)
+        if self._control is not None:
+            self._control.selected(receipt["choice_id"], self._target)
         if self.config["decision_goal_memory"]:
             active = state["observation"]["active"]
             self._history.append({"step": state["step"], "action": receipt["choice_id"],

@@ -1,0 +1,2268 @@
+{
+  "schema": "tetris-control-v6-preparation-public/v1",
+  "status": "offline_preparation_and_control_diagnostics_complete",
+  "scope": "本文件只报告准备阶段和6个历史状态控制任务；完整新种子对照结果另行报告。",
+  "published_harness": false,
+  "hash_format": "*_hash uses SHA256 of UTF-8 JSON with sorted keys, ensure_ascii=false and compact separators; *_file_sha256 hashes original file bytes. Redacted manifests retain hashes of their original private source.",
+  "frozen_harnesses": {
+    "baseline": {
+      "id": "ctx-parent-b7751860862ff813",
+      "candidate_hash": "b7751860862ff8133c2ea9fe6642937022b3fbe646bb71664f05115ee4bbda2d",
+      "candidate": {
+        "decision_instructions": "每步按当前observation决策：(1)目标：若输入含decision_goal_memory且target有效，沿用target.leftmost_column与target.rotation；若target明显不可达（被障碍挡住或形状不合）则clear或自选新目标：I竖放补最矮列或平铺整行缺口、O放两列等高处、T/S/Z/J/L选能铺平或补洞的朝向与列；有tetris_features用columns[].height与hole_ys选最低高度列，无则读board.rows估算。输入无该字段时每步即时重判，不引用不存在的保存目标。(2)执行：先旋转——active.rotation≠目标朝向时选rotate-cw:100（差3选rotate-ccw:100），每步只转一次并核对；再平移——比较active.cells最左列与目标列，差≥4选left/right:1000，差2-3选300，差1选100，动作后按实际cells校正（短按可能多于一格）；旋转与列均到位时立即hard-drop:100锁定。(3)约束：方向已对准不再反转；每块尽量≤7步；grounded且位置正确时直接hard-drop；绝不向明显更高的列硬降；hold仅在当前块无处可放且holdAvailable时用一次。",
+        "strategy_notes": "核心修复历史两大失败模式：来回横移不锁定（目标缺失）与盲目硬降堆高TOP_OUT，改为“定目标—逐键执行—到位即锁”的短循环。利用next[0..4]粗略规划：若待铺行缺口为4列宽且预览中有I，保留I做四行消除（消4行得800乘消行前等级，消2/3行分别为300/500乘等级）；其余块优先铺平最矮列、用hole_ys识别并填补洞而非制造新洞。height是列顶高度不是占用数。有记忆组目标跨动作保留减少重复决策，无记忆组每步重读棋盘即时判断。所有调用think_mode=never，推演保持一两步内：只判断“当前朝向/列是否等于目标，否则选最接近目标的单个按键”。"
+      },
+      "source_parent_hash": "548f7dcbc3111a9a71788e89162210f4dbc5403f4af958d322ed6276264e154a",
+      "source_file_sha256": "576161c0c36cd68d5389fbbc5c73fab6ce472fda1c9e02c628e28a8cecbf9f1d"
+    },
+    "repaired": {
+      "id": "control-repair-42555378eeb85d35",
+      "candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+      "candidate": {
+        "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。",
+        "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。"
+      },
+      "source_repaired_hash": "b0be811db7c0bfb1548c5950c4aff5a7ecb930a572ea95becdd791172e495161",
+      "source_file_sha256": "fe84dc2503ed797e693ffc2e3fc45bbe5aec52869336c05435abf65ef69d6a79",
+      "manual_candidate_text_edits": false
+    },
+    "shared_brief": {
+      "background": "俄罗斯方块原生按键Harness：80步决策预算，每个决策只选一个原生按键（含时长），没有落点预测或评分。四组共用同一策略，仅tetris_features与decision_goal_memory可选存在，出现时才使用。",
+      "goal": "在有限步数内定目标、逐键执行、及时锁块，铺平棋盘并消行，最大化原生points。",
+      "rules": "10×20棋盘+2行生成区；7-bag五块预览；每块hold一次；软降每3tick一行；横移按住9tick后每3tick重复；100/300/1000ms分别推进6/18/60tick；旋转/硬降/hold仅新按下边沿触发一次；硬降按当前位置与朝向直接落底锁定。消1/2/3/4行得100/300/500/800乘消行前等级。columns[].height是列顶高度非占用数；active.cells是实际占用格。",
+      "precautions": "短按横移不保证一格，动作后必须按实际cells核对；软降100ms约推进两行；每个新块先定目标旋转，再平移，到位立即硬降；避免同块内来回横移不锁定（历史大量left:300/right:1000摆动得0分）；目标不可达时自行clear或换目标，程序不代选；无目标记忆时不得假设已保存目标。",
+      "strategy": "每块流程：读棋盘（有tetris_features用height/hole_ys，否则读board.rows）→有decision_goal_memory则沿用target.leftmost_column/rotation，否则按“落最矮列、铺平补洞”自选→先rotate到目标朝向（差3次用rotate-ccw），再按列距选left/right时长逐步靠近并核对，到位立即hard-drop。每块控制在6-8步，避免在中央堆高。"
+    },
+    "shared_brief_hash": "eacd2a92ed28e69d458bd6fe2436ab96f6e352651d1a2ea0d6f12214513c8643",
+    "shared_game_context_hash": "56ef2a5e36a2f7c2993e7e818520d6ff49b5c9bd41310b5c917d8ff71da6b5d0",
+    "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+    "decision_model": "startlux-decision-27b-autothink",
+    "decision_think_mode": "never",
+    "brief_limit": "共同brief按原值保留，仅作版本元数据；每步决策指令由candidate和冻结接口合同组成。brief中旧策略表述不能作为已修正新策略的依据。"
+  },
+  "preparation_sources": {
+    "v5_parent_recovery": {
+      "source": "data/experiments/tetris-context-v5-bootstrap-final/recovery.json",
+      "source_hash": "3d01d32ba75bde7bbf06f5238030fe3370b408678cc3ec90e63ca1369394beb8",
+      "source_file_sha256": "9bd502803a733da2aeb741f39e07031dbaa394dc280f2a7aeb9ec2f9bfcd948c",
+      "source_manifest_hash": "0bfcf1f16db01b2f46966aec1bb14e512716b75e386fc80154d51d7baafdd856",
+      "source_output_hash": "8a2660bb0558e5b32dd5e4f44a0416756f5ed8004d7894ff7852455d7491db02",
+      "additional_coach_calls": 0,
+      "new_game_results_seen": false
+    },
+    "v6_stages": [
+      {
+        "source": "data/experiments/tetris-control-v6-llm-repair-20261017/manifest.json",
+        "original_manifest_hash": "c3a03ff13236e677134254d2184bd0beb92dcb4c44335463d261a6ead9163e61",
+        "original_file_sha256": "48253acb43b004d81ca78852d76ad8182f08daba1d64d58711f212a9256387a1",
+        "public_manifest": {
+          "schema": "tetris-control-repair-v1",
+          "created_at": "2026-10-17T04:03:03.429575+00:00",
+          "parent_hash": "548f7dcbc3111a9a71788e89162210f4dbc5403f4af958d322ed6276264e154a",
+          "historical_evidence_hash": "b39233410cb3be0bbe27f445c1f8e29793c1aacaeaa0ad2fe4cef639b6ded5ec",
+          "control_contract_hash": "cd06361a9631f22af7f93b28de09581621f8d3c19758cc58b1ac8c49a94cc6af",
+          "input_hash": "8d4fac0c496ae5c24339a7b4b6126b3f94cc1bb300829e58d65b4482010b6adc",
+          "max_coach_calls": 2,
+          "repair_only_for": "invalid output schema or evidence references",
+          "coach_model": "glm-5.3",
+          "decision_model": "startlux-decision-27b-autothink",
+          "new_game_results_seen": false,
+          "new_decision_calls": 0,
+          "live_registry_changes": false
+        },
+        "omitted_from_public_copy": [
+          "absolute source paths",
+          "duplicated prompt/rejected-candidate payload"
+        ]
+      },
+      {
+        "source": "data/experiments/tetris-control-v6-llm-final-20261017/manifest.json",
+        "original_manifest_hash": "1fc545c7e42b818c4ca3e73a95dd475de3d4a67cc1d24b1fde0ad1c58e854be4",
+        "original_file_sha256": "c2fcdc554be841213ee5741f54595631b331006c41f00b276500cd3905a4ff33",
+        "public_manifest": {
+          "schema": "tetris-control-repair-v1",
+          "created_at": "2026-10-17T04:05:46.356318+00:00",
+          "parent_hash": "548f7dcbc3111a9a71788e89162210f4dbc5403f4af958d322ed6276264e154a",
+          "historical_evidence_hash": "b39233410cb3be0bbe27f445c1f8e29793c1aacaeaa0ad2fe4cef639b6ded5ec",
+          "control_contract_hash": "cd06361a9631f22af7f93b28de09581621f8d3c19758cc58b1ac8c49a94cc6af",
+          "input_hash": "5a4082dae87b27e30222277d1449bef4b7d2b9fb9b9e3e1626839f0b4b91726b",
+          "max_coach_calls": 1,
+          "repair_only_for": "one static semantic correction",
+          "coach_model": "glm-5.3",
+          "decision_model": "startlux-decision-27b-autothink",
+          "new_game_results_seen": false,
+          "new_decision_calls": 0,
+          "live_registry_changes": false,
+          "semantic_repair_from": {
+            "prior_hash": "d1070882c2f6f5f6d708aaeb99df7fdbd7faa2d66f96fca00b8f49c95f322b2a",
+            "review_hash": "b312df4d3dc94c57eab88d8c54edc0a0f532b368cdedc35057235652f885a39e",
+            "max_additional_coach_calls": 1
+          }
+        },
+        "omitted_from_public_copy": [
+          "absolute source paths",
+          "duplicated prompt/rejected-candidate payload"
+        ]
+      }
+    ]
+  },
+  "llm_preparation": {
+    "calls": [
+      {
+        "source_output": "data/experiments/tetris-control-v6-llm-repair-20261017/coach-1.output.json",
+        "source_output_file_sha256": "14c1844f370e10489b3a94d3159120d5cce8f5628dbb9dbc6fda5a934a32f6f9",
+        "input_hash": "8d4fac0c496ae5c24339a7b4b6126b3f94cc1bb300829e58d65b4482010b6adc",
+        "purpose": "tetris_control_policy_repair",
+        "requested_model": "glm-5.3",
+        "returned_model": "glm-5.3",
+        "usage": {
+          "completion_tokens": 1689,
+          "completion_tokens_details": {
+            "reasoning_tokens": 96
+          },
+          "prompt_tokens": 14764,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 16453
+        },
+        "elapsed_ms": 30151.32,
+        "response_hash": "c66274934929270e5915fc0f6a7ffe4199f6439ef05751b19ffe07fb4777f3ed"
+      },
+      {
+        "source_output": "data/experiments/tetris-control-v6-llm-repair-20261017/coach-2.output.json",
+        "source_output_file_sha256": "e418b85ebc7cda17a35c018715f5dd3724767a79cf35b73d4bb5e40eafa0b694",
+        "input_hash": "d747a87ce151813dd89630ba40a7855eb22aa358d002c032095b30ebd47daf39",
+        "purpose": "tetris_control_schema_repair",
+        "requested_model": "glm-5.3",
+        "returned_model": "glm-5.3",
+        "usage": {
+          "completion_tokens": 1813,
+          "completion_tokens_details": {
+            "reasoning_tokens": 228
+          },
+          "prompt_tokens": 16384,
+          "prompt_tokens_details": {
+            "cached_tokens": 14720
+          },
+          "total_tokens": 18197
+        },
+        "elapsed_ms": 21638.99,
+        "response_hash": "85d101c2b9f35533ed591fd984461cf6310c609ad04b074e37bdb3fee7502a9e"
+      },
+      {
+        "source_output": "data/experiments/tetris-control-v6-llm-final-20261017/coach-1.output.json",
+        "source_output_file_sha256": "a92be8c205161e06a9a3a35acdaceaec2881a036641e87f386f3891eb34fde21",
+        "input_hash": "5a4082dae87b27e30222277d1449bef4b7d2b9fb9b9e3e1626839f0b4b91726b",
+        "purpose": "tetris_control_semantic_repair",
+        "requested_model": "glm-5.3",
+        "returned_model": "glm-5.3",
+        "usage": {
+          "completion_tokens": 1526,
+          "completion_tokens_details": {
+            "reasoning_tokens": 8
+          },
+          "prompt_tokens": 16725,
+          "prompt_tokens_details": {
+            "cached_tokens": 14720
+          },
+          "total_tokens": 18251
+        },
+        "elapsed_ms": 26876.84,
+        "response_hash": "3c652e023a2642cf7d113e0545d6de6b5e12cb0fd0bee1b5821a630445e3997d"
+      }
+    ],
+    "usage": {
+      "coach_calls": 3,
+      "requested_models": [
+        "glm-5.3"
+      ],
+      "returned_models": [
+        "glm-5.3"
+      ],
+      "prompt_tokens": 47873,
+      "completion_tokens": 5028,
+      "total_tokens": 52901,
+      "cached_prompt_tokens": 29440,
+      "coach_reasoning_tokens": 332,
+      "elapsed_ms": 78667.15,
+      "new_decision_calls": 0,
+      "fees": "Not inferred from token counts; no provider billing amount available",
+      "policy_candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4"
+    },
+    "sequence": [
+      {
+        "call": 1,
+        "status": "schema_rejected",
+        "reason": "Change requires exact known evidence aliases and a limitation"
+      },
+      {
+        "call": 2,
+        "status": "schema_valid_semantically_rejected",
+        "review_source": "data/experiments/tetris-control-v6-llm-repair-20261017/semantic-rejection.json",
+        "review_hash": "b312df4d3dc94c57eab88d8c54edc0a0f532b368cdedc35057235652f885a39e",
+        "findings": [
+          {
+            "quote": "300ms新方向最多约4次移动尝试、同方向续按约2次",
+            "issue": "At an established same-direction repeat rate of one attempt per 3 ticks, another 18 ticks produces 6 attempts, not 2. Actual displacement can be blocked.",
+            "evidence": "engine_control_facts"
+          },
+          {
+            "quote": "误差≥4格用它必越过",
+            "issue": "1000ms is not certain to overshoot because the wall or locked cells can cap actual displacement; the old wall-bound I example reaches its target.",
+            "evidence": "L_oscillation_then_clear"
+          },
+          {
+            "quote": "只允许一次反方向100ms校正，之后必须锁定或等锁定换块；连续两次反向即停，就地下锁",
+            "issue": "Conflicts with the same policy requiring exact target column/orientation before hard-drop, and can preserve poor placement after still-misaligned correction. A reversal fact is not necessarily an error; no need to add an unconditional off-target lock rule.",
+            "evidence": "interface_contract"
+          }
+        ]
+      },
+      {
+        "call": 3,
+        "status": "accepted_for_experiment_only",
+        "review_source": "data/experiments/tetris-control-v6-llm-final-20261017/semantic-review.json",
+        "review_hash": "d9d62bf8b08c490f3d063aa9a7c7282da81e1d88e869e789d46c5ec81f50f908",
+        "fully_correct": false,
+        "resolved": [
+          "18-tick mature same-direction repeat count corrected from 2 to approximately 6 attempts",
+          "1000ms displacement explicitly limited by walls and locked cells; no guaranteed overshoot claim",
+          "One reversal is no longer an unconditional immediate lock trigger"
+        ],
+        "remaining_findings": [
+          {
+            "quote": "若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定",
+            "conflict": "Later text allows hard-drop only at exact target column and rotation. Native hard-drop cannot independently select another flatter placement."
+          }
+        ]
+      }
+    ],
+    "boundary": "3次GLM调用均发生在V6控制任务和完整游戏前；第3次是有明确1-call预算的静态语义纠正阶段。没有按新游戏分数挑选策略。候选保留残余降落条件冲突，仅用于研究。",
+    "thinking_note": "Decision的never约束不等于GLM服务未使用推理；GLM实际报告的reasoning_tokens已如实保留。"
+  },
+  "control_diagnostics": {
+    "source_manifest": "data/experiments/tetris-control-v6-diagnostics-20261017/manifest.json",
+    "manifest_hash": "bd39082d78418822cdbe66275308aa2ba53a4689ed7f2d69db90c6abd5f83416",
+    "manifest_file_sha256": "55b28dc5c4eeb6deaf8c4e278218dfb605a2f52cf6fd45432d05d82ed2827213",
+    "source_result_hash": "e9670139fd0145e0c935c4367f38c79a996537bb62ceed8d8dfb7ef324c26938",
+    "source_result_file_sha256": "c92c0472ae9000bf54970d320266a9c6ac399467207e39250bd7deed9055cce3",
+    "full_game_evidence": false,
+    "protocol": {
+      "full_game_evidence": false,
+      "prefixes_are_historical_setup_only": true,
+      "goal_and_actions_require_decision": true,
+      "thinking": "never",
+      "score_based_early_stop": false,
+      "max_attempts": 2,
+      "success": "Current source piece changes after Decision selects hard-drop:100 starting at externally specified column and rotation",
+      "order": "Cycle the three arms by fixture index",
+      "publish": false
+    },
+    "max_actions_per_task": 12,
+    "arms": {
+      "baseline": {
+        "harness_id": "ctx-parent-b7751860862ff813",
+        "candidate_hash": "b7751860862ff8133c2ea9fe6642937022b3fbe646bb71664f05115ee4bbda2d",
+        "context_config": {
+          "schema": "tetris-context-v1",
+          "structured_facts": true,
+          "decision_goal_memory": true,
+          "replan_every_actions": 4
+        }
+      },
+      "repaired_policy": {
+        "harness_id": "control-repair-42555378eeb85d35",
+        "candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+        "context_config": {
+          "schema": "tetris-context-v2",
+          "structured_facts": true,
+          "decision_goal_memory": true,
+          "replan_every_actions": 4,
+          "control_feedback": false
+        }
+      },
+      "repaired_feedback": {
+        "harness_id": "control-repair-42555378eeb85d35",
+        "candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+        "context_config": {
+          "schema": "tetris-context-v2",
+          "structured_facts": true,
+          "decision_goal_memory": true,
+          "replan_every_actions": 4,
+          "control_feedback": true
+        }
+      }
+    },
+    "fixtures": [
+      {
+        "id": "overshoot_from_left",
+        "source_trial": "calibration-00-both",
+        "source_episode_hash": "6938387f81ef836b4bd5035550a41c33a4e1827b982870235a4749fb4b7cc88b",
+        "source_episode_id": "exp-1216538e9a69a952f85b2b87",
+        "seed": 1256368473,
+        "start_step": 3,
+        "target": {
+          "leftmost_column": 6,
+          "rotation": 0
+        },
+        "starting_pose": {
+          "step": 3,
+          "tick": 72,
+          "piece_id": 3,
+          "piece_type": "S",
+          "leftmost_column": 3,
+          "rotation": 0,
+          "horizontal_direction": 0,
+          "horizontal_held_ticks": 0
+        },
+        "historical_setup_action_count": 3,
+        "historical_setup_hash": "677180c1531c56e5c17352189624376ed4e27fb6452a737785d3dd12ec2af926",
+        "starting_public_snapshot_hash": "afd938bd0c52ed4f55c922c8120cb7ed413664abc1fe8903edb54bed4b4a4ed3"
+      },
+      {
+        "id": "overshoot_from_right",
+        "source_trial": "calibration-00-both",
+        "source_episode_hash": "6938387f81ef836b4bd5035550a41c33a4e1827b982870235a4749fb4b7cc88b",
+        "source_episode_id": "exp-1216538e9a69a952f85b2b87",
+        "seed": 1256368473,
+        "start_step": 4,
+        "target": {
+          "leftmost_column": 6,
+          "rotation": 0
+        },
+        "starting_pose": {
+          "step": 4,
+          "tick": 90,
+          "piece_id": 3,
+          "piece_type": "S",
+          "leftmost_column": 7,
+          "rotation": 0,
+          "horizontal_direction": 1,
+          "horizontal_held_ticks": 17
+        },
+        "historical_setup_action_count": 4,
+        "historical_setup_hash": "79ee7f996d5dab8c49ef5d82d0a737bae43793f513bddfd913b44e8485e93877",
+        "starting_public_snapshot_hash": "215ecd680999fda4b4cf3ff7f82f58086c108688399ba50fab6530a99cde9887"
+      },
+      {
+        "id": "repeat_timer_to_wall",
+        "source_trial": "evaluation-07-both",
+        "source_episode_hash": "b4b636f31398ba6e550eaa3bc1e9487bec93fad3719a21e184b35374d340e4a2",
+        "source_episode_id": "exp-2dd13c41f1d48f4a7d4e0502",
+        "seed": 203271312,
+        "start_step": 42,
+        "target": {
+          "leftmost_column": 9,
+          "rotation": 1
+        },
+        "starting_pose": {
+          "step": 42,
+          "tick": 1152,
+          "piece_id": 7,
+          "piece_type": "I",
+          "leftmost_column": 7,
+          "rotation": 1,
+          "horizontal_direction": 1,
+          "horizontal_held_ticks": 11
+        },
+        "historical_setup_action_count": 42,
+        "historical_setup_hash": "5ef5eed4b9818721b34c8646b07c492a43e7539a2d4721b81fc8a7a1aac4079e",
+        "starting_public_snapshot_hash": "85bd494e46cb95a6ccc293962eced8ff3ef7642dc87355d595d9f29e693b23a0"
+      },
+      {
+        "id": "repeat_timer_one_column",
+        "source_trial": "evaluation-11-both",
+        "source_episode_hash": "6b01d90e530c0c8eb37fccda03b766f7961b850c75785b8e66921103a6923cc3",
+        "source_episode_id": "exp-d854dd740218a79917c655ee",
+        "seed": 799307376,
+        "start_step": 49,
+        "target": {
+          "leftmost_column": 8,
+          "rotation": 1
+        },
+        "starting_pose": {
+          "step": 49,
+          "tick": 744,
+          "piece_id": 23,
+          "piece_type": "I",
+          "leftmost_column": 7,
+          "rotation": 1,
+          "horizontal_direction": 1,
+          "horizontal_held_ticks": 11
+        },
+        "historical_setup_action_count": 49,
+        "historical_setup_hash": "26178bb10afb52dda4718c56cec96f85cfda2b4c0a328adcc7d592aceccac054",
+        "starting_public_snapshot_hash": "b7492e50157d873db9fb413073fdb7c97024f81bbbc6654330817e0ca8c8f2ed"
+      },
+      {
+        "id": "wall_bounded_horizontal_i",
+        "source_trial": "evaluation-01-both",
+        "source_episode_hash": "fa6233d931e369420a7990c307011667b27fb40a8fc6340c2e98007fb2417a4a",
+        "source_episode_id": "exp-d0c9bc5738fd8c44cd9adc22",
+        "seed": 1581199265,
+        "start_step": 54,
+        "target": {
+          "leftmost_column": 6,
+          "rotation": 0
+        },
+        "starting_pose": {
+          "step": 54,
+          "tick": 978,
+          "piece_id": 4,
+          "piece_type": "I",
+          "leftmost_column": 3,
+          "rotation": 0,
+          "horizontal_direction": 0,
+          "horizontal_held_ticks": 0
+        },
+        "historical_setup_action_count": 54,
+        "historical_setup_hash": "addbea50da80a8fd3d411edec9c45f41476adaa6ad09d17aac1480e7a789f0eb",
+        "starting_public_snapshot_hash": "c9eb87b3a2deccc5104036fa93aaa59f7da56da7644a63f14c6ff753b28e31a0"
+      },
+      {
+        "id": "rotate_and_position_i",
+        "source_trial": "evaluation-05-both",
+        "source_episode_hash": "b0641fb51a092553177b149258ec2e9324296ea48b5f9b3a7db1dc4ec445d88d",
+        "source_episode_id": "exp-5751204c782485ea3168ef6b",
+        "seed": 1816024810,
+        "start_step": 40,
+        "target": {
+          "leftmost_column": 2,
+          "rotation": 1
+        },
+        "starting_pose": {
+          "step": 40,
+          "tick": 1002,
+          "piece_id": 9,
+          "piece_type": "I",
+          "leftmost_column": 3,
+          "rotation": 0,
+          "horizontal_direction": 0,
+          "horizontal_held_ticks": 0
+        },
+        "historical_setup_action_count": 40,
+        "historical_setup_hash": "0beeac9ff426d83a4bcf17a4ad651255ef09eab923be32684fc4f84c67e0de53",
+        "starting_public_snapshot_hash": "cf437e54cf5d48ad4ca39017c13fd0aa9f99f4965a5cb8ee110b6b965bcdf6ad"
+      }
+    ],
+    "trials": [
+      {
+        "fixture": "overshoot_from_left",
+        "arm": "baseline",
+        "success": false,
+        "actions": 12,
+        "goal_calls": 3,
+        "reason": "action_budget",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 15
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/overshoot_from_left/baseline/attempt-01/trial.json",
+        "source_trial_hash": "bec516f16493192cd5c06ca65de4517a2675f73b1d9d1184e46bfbaee8cf4c46",
+        "source_trial_file_sha256": "c7e8844c38ac98c6180f1e4b85913c389873bcbb95205d359531e5d7d11275a0"
+      },
+      {
+        "fixture": "overshoot_from_left",
+        "arm": "repaired_policy",
+        "success": true,
+        "actions": 6,
+        "goal_calls": 2,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 8
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/overshoot_from_left/repaired_policy/attempt-01/trial.json",
+        "source_trial_hash": "42ae3a73ba133850a73881eaada0d1d06f91aea0df94d46e943e525c41351c85",
+        "source_trial_file_sha256": "ff14b6e7a51e496b05ab4eaf898ddfd34cfbff8fdab578ab6dfad86d11af92d7"
+      },
+      {
+        "fixture": "overshoot_from_left",
+        "arm": "repaired_feedback",
+        "success": true,
+        "actions": 5,
+        "goal_calls": 2,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 7
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/overshoot_from_left/repaired_feedback/attempt-01/trial.json",
+        "source_trial_hash": "f85def357eed3e94c9ad9415b774914b649fa1087d59bfad29cbf4120456ea69",
+        "source_trial_file_sha256": "449c36e2491c9443334887ac10b09725a67e8a41fd52895988bf5c310baca4d3"
+      },
+      {
+        "fixture": "overshoot_from_right",
+        "arm": "repaired_policy",
+        "success": true,
+        "actions": 2,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 3
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/overshoot_from_right/repaired_policy/attempt-01/trial.json",
+        "source_trial_hash": "620615788287a78043e47ef575b298a1e548ce6aa230389ab11a370b4d9506fa",
+        "source_trial_file_sha256": "3384cb7137b43d4e1e5f7cb30bf744a5037cfa22b71212a21843a27f3c298358"
+      },
+      {
+        "fixture": "overshoot_from_right",
+        "arm": "repaired_feedback",
+        "success": true,
+        "actions": 2,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 3
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/overshoot_from_right/repaired_feedback/attempt-01/trial.json",
+        "source_trial_hash": "b35b69a33286602950b983d16d4e40b8981cebf3b6e9f54a7b063876fd8eab69",
+        "source_trial_file_sha256": "7e2710c162b586da58d5a278cc1eca2cde110fb87d83943a83df954fe2e4d8f5"
+      },
+      {
+        "fixture": "overshoot_from_right",
+        "arm": "baseline",
+        "success": false,
+        "actions": 12,
+        "goal_calls": 3,
+        "reason": "action_budget",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 15
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/overshoot_from_right/baseline/attempt-01/trial.json",
+        "source_trial_hash": "28034f9f5a3d1957d4d3a1ed1aa39e06f517a4052a892c292e4900effe99f681",
+        "source_trial_file_sha256": "514de8ea60eec3063fe39bc10f8cdcbb945a1ac6282eaa566e22cf556cbed6b9"
+      },
+      {
+        "fixture": "repeat_timer_to_wall",
+        "arm": "repaired_feedback",
+        "success": true,
+        "actions": 2,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 3
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/repeat_timer_to_wall/repaired_feedback/attempt-01/trial.json",
+        "source_trial_hash": "4b4a7ce945ef12cbbcdb3b3fab70490dc026146cfb3d7b65ebbc22d1e67b1c9f",
+        "source_trial_file_sha256": "b32e187e91cff00e4cd6c4322829058d10d2e6350e5c976de5a0323dd5ad4eef"
+      },
+      {
+        "fixture": "repeat_timer_to_wall",
+        "arm": "baseline",
+        "success": true,
+        "actions": 2,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 3
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/repeat_timer_to_wall/baseline/attempt-01/trial.json",
+        "source_trial_hash": "8aa75def53b734633c2de1e7ae38b48e4267cef53217f642657ea5dde8d45747",
+        "source_trial_file_sha256": "9868261123e8b1529088988c76d0fbdf0488a0cf9f8d083dbdc465ce7d9fe1a6"
+      },
+      {
+        "fixture": "repeat_timer_to_wall",
+        "arm": "repaired_policy",
+        "success": true,
+        "actions": 2,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 3
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/repeat_timer_to_wall/repaired_policy/attempt-01/trial.json",
+        "source_trial_hash": "f8a53dc74dbfa6fe332294c8a8dde41ac4d4e19234f1052381afb21912ac3ab2",
+        "source_trial_file_sha256": "1dbc99e7836c5bbf4de7911f8fec7588182496d107bea5b84af0777f903bfdda"
+      },
+      {
+        "fixture": "repeat_timer_one_column",
+        "arm": "baseline",
+        "success": true,
+        "actions": 3,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 4
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/repeat_timer_one_column/baseline/attempt-01/trial.json",
+        "source_trial_hash": "06781d8aa4348fcc573269fac5b5cbcddfdd3f0ab727147db161039e26d1a4eb",
+        "source_trial_file_sha256": "84c88e2777eeb3401f3eb5cd5b7612e2bd534692f2a4453b0640b4bfc518c8e0"
+      },
+      {
+        "fixture": "repeat_timer_one_column",
+        "arm": "repaired_policy",
+        "success": true,
+        "actions": 3,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 4
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/repeat_timer_one_column/repaired_policy/attempt-01/trial.json",
+        "source_trial_hash": "b7652059d7feb3d190f84ad1e21c9927880da017ef221c35981a15a44edec0c6",
+        "source_trial_file_sha256": "cccf56c26222a43b63be9d745f0085ad8eeca3283be810095b56e36c1e9c12d9"
+      },
+      {
+        "fixture": "repeat_timer_one_column",
+        "arm": "repaired_feedback",
+        "success": true,
+        "actions": 3,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 4
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/repeat_timer_one_column/repaired_feedback/attempt-01/trial.json",
+        "source_trial_hash": "8afac7b67b959bcc5d729d32970af6709996626810695f0a65fdb30c46f92fc8",
+        "source_trial_file_sha256": "56c9b5ee682678f295e9ac1e30ab479be811690997da06dbe71cf5028f88863c"
+      },
+      {
+        "fixture": "wall_bounded_horizontal_i",
+        "arm": "repaired_policy",
+        "success": true,
+        "actions": 4,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 5
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/wall_bounded_horizontal_i/repaired_policy/attempt-01/trial.json",
+        "source_trial_hash": "d886e94671a60695f61c24bd80ba84948bccfe34e96365004463f4286ff70db8",
+        "source_trial_file_sha256": "65c709f7f0552f3ef20b759aa7ed6ebdaf56f9b9598d440b76a67d3b58755f38"
+      },
+      {
+        "fixture": "wall_bounded_horizontal_i",
+        "arm": "repaired_feedback",
+        "success": true,
+        "actions": 2,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 3
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/wall_bounded_horizontal_i/repaired_feedback/attempt-01/trial.json",
+        "source_trial_hash": "9b18ec1fa70add7e01b86032020a68031a434f72c888d7030f5903d660647adf",
+        "source_trial_file_sha256": "4b884ee4a4e7e1ebc8f66605d8d84c4911e9139131dbbfaa27ef44b4b63f3964"
+      },
+      {
+        "fixture": "wall_bounded_horizontal_i",
+        "arm": "baseline",
+        "success": true,
+        "actions": 2,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 3
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/wall_bounded_horizontal_i/baseline/attempt-01/trial.json",
+        "source_trial_hash": "64d7a966da9084c3a687005a36ac8a1f0ac838e7806807c09ba36f501f08a062",
+        "source_trial_file_sha256": "c5b32f4673b534763e38153d68c36285188bf68d3f19551d0e4c8aa7f5ea5f7d"
+      },
+      {
+        "fixture": "rotate_and_position_i",
+        "arm": "repaired_feedback",
+        "success": true,
+        "actions": 4,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 5
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/rotate_and_position_i/repaired_feedback/attempt-01/trial.json",
+        "source_trial_hash": "be880bc18c1b30e74a31fc44f58914aa66f16cf96fc0e44712380eb0f327ba71",
+        "source_trial_file_sha256": "45f1eb9ccb417b1b9870eaf8a950eec04d84c8d1c242b229af3aff74a6e1b455"
+      },
+      {
+        "fixture": "rotate_and_position_i",
+        "arm": "baseline",
+        "success": true,
+        "actions": 4,
+        "goal_calls": 1,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 5
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/rotate_and_position_i/baseline/attempt-01/trial.json",
+        "source_trial_hash": "6f49cb2e45230eec0f6a9fdd1c1feab7f83ee3d81df2c994ca72f6bae50073d8",
+        "source_trial_file_sha256": "0cf7962aade8f042b95e496d78b6e7f3552f6d83381275639d3d6110a6959c9d"
+      },
+      {
+        "fixture": "rotate_and_position_i",
+        "arm": "repaired_policy",
+        "success": true,
+        "actions": 6,
+        "goal_calls": 2,
+        "reason": "locked_at_target",
+        "audit": {
+          "native_replay": true,
+          "actual_inputs_verified": true,
+          "thinking_off_verified_calls": 8
+        },
+        "source_trial": "data/experiments/tetris-control-v6-diagnostics-20261017/trials/rotate_and_position_i/repaired_policy/attempt-01/trial.json",
+        "source_trial_hash": "274ae3499fb9cde5b6e7605df29577e61bdd8f59e6b7a1aefc43201142f1cb9b",
+        "source_trial_file_sha256": "decfd03b0bc9fb44f8042f7b942c9248af33cdaebee06b4d616b51ec9407ab2a"
+      }
+    ],
+    "summary": {
+      "baseline": {
+        "tasks": 6,
+        "successes": 4,
+        "actions": 35,
+        "goal_calls": 10
+      },
+      "repaired_policy": {
+        "tasks": 6,
+        "successes": 6,
+        "actions": 23,
+        "goal_calls": 8
+      },
+      "repaired_feedback": {
+        "tasks": 6,
+        "successes": 6,
+        "actions": 18,
+        "goal_calls": 7
+      }
+    },
+    "read_only_reaudit": {
+      "trials": 18,
+      "actions": 76,
+      "goal_calls": 25,
+      "thinking_off_verified_calls": 101
+    },
+    "selected_coordinate_cases": [
+      {
+        "fixture": "overshoot_from_left",
+        "arm": "baseline",
+        "external_task_target": {
+          "leftmost_column": 6,
+          "rotation": 0
+        },
+        "success": false,
+        "source_trial_hash": "bec516f16493192cd5c06ca65de4517a2675f73b1d9d1184e46bfbaee8cf4c46",
+        "trace": [
+          {
+            "before": {
+              "step": 3,
+              "tick": 72,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "right:300",
+            "after": {
+              "step": 4,
+              "tick": 90,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "8090a0f9acad85836efab2f40b67a448a3c52b2782400384fc660eefea88bbfb"
+          },
+          {
+            "before": {
+              "step": 4,
+              "tick": 90,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "left:300",
+            "after": {
+              "step": 5,
+              "tick": 108,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "7ed03ffee6e45cbfe16ad5961fdfbb6c54f68a9ec332e39c79c16d92b37c8e88"
+          },
+          {
+            "before": {
+              "step": 5,
+              "tick": 108,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "right:300",
+            "after": {
+              "step": 6,
+              "tick": 126,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "5c0d28f83203f6166848da0e0b3ec2e76ba27fb45b91fb71ff5aa32596c2b31d"
+          },
+          {
+            "before": {
+              "step": 6,
+              "tick": 126,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "left:300",
+            "after": {
+              "step": 7,
+              "tick": 144,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "f4399a4a753ac66c92d5b7c5aef44f1b5675697c3d0062924e36dbdc05ddae75"
+          },
+          {
+            "before": {
+              "step": 7,
+              "tick": 144,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "right:300",
+            "after": {
+              "step": 8,
+              "tick": 162,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "5ba57b19a8072772bf865c8fa7367b732acd693168caf3a71ed4cbe6dd550525"
+          },
+          {
+            "before": {
+              "step": 8,
+              "tick": 162,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "left:300",
+            "after": {
+              "step": 9,
+              "tick": 180,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "678393c75a425935ba2ee6e4a776a45b4c5b6d08fc33487554fda2b170e53d80"
+          },
+          {
+            "before": {
+              "step": 9,
+              "tick": 180,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "right:1000",
+            "after": {
+              "step": 10,
+              "tick": 240,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 59
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "b5d5c5a775bbf52ff80d5db32f8f8ad21e44108a8f02cf80d24ac7f994324e46"
+          },
+          {
+            "before": {
+              "step": 10,
+              "tick": 240,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 59
+            },
+            "action": "left:300",
+            "after": {
+              "step": 11,
+              "tick": 258,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "b5fa53830885b800b8fb74ac110812dc959c8eda1ee51500cbfefb366638e174"
+          },
+          {
+            "before": {
+              "step": 11,
+              "tick": 258,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "right:1000",
+            "after": {
+              "step": 12,
+              "tick": 318,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 59
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "7204b25c450fe8f15cab1cd3f7e1ddbc9c144fc37cb5a0a6c3ad50f69072198f"
+          },
+          {
+            "before": {
+              "step": 12,
+              "tick": 318,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 59
+            },
+            "action": "left:300",
+            "after": {
+              "step": 13,
+              "tick": 336,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "edc5b9fffc71a943316a2a6b669192975ed99f9d168b011021acad78c0dfce40"
+          },
+          {
+            "before": {
+              "step": 13,
+              "tick": 336,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "right:1000",
+            "after": {
+              "step": 14,
+              "tick": 396,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 59
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "882e7f46adfe622f3c91b54583eb157d13dcd6c9a1ae8bd2d652c5715a2c0472"
+          },
+          {
+            "before": {
+              "step": 14,
+              "tick": 396,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 59
+            },
+            "action": "left:300",
+            "after": {
+              "step": 15,
+              "tick": 414,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -4,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "6ebe7ff9d6b17a3eeedd560711fddbf7739e8e476a7aaf80aca35fd743faf35f"
+          }
+        ]
+      },
+      {
+        "fixture": "overshoot_from_left",
+        "arm": "repaired_policy",
+        "external_task_target": {
+          "leftmost_column": 6,
+          "rotation": 0
+        },
+        "success": true,
+        "source_trial_hash": "42ae3a73ba133850a73881eaada0d1d06f91aea0df94d46e943e525c41351c85",
+        "trace": [
+          {
+            "before": {
+              "step": 3,
+              "tick": 72,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "right:100",
+            "after": {
+              "step": 4,
+              "tick": 78,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 4,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 1,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "9388adbfaf264ceaffc8e662149b8401594c0ffa6b94034c537c9e2e47d16a10"
+          },
+          {
+            "before": {
+              "step": 4,
+              "tick": 78,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 4,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "right:100",
+            "after": {
+              "step": 5,
+              "tick": 84,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 5,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 11
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 1,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "2732f1ba60b8efa1805245d4d1ea33fa985b0a14bae8e827404b7477889a2b4c"
+          },
+          {
+            "before": {
+              "step": 5,
+              "tick": 84,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 5,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 11
+            },
+            "action": "right:100",
+            "after": {
+              "step": 6,
+              "tick": 90,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 2,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "9d9137fc5a63151fcae9e969d5bf8c1f5c93fc07b84dad0863832a00857490de"
+          },
+          {
+            "before": {
+              "step": 6,
+              "tick": 90,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "left:100",
+            "after": {
+              "step": 7,
+              "tick": 96,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 6,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -1,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "07df9ba5e5c330e8828a7fcfd898e26261b5e33cf9c818657bab9a24da7fb029"
+          },
+          {
+            "before": {
+              "step": 7,
+              "tick": 96,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 6,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "noop:100",
+            "after": {
+              "step": 8,
+              "tick": 102,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 6,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 0,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "3535c1ff9d17ea5663d64542c0624eb54e35ea58a15e6b87a13ea6f0f29ac2c3"
+          },
+          {
+            "before": {
+              "step": 8,
+              "tick": 102,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 6,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "hard-drop:100",
+            "after": {
+              "step": 9,
+              "tick": 108,
+              "piece_id": 4,
+              "piece_type": "L",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": false,
+            "same_piece_column_delta": null,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "fb214e12a2436d9bb9b07b04039c30863b018be8bfce27f7568df827782f62ad"
+          }
+        ]
+      },
+      {
+        "fixture": "overshoot_from_left",
+        "arm": "repaired_feedback",
+        "external_task_target": {
+          "leftmost_column": 6,
+          "rotation": 0
+        },
+        "success": true,
+        "source_trial_hash": "f85def357eed3e94c9ad9415b774914b649fa1087d59bfad29cbf4120456ea69",
+        "trace": [
+          {
+            "before": {
+              "step": 3,
+              "tick": 72,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "right:100",
+            "after": {
+              "step": 4,
+              "tick": 78,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 4,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 1,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "be4e7d83bdd2a7534a5de8fe4eadccaa103327ff9cb5098869ce47a5665c1c5c"
+          },
+          {
+            "before": {
+              "step": 4,
+              "tick": 78,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 4,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "right:100",
+            "after": {
+              "step": 5,
+              "tick": 84,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 5,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 11
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 1,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "39cc22801bd9cf70286fbd490992e4866f15874aeea51575aecaf5a3423741e4"
+          },
+          {
+            "before": {
+              "step": 5,
+              "tick": 84,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 5,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 11
+            },
+            "action": "right:100",
+            "after": {
+              "step": 6,
+              "tick": 90,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 2,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "683c1014da3d8bd21345c0c5fe359cdae41cb0ce6dc60ff4dd0ad2cdb934d149"
+          },
+          {
+            "before": {
+              "step": 6,
+              "tick": 90,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 7,
+              "rotation": 0,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "left:100",
+            "after": {
+              "step": 7,
+              "tick": 96,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 6,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -1,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "ff69b03868b5057ea79ecb5a31e0d3ccb1a6fce86dd791fee92a517b74bd5053"
+          },
+          {
+            "before": {
+              "step": 7,
+              "tick": 96,
+              "piece_id": 3,
+              "piece_type": "S",
+              "leftmost_column": 6,
+              "rotation": 0,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "hard-drop:100",
+            "after": {
+              "step": 8,
+              "tick": 102,
+              "piece_id": 4,
+              "piece_type": "L",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": false,
+            "same_piece_column_delta": null,
+            "decision_goal": {
+              "leftmost_column": 6,
+              "rotation": 0
+            },
+            "receipt_response_hash": "f1f90b2232af5fde48c6266e086a439788511fbc9f637327f5d170bf0916eb1a"
+          }
+        ]
+      },
+      {
+        "fixture": "repeat_timer_one_column",
+        "arm": "baseline",
+        "external_task_target": {
+          "leftmost_column": 8,
+          "rotation": 1
+        },
+        "success": true,
+        "source_trial_hash": "06781d8aa4348fcc573269fac5b5cbcddfdd3f0ab727147db161039e26d1a4eb",
+        "trace": [
+          {
+            "before": {
+              "step": 49,
+              "tick": 744,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 7,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 11
+            },
+            "action": "right:100",
+            "after": {
+              "step": 50,
+              "tick": 750,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 9,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 2,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "b7b5fe5e44d66e1a5705ec8f2719e38aebd545e097151311fc9f1f8898e43674"
+          },
+          {
+            "before": {
+              "step": 50,
+              "tick": 750,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 9,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "left:100",
+            "after": {
+              "step": 51,
+              "tick": 756,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 8,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -1,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "67cfac9367494dff258fe1a7b1b2943299e9e6d04e2c278e023e5ae5aae1022d"
+          },
+          {
+            "before": {
+              "step": 51,
+              "tick": 756,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 8,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "hard-drop:100",
+            "after": {
+              "step": 52,
+              "tick": 762,
+              "piece_id": 24,
+              "piece_type": "L",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": false,
+            "same_piece_column_delta": null,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "f12de8e3e9168eb74067d0b9e3448a11d5fe6ee6997051f59c83c28b1a57d640"
+          }
+        ]
+      },
+      {
+        "fixture": "repeat_timer_one_column",
+        "arm": "repaired_policy",
+        "external_task_target": {
+          "leftmost_column": 8,
+          "rotation": 1
+        },
+        "success": true,
+        "source_trial_hash": "b7652059d7feb3d190f84ad1e21c9927880da017ef221c35981a15a44edec0c6",
+        "trace": [
+          {
+            "before": {
+              "step": 49,
+              "tick": 744,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 7,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 11
+            },
+            "action": "right:100",
+            "after": {
+              "step": 50,
+              "tick": 750,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 9,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 2,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "483d02379bbd3d814362956bdf7cd22d8d2fe8dfa52b2d2c293cd786f3b291b2"
+          },
+          {
+            "before": {
+              "step": 50,
+              "tick": 750,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 9,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "left:100",
+            "after": {
+              "step": 51,
+              "tick": 756,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 8,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -1,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "3ce0e0d3fdaab7767f1b1c69f111964deb26edf46e3e0b06f84777d7ae66b504"
+          },
+          {
+            "before": {
+              "step": 51,
+              "tick": 756,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 8,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "hard-drop:100",
+            "after": {
+              "step": 52,
+              "tick": 762,
+              "piece_id": 24,
+              "piece_type": "L",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": false,
+            "same_piece_column_delta": null,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "84870b20fb2ee2dd7d176cee832e1d3e4e0729372b238d4c32adc98d42af8ce7"
+          }
+        ]
+      },
+      {
+        "fixture": "repeat_timer_one_column",
+        "arm": "repaired_feedback",
+        "external_task_target": {
+          "leftmost_column": 8,
+          "rotation": 1
+        },
+        "success": true,
+        "source_trial_hash": "8afac7b67b959bcc5d729d32970af6709996626810695f0a65fdb30c46f92fc8",
+        "trace": [
+          {
+            "before": {
+              "step": 49,
+              "tick": 744,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 7,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 11
+            },
+            "action": "right:100",
+            "after": {
+              "step": 50,
+              "tick": 750,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 9,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 2,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "ca6d3e7984ce21474d2462d5faccedf80e0fb3cb32a46f831249b0d21ad53126"
+          },
+          {
+            "before": {
+              "step": 50,
+              "tick": 750,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 9,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "left:100",
+            "after": {
+              "step": 51,
+              "tick": 756,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 8,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -1,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "dd06979ee6a93924cdac294287c701d04da7c66d99429fae31c62d41309c1ecf"
+          },
+          {
+            "before": {
+              "step": 51,
+              "tick": 756,
+              "piece_id": 23,
+              "piece_type": "I",
+              "leftmost_column": 8,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "hard-drop:100",
+            "after": {
+              "step": 52,
+              "tick": 762,
+              "piece_id": 24,
+              "piece_type": "L",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": false,
+            "same_piece_column_delta": null,
+            "decision_goal": {
+              "leftmost_column": 8,
+              "rotation": 1
+            },
+            "receipt_response_hash": "ef10bcd40c1c83c280fbc023d16650a25ae662cddef8cbf0eb3e1d07a5035d08"
+          }
+        ]
+      },
+      {
+        "fixture": "rotate_and_position_i",
+        "arm": "repaired_feedback",
+        "external_task_target": {
+          "leftmost_column": 2,
+          "rotation": 1
+        },
+        "success": true,
+        "source_trial_hash": "be880bc18c1b30e74a31fc44f58914aa66f16cf96fc0e44712380eb0f327ba71",
+        "trace": [
+          {
+            "before": {
+              "step": 40,
+              "tick": 1002,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "rotate-cw:100",
+            "after": {
+              "step": 41,
+              "tick": 1008,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 5,
+              "rotation": 1,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 2,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "e38ca1da47f6d229999b4ad9317e6f68ad79b1afe8596073fdbbfeb8f7a0120d"
+          },
+          {
+            "before": {
+              "step": 41,
+              "tick": 1008,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 5,
+              "rotation": 1,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "left:300",
+            "after": {
+              "step": 42,
+              "tick": 1026,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 1,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -4,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "7a0011fb3c29bf5e71abb17279cd4e6cd035bdd2b8d6e06c0948fec92f2313c3"
+          },
+          {
+            "before": {
+              "step": 42,
+              "tick": 1026,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 1,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "right:100",
+            "after": {
+              "step": 43,
+              "tick": 1032,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 2,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 1,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "a7767e1de9605a3ea64effece1d55a9de1ab2660bcf24d833f34ebc9095a9e6e"
+          },
+          {
+            "before": {
+              "step": 43,
+              "tick": 1032,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 2,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "hard-drop:100",
+            "after": {
+              "step": 44,
+              "tick": 1038,
+              "piece_id": 10,
+              "piece_type": "L",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": false,
+            "same_piece_column_delta": null,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "f7d00d53912e27d253f718af7c41535cdde4c292c430b856b8930c3dfe320967"
+          }
+        ]
+      },
+      {
+        "fixture": "rotate_and_position_i",
+        "arm": "baseline",
+        "external_task_target": {
+          "leftmost_column": 2,
+          "rotation": 1
+        },
+        "success": true,
+        "source_trial_hash": "6f49cb2e45230eec0f6a9fdd1c1feab7f83ee3d81df2c994ca72f6bae50073d8",
+        "trace": [
+          {
+            "before": {
+              "step": 40,
+              "tick": 1002,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "rotate-cw:100",
+            "after": {
+              "step": 41,
+              "tick": 1008,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 5,
+              "rotation": 1,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 2,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "eac103a14afd664a2b893935bf598926ac62125bad6d214df060895b60cebedf"
+          },
+          {
+            "before": {
+              "step": 41,
+              "tick": 1008,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 5,
+              "rotation": 1,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "left:300",
+            "after": {
+              "step": 42,
+              "tick": 1026,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 1,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -4,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "9996542fef9c9290f947c3ae4ce8369d2c4bbff24e3b368bc62c57226d81f6f6"
+          },
+          {
+            "before": {
+              "step": 42,
+              "tick": 1026,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 1,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "right:100",
+            "after": {
+              "step": 43,
+              "tick": 1032,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 2,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 1,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "99519c928c6c611fb6ebabf2aa3a5b7a785deb3a87e4b57f1e0a7333b4efca95"
+          },
+          {
+            "before": {
+              "step": 43,
+              "tick": 1032,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 2,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "hard-drop:100",
+            "after": {
+              "step": 44,
+              "tick": 1038,
+              "piece_id": 10,
+              "piece_type": "L",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": false,
+            "same_piece_column_delta": null,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "d3be58d84ff69d2cd97406be467ed422211110e1df61b4564f5457b7a0005a41"
+          }
+        ]
+      },
+      {
+        "fixture": "rotate_and_position_i",
+        "arm": "repaired_policy",
+        "external_task_target": {
+          "leftmost_column": 2,
+          "rotation": 1
+        },
+        "success": true,
+        "source_trial_hash": "274ae3499fb9cde5b6e7605df29577e61bdd8f59e6b7a1aefc43201142f1cb9b",
+        "trace": [
+          {
+            "before": {
+              "step": 40,
+              "tick": 1002,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "rotate-cw:100",
+            "after": {
+              "step": 41,
+              "tick": 1008,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 5,
+              "rotation": 1,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 2,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "164b79e764d16298fdad44630fae4d4fd3a232bd15ca3474f57346d2a1e8ef6b"
+          },
+          {
+            "before": {
+              "step": 41,
+              "tick": 1008,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 5,
+              "rotation": 1,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "action": "left:100",
+            "after": {
+              "step": 42,
+              "tick": 1014,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 4,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -1,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "8a6d8780142fbf22cb15661134dd8ae63bb6b77b66ec3127f4b5ad2c38644db9"
+          },
+          {
+            "before": {
+              "step": 42,
+              "tick": 1014,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 4,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "left:100",
+            "after": {
+              "step": 43,
+              "tick": 1020,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 3,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 11
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -1,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "21f83af86465d5bd41c0569631c2390840fd4b1cf7621567a13dd64b3fd33901"
+          },
+          {
+            "before": {
+              "step": 43,
+              "tick": 1020,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 3,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 11
+            },
+            "action": "left:100",
+            "after": {
+              "step": 44,
+              "tick": 1026,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 1,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "same_piece": true,
+            "same_piece_column_delta": -2,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "2a44fe801866dc4258d17444878bbbd8dd8b0255ce481ac1579ff22dc71bc4b6"
+          },
+          {
+            "before": {
+              "step": 44,
+              "tick": 1026,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 1,
+              "rotation": 1,
+              "horizontal_direction": -1,
+              "horizontal_held_ticks": 17
+            },
+            "action": "right:100",
+            "after": {
+              "step": 45,
+              "tick": 1032,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 2,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "same_piece": true,
+            "same_piece_column_delta": 1,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "0e33c783c805914dd5125d7beb10b11e6337eb6cebfed46803bfab3c73cf48c1"
+          },
+          {
+            "before": {
+              "step": 45,
+              "tick": 1032,
+              "piece_id": 9,
+              "piece_type": "I",
+              "leftmost_column": 2,
+              "rotation": 1,
+              "horizontal_direction": 1,
+              "horizontal_held_ticks": 5
+            },
+            "action": "hard-drop:100",
+            "after": {
+              "step": 46,
+              "tick": 1038,
+              "piece_id": 10,
+              "piece_type": "L",
+              "leftmost_column": 3,
+              "rotation": 0,
+              "horizontal_direction": 0,
+              "horizontal_held_ticks": 0
+            },
+            "same_piece": false,
+            "same_piece_column_delta": null,
+            "decision_goal": {
+              "leftmost_column": 2,
+              "rotation": 1
+            },
+            "receipt_response_hash": "d0d79d50ae0a9ecba7a32a0074706698b509290421f574f83246b7c80aa8df36"
+          }
+        ]
+      }
+    ],
+    "case_reading_notes": [
+      "overshoot_from_left：修订策略仍有100ms连续第三下从5列移到7列的越过，但能反向100ms回到6列并锁定。控制事实组用了5个动作，策略组多一个noop共6个动作；基线12动作仍往返。",
+      "repeat_timer_one_column：三组均先7→9越过目标8，再回8锁定，动作数相同。不能把新策略描述为消除了所有越过。",
+      "rotate_and_position_i：基线和控制事实组各4动作，策略单独修订组6动作。策略文字单独修改不是每个任务都更省动作。"
+    ],
+    "limitations": [
+      "6个任务从已知V5历史轨迹重建起点，部分历史片段用于LLM修订；属于开发控制诊断，不是未见场景泛化测试。",
+      "历史前缀仅用于设置起始状态，不计为本次模型动作；正式任务中的目标更新与全部按键均由Decision选择且思考关闭。",
+      "任务目标由测试定义为指定列/朝向，Decision仍须自行选目标并选择hard-drop；任务成功不是完整游戏得分或稳定消行证明。",
+      "6个异质任务没有置信区间或显著性主张；3组结果仅描述本次控制任务观察。",
+      "完整新种子对照比较修订策略与反馈的组合包，不能凭这些开发任务把全局得分变化完全归因到某一模块。"
+    ]
+  }
+}

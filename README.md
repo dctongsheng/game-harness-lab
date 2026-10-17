@@ -83,6 +83,7 @@ harnesses/<游戏>/<版本>/
 - [六游戏 RSI 诊断与实验设计](docs/rsi-diagnosis-v1.md)
 - [V4 完整反馈与真实对照实验](docs/feedback-validation-v4.md)
 - [V5 俄罗斯方块结构事实与目标记忆](docs/tetris-context-validation-v5.md)
+- [V6 俄罗斯方块按键控制、LLM 修订与配对实验](docs/tetris-control-validation-v6.md)
 - [V1 总结](docs/project-summary-v1.md)、[V1 历史实测](docs/validation-v1.md)
 - [原始长期架构提案](docs/architecture.md)、[路线图](docs/roadmap.md)
 - [第三方来源与许可证](THIRD_PARTY_NOTICES.md)
