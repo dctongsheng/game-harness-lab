@@ -55,6 +55,11 @@ def _shape(value):
 
 
 _GAME_GUIDANCE = {
+    "overcooked": {
+        "observations": "terrain公开厨房静态网格；players含两厨师位置position、朝向orientation及held_object；pots含ingredients、is_cooking、is_ready、cook_time_remaining，objects为锅或台面物品，orders是原生有效配方。acting_player为0或1，actor为chef_0/chef_1。joint_history只含最近4个已经完成的联合tick事实，不能假定存在更早历史或目标记忆。",
+        "actions": "north/south/east/west/stay/interact完整六项；方向动作遇阻仍改变朝向，interact只作用于面前相邻格。空手朝含食材锅interact开火，满锅不自动烹饪。先问厨师0再问厨师1，两动作一起推进1tick；后一人看不到前一人当前未提交选择。step为Decision次数，native_tick才是厨房时间。",
+        "design_focus": "两厨师共享同一Harness，按acting_player与可见状态分工、避堵、交接；要区分拿食材、添料、空手开火、等熟、取盘盛汤、上菜各条件。禁止脚本路线、自动寻路、代码替选、整段多动作执行；只根据当前可见事实选择一次动作。只有正确配方上菜的原生稀疏分是主目标，过程统计不加分。",
+    },
     "snake": {
         "observations": "size为边长；snake是蛇头到蛇尾的[x,y]数组；food为当前食物或null；direction是实际行进方向。左上原点，x右增、y下增。",
         "actions": "up/right/down/left全四方向始终提供，包括可能致死的方向。每次推进一格；请求反向时继续原方向。未吃食物时尾格在本步腾出。",

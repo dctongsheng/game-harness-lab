@@ -27,3 +27,10 @@ dependencies' license notices remain in their installed distributions.
 - Military Chess and Gomoku rules, plus Tetris and original platformer rules and required common/core definitions, are copied without source changes. Each vendor directory includes a `SOURCE.json` with file checksums and source provenance.
 - `board_bridge.ts` and `arcade_bridge.ts` implement the local paused adapter contract. Compiled `.cjs` files bundle these MIT rules for Node 18+; no external packages or network are used at gameplay runtime.
 - These adapters do not copy the reference project's legacy GPL or unlicensed demos, Nintendo ROMs, or Nintendo assets. Platformer levels and graphics are the reference project's original game.
+
+## Overcooked-AI (external, optional)
+
+- Upstream: https://github.com/HumanCompatibleAI/overcooked_ai
+- Pinned commit: `739950a079cdaed5a44fcc662efc40244c205d06`; package version 2.0.0; license **MIT**. The upstream license remains with the installed source distribution.
+- `requirements-overcooked.txt` pins the independent Python 3.10 environment. No pretrained policy, human gameplay dataset, or game art is vendored.
+- The local JSONL worker calls native `OvercookedGridworld.get_state_transition` with `display_phi=False` and `motion_planner=None`. It does not construct a planner or choose actions. The dashboard draws its own simple kitchen visualization from public native state.

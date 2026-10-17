@@ -69,9 +69,9 @@ def test_javascript_syntax(tmp_path):
     assert result.returncode == 0, result.stderr
 
 
-def test_catalog_contains_six_games_and_platformer_evaluation_defaults():
+def test_catalog_contains_seven_games_and_platformer_evaluation_defaults():
     games = node_eval("fallbackGames")
-    assert {game["id"] for game in games} == {"snake", "xiangqi", "army", "gomoku", "tetris", "platformer"}
+    assert {game["id"] for game in games} == {"snake", "xiangqi", "army", "gomoku", "tetris", "platformer", "overcooked"}
     platformer = next(game for game in games if game["id"] == "platformer")
     assert platformer["defaults"]["promotion_games"] == 6
     gomoku = next(game for game in games if game["id"] == "gomoku")

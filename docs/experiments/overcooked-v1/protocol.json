@@ -1,0 +1,111 @@
+{
+  "schema": "overcooked-real-cycle/v1",
+  "created_at": "2026-10-17T06:25:43.395427+00:00",
+  "source_hashes": {
+    "src/game_harness/__init__.py": "d62ebde25ffdac07b9ac02027e29cc5abf01561dbb7493e419861365eb02461f",
+    "src/game_harness/__main__.py": "47c4457a8014127610118d15f2873cc230c395b6e06b2dafda542cc9cdf8bd62",
+    "src/game_harness/app.py": "34defd693636740c270df8a2d42e246a61b800ee9ef8e4b083458771942c4ccd",
+    "src/game_harness/evolution.py": "dc5f59f0acd37294f98a13e2ef626a77b8ebece0c40fdc7232b93cec7ef314d4",
+    "src/game_harness/exporting.py": "5ded02daf021aeb095833e35c9faec46cfbbb31e559f78a9b0a2864d86da137e",
+    "src/game_harness/feedback.py": "640da648dda933768ac13a34d37433ccd9d1b800a1c30264dfdb0526b2ff923d",
+    "src/game_harness/initialization_contract.py": "dd1d5cc9a8970a0254d38783b49711fb8d2219a6bd2b5fe6dfc883a681c370e7",
+    "src/game_harness/providers.py": "e7efe9f4c27ad0e2242af84f281fd1e3f164ffc51d94043fe8743f0d1feb3ca2",
+    "src/game_harness/runtime.py": "79f204831eda758df718ac5fa0d7bce579a1bb0a2d549e5e8b0c1af1c7cab464",
+    "src/game_harness/service.py": "f331e0d73a46798298d82de8f5a85c830f683cd122b893c238b8f6e198f9cf34",
+    "src/game_harness/snake.py": "2380db374c6759443823a0aa98d2c8c9132588e45dfaa165521e62e89bedda66",
+    "src/game_harness/store.py": "c09e78c22924ae7bfce534c90d610a93450353b584186d2ce16766332e461d92",
+    "src/game_harness/tetris_context.py": "25683a67db4a9e80e0ec476a034aef496fbf69e85b92729da3e5c42872288756",
+    "src/game_harness/tetris_control.py": "d2d2ae4e3abe464222750b9be183a7746f78243414be4b536b1715bf91e51383",
+    "src/game_harness/tetris_features.py": "9232ea144bd5b95e73686b9d4eb3850817425dcc5f35c8e4a13c531a88119bc8",
+    "src/game_harness/visibility.py": "52438516646f8beec9e854f4e7fbca26dfd681bdbf788670ce08918dbb1c6cc7",
+    "src/game_harness/games/__init__.py": "a076e887d14b4e07348c2052ccbeaffc56a5915b477c7a036dba08579bc80f20",
+    "src/game_harness/games/overcooked.py": "83ce0f49d4a79ac2d40227610c7cfb11db7852b2ea59ee89f550b5c2673d31c7",
+    "src/game_harness/games/overcooked_worker.py": "2f265af787501f53331e909a32c4f5080ad19e73623e1fc1c1ef6cd707ad9d17",
+    "scripts/run_overcooked.py": "f6a7f69f9dda046abebadc17f546f46e88ceb588fe39a2581f31e4a7fc50dce3",
+    "scripts/audit_overcooked_run.py": "fa6b2a8b63146e583ed04278e3e5bc0df76da32ede992a89554763ba6daac438",
+    "requirements-overcooked.txt": "8e3f4c59bffb3085f4f92882cc0a615bafa627e205ec24e0086b7f00951b3dba"
+  },
+  "game_context": {
+    "game_id": "overcooked",
+    "name": "Overcooked-AI 双人厨房",
+    "rules_version": "game-harness-lab/overcooked-joint-v1-739950a",
+    "rules": "双厨师合作厨房，所有原始动作都由Decision选择；两位厨师共享候选Harness，没有脚本队友。\n坐标(x,y)从左上(0,0)开始，x向右、y向下。terrain公开整张地图：空格可走、X台面、O洋葱、T番茄、D盘子、P锅、S上菜口。\n每位厨师可选north/south/east/west/stay/interact。方向动作移动一格并改变朝向；遇墙或碰撞可能不移动但仍转向；interact只作用于当前面朝的相邻格。\n交互效果由原生规则决定：空手从食材源拿食材，从盘子源拿盘子；持食材向锅交互添加食材；空手朝含食材的未开火锅交互启动烹饪；持盘子朝煮熟锅交互盛汤；持汤向S交互上菜。台面可暂存/交换物品。\n锅最多容纳3个食材。原生允许少量食材提前开火，但当前3张地图的有效订单均为3个洋葱，错误配方上菜可为0分；请以orders的原生配方、时间和分数为准。满锅不会自动开火，空手interact才开火。煮熟的汤不会烧焦。\n动作采用原生同时联合步进：先问chef_0，再问chef_1；双方看同一个已完成tick的世界，chef_1看不到chef_0待提交选择；第二次合法选择后两动作一起提交并推进1tick。原生交互按厨师索引处理，再统一处理移动、碰撞和烹饪。\n等待模型时0tick推进。step/max_steps计Decision动作次数，native_tick/max_ticks计联合游戏步；2次Decision动作=1tick。所有动作候选始终完整，无寻路、候选推荐、战术评分、动作过滤或失败代走。\ndeliveries/delivery_counts统计原生上菜事件，包括错误配方的零分上菜，不能直接当作有效订单数。只有有效订单上菜所得原生稀疏分进入score；不采用原生shaped reward，不用接近锅、食材搬运或生存奖励。预算到达记step_limit截断，不当成胜负。\nseed只标记相同标准开局的重复试验，不随机地图，不调换厨师。不同布局须单独比较。joint_history仅记录已完成的最近4个tick事实。\n",
+    "score_spec": {
+      "id": "overcooked-native-sparse-v1",
+      "direction": "maximize",
+      "higher_is_better": true,
+      "min": 0,
+      "minimum_mean_gain": 1.0,
+      "perspective": "cooperative_team",
+      "score_kind": "native_sparse_reward",
+      "description": "只累计原生 sparse_reward_by_agent；完成有效订单上菜才有分。食材入锅、取盘、盛汤、移动、存活均无代理奖励。"
+    },
+    "config": {
+      "max_steps": 240,
+      "overcooked_layout": "cramped_room",
+      "clock": "paused_atomic_joint_tick",
+      "decisions_per_tick": 2,
+      "start_position": "native_standard",
+      "chef_control": "both_decision_candidate"
+    },
+    "opponent_policy": null,
+    "scenario_policy": "fixed_layout_standard_start_repeated_trials",
+    "trial_design": "同布局原生标准开局重复试验；seed只标识重复，不随机地图或交换厨师；跨布局另作评测。",
+    "evaluation": {
+      "seed_semantics": "repeat identifier only; identical native initial state",
+      "seed_modulus": 1,
+      "primary_metric": "native_sparse_reward",
+      "secondary_metrics": [
+        "deliveries",
+        "delivery_counts",
+        "native_tick"
+      ],
+      "delivery_semantics": "deliveries/delivery_counts count native soup_delivery events, including invalid recipes worth zero; score is the valid-order outcome",
+      "limitations": "重复种子不构成新地图泛化证据；双厨师共享同一候选Harness。"
+    },
+    "source": {
+      "upstream_repository": "https://github.com/HumanCompatibleAI/overcooked_ai",
+      "upstream_commit": "739950a079cdaed5a44fcc662efc40244c205d06",
+      "license": "MIT",
+      "worker_sha256": "2f265af787501f53331e909a32c4f5080ad19e73623e1fc1c1ef6cd707ad9d17"
+    }
+  },
+  "config": {
+    "game_id": "overcooked",
+    "board_size": 8,
+    "max_steps": 240,
+    "train_games": 1,
+    "validation_games": 1,
+    "promotion_games": 4,
+    "reflection_rounds": 1,
+    "episodes": 1,
+    "seed": 42,
+    "overcooked_layout": "cramped_room"
+  },
+  "decision_model": "startlux-decision-27b-autothink",
+  "coach_model": "glm-5.3",
+  "think_mode": "never",
+  "identity_verification": "service_reported_name",
+  "schedule": {
+    "train_seeds": [
+      42
+    ],
+    "validation_seeds": [
+      4242
+    ],
+    "promotion_seeds": [
+      1042,
+      2042,
+      3042,
+      4042
+    ]
+  },
+  "budget": {
+    "max_episodes": 14,
+    "decision_request_attempts_max": 3360,
+    "coach_attempts_max": 4,
+    "gepa_reflections": 1
+  },
+  "interpretation": "Same deterministic standard layout; seed IDs are repeated trials, not independent maps or controlled model RNG. No claim of generalization or significance.",
+  "protocol": "GLM initial Harness; real trigger; GEPA train/selection; only if selected changes, 4 alternating-order held-out empirical pairs. No manual policy editing, shaped score, retries, or forced promotion."
+}

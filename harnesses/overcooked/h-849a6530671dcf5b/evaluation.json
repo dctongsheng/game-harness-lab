@@ -1,0 +1,76 @@
+{
+  "id": "job-ep-8509578b304243b9",
+  "status": "promoted",
+  "scope": "b5622efba1b758d409ad",
+  "parent_id": "h-f5e090c70ba7232a",
+  "candidate_id": "h-849a6530671dcf5b",
+  "created_at": "2026-10-17T06:26:41.475371+00:00",
+  "finished_at": "2026-10-17T06:34:27.989099+00:00",
+  "gate": {
+    "version": "v1-empirical-paired",
+    "minimum_pairs": 4,
+    "minimum_mean_gain": 1.0,
+    "no_pair_regression": true,
+    "statistical_claim": false
+  },
+  "baseline_score": 0.0,
+  "candidate_score": 20.0,
+  "mean_gain": 20.0,
+  "pairs": [
+    {
+      "seed": 1042,
+      "baseline": 0.0,
+      "baseline_episode_id": "ep-6e6c76b987f14696",
+      "candidate": 40.0,
+      "candidate_episode_id": "ep-0923429a4afb41b7"
+    },
+    {
+      "seed": 2042,
+      "candidate": 40.0,
+      "candidate_episode_id": "ep-2922ed6e4992407a",
+      "baseline": 0.0,
+      "baseline_episode_id": "ep-98069834f420479c"
+    },
+    {
+      "seed": 3042,
+      "baseline": 0.0,
+      "baseline_episode_id": "ep-c94aea76f42a4670",
+      "candidate": 0.0,
+      "candidate_episode_id": "ep-42db75b26e6f4d48"
+    },
+    {
+      "seed": 4042,
+      "candidate": 0.0,
+      "candidate_episode_id": "ep-185df5caa6214362",
+      "baseline": 0.0,
+      "baseline_episode_id": "ep-6c126219827e490a"
+    }
+  ],
+  "decision": "通过小样本配对门槛，下一局使用新版本；不代表泛化证明",
+  "config": {
+    "game_id": "overcooked",
+    "board_size": 8,
+    "max_steps": 240,
+    "train_games": 1,
+    "validation_games": 1,
+    "promotion_games": 4,
+    "reflection_rounds": 1,
+    "episodes": 1,
+    "seed": 42,
+    "overcooked_layout": "cramped_room"
+  },
+  "search": {
+    "engine": "gepa.optimize",
+    "version": "0.1.4",
+    "best_idx": 1,
+    "best_score": 40.0,
+    "val_aggregate_scores": [
+      0.0,
+      40.0
+    ],
+    "candidate_count": 2,
+    "total_metric_calls": 4
+  },
+  "evidence_type": "empirical paired evaluation; not a generalization or significance claim",
+  "raw_traces_included": false
+}

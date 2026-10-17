@@ -1,0 +1,49 @@
+{
+  "status": "bootstrap_not_approved_release",
+  "id": "h-f5e090c70ba7232a",
+  "candidate": {
+    "decision_instructions": "读取acting_player、自己的players[acting_player]（position/orientation/held_object）、pots[0]（ingredients/is_cooking/is_ready）与terrain中O、D、P、S、X的位置。按以下优先级选唯一动作：1) 若held_object为汤：朝S移动到S相邻可走格并面朝S，就位则interact上菜。2) 若锅is_ready且held_object为盘子：若自己不在锅旁面朝锅则移动/转向就位，就位interact盛汤。3) 若held_object为洋葱：若锅未满(ingredients<3)且未在烹饪/已熟，移动到锅旁面朝锅并interact放料；若锅正烹饪或已满，移动到台面X旁面朝X，interact暂存洋葱。4) 若锅is_ready且自己空手：若队友未持盘走向锅，先去D取盘（移动到D旁面朝D，interact），再按第2条。5) 若held_object为盘子且锅未ready：stay或移开让路，持盘等待。6) 若自己空手且锅未ready：acting_player=0优先去O取洋葱（面朝O后interact），满3料且未开火时先空手面朝锅interact开火；acting_player=1优先准备盘子（去D旁面朝D，interact取盘），若锅已开火且盘已在手则stay等待，若chef_0持洋葱在途中可代为取洋葱。7) 移动时若下一格是队友当前所在格或不可走地形，选绕行方向；无法前进时该方向动作仍可用来转向对齐interact目标。每次只输出一个动作ID。",
+    "strategy_notes": "目标是3洋葱汤的完整循环得分，不要番茄或混合配方（0分）。核心节奏：一个厨师持续供洋葱并空手开火（满3料后必须空手interact才开火），另一个厨师提前持盘待熟，锅is_ready立即盛汤并送S，随后立刻重启下一轮。开火后供料者转去取盘或备料，避免两人在锅前争位。利用pots的cook_time_remaining判断等待是否值得；持盘等待优于空手乱走。上菜后按acting_player默认分工恢复洋葱线/盘子线。不要向S交空盘或未熟汤，不要在锅未满时开火（提前开火浪费订单时间）。"
+  },
+  "brief": {
+    "background": "Overcooked-AI双人合作厨房（cramped_room布局）：4x5网格，两厨师共享同一候选Harness，轮流被询问（先chef_0后chef_1），每次从north/south/east/west/stay/interact六个动作中选一个，两动作一起推进1个联合tick，共120 ticks（240次决策）。唯一有效订单是3洋葱汤，煮熟需20 ticks，正确上菜得20分。",
+    "goal": "最大化原生稀疏分：反复完成“3个洋葱入锅→空手开火→等熟→持盘盛汤→送S上菜”的循环。只有正确配方的上菜得分，搬运、入锅、取盘等过程均无奖励。",
+    "rules": [
+      "terrain静态公开：X台面、O洋葱源、T番茄源、D盘子源、P锅、S上菜口；空格可走。",
+      "方向动作移动一格并改变朝向，遇阻仍转向；interact只作用于面朝的相邻格。",
+      "空手朝食材源interact拿食材；持食材朝锅interact加料；锅满3料不自动开火，需空手朝锅interact才开火；煮熟不烧焦。",
+      "空手朝盘子源interact取盘；持盘朝已熟锅interact盛汤；持汤朝S interact上菜。",
+      "interact在无效条件下多半无效果甚至放下物品，务必先站对位置、朝对方向。",
+      "同一格不能两厨师同时占据，注意避让和卡位。"
+    ],
+    "precautions": [
+      "每次调用是单步choice、think_mode=never：只能依据当前snapshot一次性选一个动作ID，禁止要求多步计划、路径搜索或代码代选。",
+      "无跨步记忆：stateless调用，没有会话历史；joint_history只有最近4个已完成tick，不能假设更早信息或记住上一步意图。",
+      "不存在winning_actions、safe_actions、战术评分、寻路或候选过滤等辅助字段；candidates只有id和label，允许不等于有利。",
+      "step是决策次数（2次=1 tick），native_tick才是厨房时间；预算240步耗尽记step_limit截断，不是失败。",
+      "deliveries/delivery_counts含零分错误配方上菜，不等于得分；只信orders配方（3洋葱）。",
+      "chef_1看不到chef_0本tick未提交的选择，分工策略须容错，不依赖即时配合。",
+      "不能引用种子、隐藏状态、固定坐标路线或测试答案；不同布局需另行评测。",
+      "两厨师共用同一策略，指令须对chef_0和chef_1都适用，用acting_player区分即可。"
+    ],
+    "strategy": "设计依据：snapshot提供了分工所需的全部即时事实——acting_player确定身份，players[].position/orientation/held_object确定自身与队友状态，pots[].ingredients/is_cooking/is_ready/cook_time_remaining确定锅的进度，terrain/orders确定目标物位置与配方。动作语义上，唯一难点是interact强依赖朝向，而方向动作兼有移动与转向功能，故指令以“先站到目标格旁、面朝目标格，再interact”为核心；用held_object×锅状态构成条件表，使无记忆的单步决策在每个状态下都有明确唯一动作（朝目标移动→对齐朝向→interact），并按订单优先级（洋葱汤、单锅）简化为线性分工：无汤阶段chef_0负责洋葱线，chef_1负责盘子线，遇锅空闲或队友阻塞时灵活补位，避免两人在同一路径对撞。"
+  },
+  "provenance": {
+    "type": "bootstrap",
+    "coach": "glm-5.3",
+    "initialization": {
+      "contract_schema_version": "decision-harness-initialization/v1",
+      "contract_hash": "5a459b16db0d30e5ac7ec9af352c316b8efea0344ae0de69d89fac1228091c7d",
+      "observation_schema_hash": "d943c9ea7b6b42a0ebc22842974085f44802d9c1ae3b2f61654ae6101b8e21b4",
+      "game_id": "overcooked",
+      "rules_version": "game-harness-lab/overcooked-joint-v1-739950a",
+      "decision_model": "startlux-decision-27b-autothink",
+      "think_mode": "never",
+      "coach_requested_model": "glm-5.3",
+      "coach_returned_model": "glm-5.3",
+      "coach_response_hash": "bddab9298c6bd6df5f7956f2d47c630adbf6e5ed024542d23331335c8a4fe36e",
+      "sample_kind": "fresh_adapter_initial_observation",
+      "identity_verification": "service_reported_name"
+    }
+  }
+}

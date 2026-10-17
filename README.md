@@ -1,12 +1,12 @@
 # Game Harness Lab
 
-**通用游戏 Harness 进化框架：游戏适配器 + Decision 玩家 + GEPA 局后优化 + 验收后导出。** 当前支持贪吃蛇、中国象棋、军棋、五子棋、俄罗斯方块和原创平台跳跃。
+**通用游戏 Harness 进化框架：游戏适配器 + Decision 玩家 + GEPA 局后优化 + 验收后导出。** 当前支持贪吃蛇、中国象棋、军棋、五子棋、俄罗斯方块、原创平台跳跃和 Overcooked-AI 双人厨房。
 
 所有局内动作都由 StartLux Decision 选择，显式 `think_mode=never`、`allow_none=false`。GLM-5.3 负责游戏资料、策略设计、历史经验提取与局后反思。适配器负责规则、完整动作集和计分，运行器负责模型调用与执行校验。
 
 ## 启动
 
-需要 Python 3.11+；除贪吃蛇外的规则引擎需要 Node.js 18+。已在 macOS 验证，运行已打包引擎不需要 npm 安装。
+需要 Python 3.11+；中国象棋、军棋、五子棋、俄罗斯方块和平台跳跃的规则引擎需要 Node.js 18+。Overcooked 另用独立 Python 3.10 环境：主环境装好后运行 `bash scripts/setup_overcooked.sh`（需要 uv），不会更改主环境的 Python。已在 macOS 验证，运行已打包引擎不需要 npm 安装。
 
 ```sh
 ./setup.sh
@@ -46,6 +46,7 @@ flowchart LR
 | 五子棋 | 全部空位，9×9或15×15自由五子棋 | 真实胜/负/和100/0/50；种子交换候选黑白角色 |
 | 俄罗斯方块 | 原生按键及100/300/1000ms持续时间 | 原生消行积分，保留重力/SRS/hold；不给存活加分 |
 | 原创平台跳跃 | 原生左右/跳跃及按住时长 | 三个固定关卡，进度/金币/通关原生积分；不是原版超级马里奥 |
+| Overcooked-AI | 两名厨师均由 Decision 从六个原生动作选择；正确送餐才计原生分 | 两次选择同步推进一 tick；三张官方布局；独立 Python 3.10 规则进程，不用规划器 |
 
 中国象棋参考 `decision-arena` 的规则集，使用固定 BSD 引擎。标准局面重复试验，种子奇偶交换候选执红黑；不同种子不代表不同开局。到步数上限只按固定子力差评分，不能当作获胜或胜率。
 
@@ -84,8 +85,9 @@ harnesses/<游戏>/<版本>/
 - [V4 完整反馈与真实对照实验](docs/feedback-validation-v4.md)
 - [V5 俄罗斯方块结构事实与目标记忆](docs/tetris-context-validation-v5.md)
 - [V6 俄罗斯方块按键控制、LLM 修订与配对实验](docs/tetris-control-validation-v6.md)
+- [Overcooked-AI 双人厨房接入与真实实验](docs/overcooked-integration-v1.md)
 - [V1 总结](docs/project-summary-v1.md)、[V1 历史实测](docs/validation-v1.md)
 - [原始长期架构提案](docs/architecture.md)、[路线图](docs/roadmap.md)
 - [第三方来源与许可证](THIRD_PARTY_NOTICES.md)
 
-`contracts/` 和 `examples/` 中的完整声明式配置仍是长期设计提案；当前可运行接口在 `games/base.py`。原版马里奥、真实时间持续推进控制和权重训练尚未实现。浏览器视觉与点击交互仍未实际验收，已有前端语法、接口和后端真实模型测试。
+`contracts/` 和 `examples/` 中的完整声明式配置仍是长期设计提案；当前可运行接口在 `games/base.py`。原版马里奥、真实时间持续推进控制和权重训练尚未实现。Overcooked 的真实回放、同步时间和计分显示已在浏览器验证；这不代表其余游戏的所有页面交互均已验收。

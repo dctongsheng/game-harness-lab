@@ -109,6 +109,10 @@ def _static_context(trace, game, private):
             'visible_bounds uses zero-based flat cell index: rank strictly above rank_above, OR mine if or_mine is true.')
     if game == 'army' and all(f.get('terrain') == frames[0].get('terrain') for f in frames):
         context.update(_pick(frames[0], ('terrain',)))
+    if game == 'overcooked':
+        for key in ('layout', 'rows', 'cols', 'terrain', 'terrain_legend', 'orders', 'max_ticks'):
+            if key in frames[0] and all(f.get(key) == frames[0][key] for f in frames):
+                context[key] = _clean(frames[0][key])
     observations = [f.get('observation', {}) for f in frames]
     if game in ('platformer', 'tetris') and all(isinstance(o, dict) for o in observations):
         keys = ('width', 'height', 'level', 'platforms', 'hazards', 'exit', 'physics',
@@ -141,6 +145,12 @@ def compact_state(state, game, context=None):
         result.update(_pick(state, ('winning_line',)))
         if 'terrain' not in context:
             result.update(_pick(state, ('terrain',)))
+    elif game == 'overcooked':
+        result.update(_pick(state, ('actor', 'acting_player', 'native_tick', 'players', 'pots',
+                                   'objects', 'deliveries', 'delivery_counts', 'last_joint_actions',
+                                   'last_transition')))
+        result.update(_pick(state, (key for key in ('layout', 'terrain', 'orders', 'max_ticks')
+                                   if key not in context)))
     elif game in ('platformer', 'tetris'):
         observation = state.get('observation', {})
         if not isinstance(observation, dict):
@@ -223,6 +233,13 @@ def _tags(row, game, previous):
         tags.append('check_changed')
     if before.get('material') != after.get('material'):
         tags.append('material_changed')
+    if game == 'overcooked' and before.get('native_tick') != after.get('native_tick'):
+        if before.get('pots') != after.get('pots') or before.get('objects') != after.get('objects'):
+            tags.append('kitchen_state_changed')
+        old_hands = [p.get('held_object') for p in before.get('players', [])]
+        new_hands = [p.get('held_object') for p in after.get('players', [])]
+        if old_hands != new_hands:
+            tags.append('held_object_changed')
     if game == 'gomoku' and row.get('policy_role', 'candidate') == 'candidate':
         seat = before.get('turn')
         if seat in (0, 1):
@@ -262,6 +279,8 @@ def _priority(event, first, last):
         return 80
     if any(t in tags for t in ('score_changed', 'material_changed', 'check_changed')):
         return 70
+    if any(t in tags for t in ('kitchen_state_changed', 'held_object_changed')):
+        return 68
     if index >= last - 3:
         return 65
     return 10

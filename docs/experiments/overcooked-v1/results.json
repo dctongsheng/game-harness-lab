@@ -1,0 +1,588 @@
+{
+  "schema": "overcooked-v1-public-results",
+  "status": "completed",
+  "protocol_hash": "316dbdf2b0eb999c0b52a382ab9d8fcc565e06676f690029521bd5778696d259",
+  "models": {
+    "decision": "startlux-decision-27b-autothink",
+    "coach": "glm-5.3",
+    "decision_think_mode": "never",
+    "identity": "service_reported_name"
+  },
+  "layout": "cramped_room",
+  "decision_budget_per_episode": 240,
+  "native_ticks_per_episode": 120,
+  "initial_harness": "h-f5e090c70ba7232a",
+  "promoted_harness": "h-849a6530671dcf5b",
+  "promotion_pairs": [
+    {
+      "seed": 1042,
+      "baseline": 0.0,
+      "baseline_episode_id": "ep-6e6c76b987f14696",
+      "candidate": 40.0,
+      "candidate_episode_id": "ep-0923429a4afb41b7"
+    },
+    {
+      "seed": 2042,
+      "candidate": 40.0,
+      "candidate_episode_id": "ep-2922ed6e4992407a",
+      "baseline": 0.0,
+      "baseline_episode_id": "ep-98069834f420479c"
+    },
+    {
+      "seed": 3042,
+      "baseline": 0.0,
+      "baseline_episode_id": "ep-c94aea76f42a4670",
+      "candidate": 0.0,
+      "candidate_episode_id": "ep-42db75b26e6f4d48"
+    },
+    {
+      "seed": 4042,
+      "candidate": 0.0,
+      "candidate_episode_id": "ep-185df5caa6214362",
+      "baseline": 0.0,
+      "baseline_episode_id": "ep-6c126219827e490a"
+    }
+  ],
+  "baseline_mean": 0.0,
+  "candidate_mean": 20.0,
+  "candidate_positive_score_trials": 2,
+  "candidate_trials": 4,
+  "gate": {
+    "version": "v1-empirical-paired",
+    "minimum_pairs": 4,
+    "minimum_mean_gain": 1.0,
+    "no_pair_regression": true,
+    "statistical_claim": false
+  },
+  "promotion_status": "promoted",
+  "search": {
+    "engine": "gepa.optimize",
+    "version": "0.1.4",
+    "best_idx": 1,
+    "best_score": 40.0,
+    "val_aggregate_scores": [
+      0.0,
+      40.0
+    ],
+    "parents": [
+      [
+        null
+      ],
+      [
+        0
+      ]
+    ],
+    "candidate_count": 2,
+    "total_metric_calls": 4,
+    "max_metric_calls": 5
+  },
+  "coach_calls": [
+    {
+      "purpose": "initialization",
+      "requested_model": "glm-5.3",
+      "returned_model": "glm-5.3",
+      "usage": {
+        "completion_tokens": 1326,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3
+        },
+        "prompt_tokens": 3639,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 4965
+      },
+      "elapsed_ms": 24618.66,
+      "response_hash": "bddab9298c6bd6df5f7956f2d47c630adbf6e5ed024542d23331335c8a4fe36e"
+    },
+    {
+      "purpose": "reflection",
+      "requested_model": "glm-5.3",
+      "returned_model": "glm-5.3",
+      "usage": {
+        "completion_tokens": 1466,
+        "completion_tokens_details": {
+          "reasoning_tokens": 444
+        },
+        "prompt_tokens": 7008,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 8474
+      },
+      "elapsed_ms": 23758.22,
+      "response_hash": "7ff74726792587fe2e7dba5b4815075690021b90fb1602ac42c5d3865780df98"
+    }
+  ],
+  "decision_requests": 3120,
+  "mean_decision_latency_ms": 146.43,
+  "episodes": [
+    {
+      "episode_id": "ep-8509578b304243b9",
+      "harness_id": "h-f5e090c70ba7232a",
+      "purpose": "play",
+      "trial_label": 42,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "interact": 240
+      },
+      "max_pot_ingredients": 0,
+      "ever_ready": false,
+      "source_hash": "5a7b86b2418825bf566e08b047139105790c9d7e319872286d2980ec5bfb9d1a"
+    },
+    {
+      "episode_id": "ep-90f1930b87ca4271",
+      "harness_id": "h-f5e090c70ba7232a",
+      "purpose": "search_validation",
+      "trial_label": 4242,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "interact": 239,
+        "south": 1
+      },
+      "max_pot_ingredients": 0,
+      "ever_ready": false,
+      "source_hash": "c4b06e6546267b9f9f6befb1a5f207fa709596ad2b5459c0392e9d44a303bb9e"
+    },
+    {
+      "episode_id": "ep-7d6f4a29d3824f63",
+      "harness_id": "h-f5e090c70ba7232a",
+      "purpose": "search_train",
+      "trial_label": 42,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "interact": 240
+      },
+      "max_pot_ingredients": 0,
+      "ever_ready": false,
+      "source_hash": "c1ad01e577c02602136698798250726cf44bc7504dc87752123740dfd1b6676c"
+    },
+    {
+      "episode_id": "ep-067cf9ef13824391",
+      "harness_id": "h-849a6530671dcf5b",
+      "purpose": "search_train",
+      "trial_label": 42,
+      "score": 60.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 3,
+      "action_counts": {
+        "north": 35,
+        "south": 43,
+        "west": 28,
+        "interact": 53,
+        "east": 28,
+        "stay": 53
+      },
+      "max_pot_ingredients": 3,
+      "ever_ready": true,
+      "source_hash": "bbf010da3608a9c5cd916ec19a098cebaf7ca08f06d36d54bb11fb4063cb9ee9"
+    },
+    {
+      "episode_id": "ep-1d1a8eba1b6347df",
+      "harness_id": "h-849a6530671dcf5b",
+      "purpose": "search_validation",
+      "trial_label": 4242,
+      "score": 40.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 2,
+      "action_counts": {
+        "north": 23,
+        "south": 23,
+        "west": 29,
+        "interact": 51,
+        "east": 28,
+        "stay": 86
+      },
+      "max_pot_ingredients": 3,
+      "ever_ready": true,
+      "source_hash": "b90fc6e9114d58567e676a01673fab53696f4b491ee1d16351fe40812772d572"
+    },
+    {
+      "episode_id": "ep-6e6c76b987f14696",
+      "harness_id": "h-f5e090c70ba7232a",
+      "purpose": "promotion_baseline",
+      "trial_label": 1042,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "interact": 240
+      },
+      "max_pot_ingredients": 0,
+      "ever_ready": false,
+      "source_hash": "a895f5a55c90ba11caa62f984bc6df0ab783931435cb2a68c721f9a510486d17"
+    },
+    {
+      "episode_id": "ep-0923429a4afb41b7",
+      "harness_id": "h-849a6530671dcf5b",
+      "purpose": "promotion_candidate",
+      "trial_label": 1042,
+      "score": 40.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 2,
+      "action_counts": {
+        "north": 36,
+        "south": 43,
+        "west": 22,
+        "interact": 61,
+        "east": 22,
+        "stay": 56
+      },
+      "max_pot_ingredients": 3,
+      "ever_ready": true,
+      "source_hash": "3a2ddb3fc4190f19fb76848c9f7c815147233adaa6b7fd67409dfb596de1a55d"
+    },
+    {
+      "episode_id": "ep-2922ed6e4992407a",
+      "harness_id": "h-849a6530671dcf5b",
+      "purpose": "promotion_candidate",
+      "trial_label": 2042,
+      "score": 40.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 2,
+      "action_counts": {
+        "north": 30,
+        "south": 30,
+        "west": 24,
+        "interact": 54,
+        "east": 24,
+        "stay": 78
+      },
+      "max_pot_ingredients": 3,
+      "ever_ready": true,
+      "source_hash": "042964e19e2277e78dc4929806eb962b0483e567e6022a14665d97833d2e06a7"
+    },
+    {
+      "episode_id": "ep-98069834f420479c",
+      "harness_id": "h-f5e090c70ba7232a",
+      "purpose": "promotion_baseline",
+      "trial_label": 2042,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "interact": 240
+      },
+      "max_pot_ingredients": 0,
+      "ever_ready": false,
+      "source_hash": "856cefe5a620ba628049d34c67ca42a4c5687c87689fe2e23ed6d8188b755cc0"
+    },
+    {
+      "episode_id": "ep-c94aea76f42a4670",
+      "harness_id": "h-f5e090c70ba7232a",
+      "purpose": "promotion_baseline",
+      "trial_label": 3042,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "interact": 240
+      },
+      "max_pot_ingredients": 0,
+      "ever_ready": false,
+      "source_hash": "3eb213b0d6f9913cf3c46413c2726cfd067d2164036b66d40f8bbbb2b7b7209b"
+    },
+    {
+      "episode_id": "ep-42db75b26e6f4d48",
+      "harness_id": "h-849a6530671dcf5b",
+      "purpose": "promotion_candidate",
+      "trial_label": 3042,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "north": 69,
+        "south": 70,
+        "west": 11,
+        "interact": 68,
+        "east": 9,
+        "stay": 13
+      },
+      "max_pot_ingredients": 3,
+      "ever_ready": true,
+      "source_hash": "38a986f9b93ddc2e4389f3293b91c8747b1713d6e1907359b6b7d7e2ed36b1f4"
+    },
+    {
+      "episode_id": "ep-185df5caa6214362",
+      "harness_id": "h-849a6530671dcf5b",
+      "purpose": "promotion_candidate",
+      "trial_label": 4042,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "north": 63,
+        "south": 67,
+        "west": 10,
+        "interact": 73,
+        "east": 9,
+        "stay": 18
+      },
+      "max_pot_ingredients": 3,
+      "ever_ready": true,
+      "source_hash": "77cbc9d6c0641e2ec9c7412fd5505263bb6102ad5b55f0ee2cc049c35db2f916"
+    },
+    {
+      "episode_id": "ep-6c126219827e490a",
+      "harness_id": "h-f5e090c70ba7232a",
+      "purpose": "promotion_baseline",
+      "trial_label": 4042,
+      "score": 0.0,
+      "decisions": 240,
+      "native_ticks": 120,
+      "deliveries": 0,
+      "action_counts": {
+        "interact": 239,
+        "south": 1
+      },
+      "max_pot_ingredients": 0,
+      "ever_ready": false,
+      "source_hash": "da602d96901a68f34c7cb7e51ebdcd0cce562cebced9e8cf02ef98d204316dff"
+    }
+  ],
+  "audit": {
+    "schema": "overcooked-native-audit-v1",
+    "model_requests_made_by_audit": 0,
+    "episode_count": 13,
+    "completed_episodes": 13,
+    "excluded_incomplete_episodes": 0,
+    "audited_decision_calls": 3120,
+    "native_joint_ticks": 1560,
+    "recorded_request_count": 3120,
+    "all_calls_explicitly_report_thinking_off": true,
+    "all_recorded_states_replayed": true,
+    "both_chef_actions_match_full_catalog_receipts": true,
+    "first_chef_pending_choices_hidden": true,
+    "delivery_semantics": "deliveries counts native soup_delivery events, including zero-point wrong recipes; scoring_deliveries counts positive-reward delivery events",
+    "seed_interpretation": "repeated trial labels; native standard starts are deterministic per layout",
+    "statistical_claim": false
+  },
+  "frozen_source_hashes_match": true,
+  "frozen_source_count": 22,
+  "tests": {
+    "command": ".venv/bin/python -m pytest -q --ignore=tests/test_hok1v1.py --ignore=tests/test_hok_bridge.py --ignore=tests/test_hok_cli.py",
+    "passed": 618,
+    "subtests_passed": 9
+  },
+  "failure_example": {
+    "episode_id": "ep-42db75b26e6f4d48",
+    "native_tick": 45,
+    "trace": [
+      {
+        "before": {
+          "step": 90,
+          "native_tick": 45,
+          "actor": "chef_0",
+          "acting_player": 0,
+          "players": [
+            {
+              "index": 0,
+              "position": [
+                2,
+                1
+              ],
+              "orientation": [
+                0,
+                -1
+              ],
+              "held_object": {
+                "name": "onion",
+                "position": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "index": 1,
+              "position": [
+                1,
+                1
+              ],
+              "orientation": [
+                0,
+                -1
+              ],
+              "held_object": {
+                "name": "dish",
+                "position": [
+                  1,
+                  1
+                ]
+              }
+            }
+          ],
+          "pots": [
+            {
+              "position": [
+                2,
+                0
+              ],
+              "capacity": 3,
+              "ingredients": [
+                "onion",
+                "onion",
+                "onion"
+              ],
+              "is_cooking": false,
+              "is_ready": true,
+              "cook_time_remaining": 0
+            }
+          ],
+          "objects": [
+            {
+              "name": "dish",
+              "position": [
+                1,
+                0
+              ]
+            },
+            {
+              "name": "soup",
+              "position": [
+                2,
+                0
+              ],
+              "ingredients": [
+                "onion",
+                "onion",
+                "onion"
+              ],
+              "is_cooking": false,
+              "is_ready": true,
+              "is_idle": false,
+              "cook_time_remaining": 0,
+              "cooking_tick": 20
+            }
+          ],
+          "last_joint_actions": [
+            "north",
+            "north"
+          ]
+        },
+        "choice": "interact",
+        "raw_choice": "interact"
+      },
+      {
+        "before": {
+          "step": 91,
+          "native_tick": 45,
+          "actor": "chef_1",
+          "acting_player": 1,
+          "players": [
+            {
+              "index": 0,
+              "position": [
+                2,
+                1
+              ],
+              "orientation": [
+                0,
+                -1
+              ],
+              "held_object": {
+                "name": "onion",
+                "position": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "index": 1,
+              "position": [
+                1,
+                1
+              ],
+              "orientation": [
+                0,
+                -1
+              ],
+              "held_object": {
+                "name": "dish",
+                "position": [
+                  1,
+                  1
+                ]
+              }
+            }
+          ],
+          "pots": [
+            {
+              "position": [
+                2,
+                0
+              ],
+              "capacity": 3,
+              "ingredients": [
+                "onion",
+                "onion",
+                "onion"
+              ],
+              "is_cooking": false,
+              "is_ready": true,
+              "cook_time_remaining": 0
+            }
+          ],
+          "objects": [
+            {
+              "name": "dish",
+              "position": [
+                1,
+                0
+              ]
+            },
+            {
+              "name": "soup",
+              "position": [
+                2,
+                0
+              ],
+              "ingredients": [
+                "onion",
+                "onion",
+                "onion"
+              ],
+              "is_cooking": false,
+              "is_ready": true,
+              "is_idle": false,
+              "cook_time_remaining": 0,
+              "cooking_tick": 20
+            }
+          ],
+          "last_joint_actions": [
+            "north",
+            "north"
+          ]
+        },
+        "choice": "interact",
+        "raw_choice": "interact"
+      }
+    ]
+  },
+  "limitations": [
+    "4 pairs on one deterministic public layout; trial labels do not randomize environment or model RNG.",
+    "Two of four candidate acceptance episodes scored zero; improvement is not stable successful delivery.",
+    "Candidate contains layout coordinates and an unsupported comparison to previous full state; no such memory was added.",
+    "No ablation separates explicit coordinates, movement priorities and role changes; cannot attribute the gain to memory.",
+    "Raw requests and full episodes remain local in ignored data/; published audit is a summary, not the full evidence archive."
+  ]
+}

@@ -82,8 +82,8 @@ def all_keys(value):
     return set()
 
 
-def test_catalog_registers_all_six_games_with_their_own_scoring_contract(tmp_path, settings):
-    expected = {'snake', 'xiangqi', 'army', 'gomoku', 'tetris', 'platformer'}
+def test_catalog_registers_all_seven_games_with_their_own_scoring_contract(tmp_path, settings):
+    expected = {'snake', 'xiangqi', 'army', 'gomoku', 'tetris', 'platformer', 'overcooked'}
     assert {game['id'] for game in game_catalog()} == expected
     app = create_app(tmp_path, settings)
     try:
@@ -92,11 +92,13 @@ def test_catalog_registers_all_six_games_with_their_own_scoring_contract(tmp_pat
             assert response.status_code == 200
             catalog = {game['id']: game for game in response.json()['games']}
         assert set(catalog) == expected
-        assert len({game['score_spec']['id'] for game in catalog.values()}) == 6
+        assert len({game['score_spec']['id'] for game in catalog.values()}) == 7
         assert catalog['army']['information_policy']['seed_is_private'] is True
         assert not catalog['gomoku']['information_policy']
         assert catalog['platformer']['defaults']['promotion_games'] == 6
         assert catalog['gomoku']['defaults']['gomoku_size'] == 9
+        assert catalog['overcooked']['defaults'] == {'max_steps': 240, 'overcooked_layout': 'cramped_room'}
+        assert catalog['overcooked']['score_spec']['score_kind'] == 'native_sparse_reward'
     finally:
         app.state.lab.store.db.close()
 

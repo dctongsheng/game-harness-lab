@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "game_id": "overcooked",
+  "version_id": "h-849a6530671dcf5b",
+  "parent_id": "h-f5e090c70ba7232a",
+  "scope": "b5622efba1b758d409ad",
+  "rules_version": "game-harness-lab/overcooked-joint-v1-739950a",
+  "decision_model": "startlux-decision-27b-autothink",
+  "think_mode": "never",
+  "identity_verification": "service_reported_name",
+  "approval_job_id": "job-ep-8509578b304243b9",
+  "created_at": "2026-10-17T06:34:27.991478+00:00",
+  "score_summary": {
+    "baseline": 0.0,
+    "candidate": 20.0,
+    "pairs": 4
+  },
+  "files": {
+    "game.json": "d9e1f43090695f43e010b6861a983591bca4e998a2f9e4a0bd7d7be982aefd1d",
+    "strategy.json": "e7e6e06cd275f0cabf5fe226f6105698b63b972a4c1af3d6dc045b2ef4120fc3",
+    "evaluation.json": "5347b0b8b0130042e2637e6b044f19f8894347c94dac0688f388edd49c261ac9",
+    "README.md": "705ef76e2fa9190117512e931b8d0d2a1c2e32b99733454193d2b05f3bdbc599"
+  }
+}
