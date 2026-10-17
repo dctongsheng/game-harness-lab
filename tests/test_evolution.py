@@ -254,9 +254,43 @@ def test_long_trace_feedback_is_bounded_and_marked_as_sampled(tmp_path):
     feedback = payload["training_feedback"][0]
     assert feedback["trace_sampling"]["total_steps"] == 500
     assert not feedback["trace_sampling"]["all_steps_sampled"]
-    assert len(feedback["trace_sampling"]["retained_indices"]) == 10
+    assert feedback["trace_sampling"]["retained_indices"] == [row["trace_index"] for row in feedback["trace_sample"]]
+    assert feedback["trace_sampling"]["omitted_count"] + len(feedback["trace_sample"]) == 500
+    assert feedback["trace_sampling"]["last_source_step_covered"]
+    assert len(json.dumps(payload["training_feedback"], ensure_ascii=False)) <= 32000
     assert len(coach.calls[0][0][1]["content"]) < 40_000
     assert "NEVER-SEND" not in json.dumps(coach.calls)
+
+
+def test_feedback_formats_keep_teacher_prompt_and_search_budget_identical(tmp_path):
+    runs = []
+    for format_name in ('complete_events_v1', 'legacy_excerpt_v1'):
+        coach = Coach()
+        result = run(tmp_path / format_name, coach=coach, feedback_format=format_name)
+        payload = json.loads(coach.calls[0][0][1]['content'])
+        manifest = json.loads((tmp_path / format_name / 'job/evolution_manifest.json').read_text())
+        assert payload['feedback_format'] == result['feedback_format'] == manifest['feedback_format'] == format_name
+        assert payload['immutable_runtime_contract'] == manifest['immutable_runtime_contract']
+        assert payload['runtime_contract_hash'] == manifest['runtime_contract_hash'] == result['runtime_contract_hash']
+        import hashlib
+        serialized = json.dumps(payload['immutable_runtime_contract'], sort_keys=True,
+                                ensure_ascii=False, allow_nan=False).encode()
+        assert hashlib.sha256(serialized).hexdigest() == payload['runtime_contract_hash']
+        assert len(coach.calls) == 1
+        runs.append((coach.calls[0][0][0], result['gepa'], payload))
+    assert runs[0][0] == runs[1][0]
+    for key in ('max_metric_calls', 'total_metric_calls', 'candidate_count'):
+        assert runs[0][1][key] == runs[1][1][key]
+    for key in ('parent_candidate', 'immutable_game_context', 'immutable_runtime_contract',
+                'runtime_contract_hash', 'feedback_episodes_available', 'feedback_scope'):
+        assert runs[0][2][key] == runs[1][2][key]
+
+
+def test_unknown_feedback_format_fails_before_calls_or_writes(tmp_path):
+    coach = Coach()
+    with pytest.raises(ValueError, match='feedback_format'):
+        run(tmp_path, coach=coach, feedback_format='unregistered')
+    assert not coach.calls and not (tmp_path / 'job').exists()
 
 
 TURN_CONTEXT = {
@@ -267,8 +301,10 @@ TURN_CONTEXT = {
 }
 
 
-def test_generic_scores_support_signed_fractional_values_and_fixed_game_context(tmp_path):
+def test_generic_scores_support_signed_fractional_values_and_fixed_game_context(tmp_path, monkeypatch):
     coach = Coach()
+    monkeypatch.setattr('game_harness.initialization_contract.get_game',
+                        lambda *_: pytest.fail('Generic evolution must not require a registered adapter/session'))
 
     def evaluator(candidate, seed, purpose):
         result = episode(seed, score=0.75 if candidate == BETTER else -0.25)
@@ -285,6 +321,8 @@ def test_generic_scores_support_signed_fractional_values_and_fixed_game_context(
     system = coach.calls[0][0][0]['content']
     payload = json.loads(coach.calls[0][0][1]['content'])
     assert payload['immutable_game_context'] == TURN_CONTEXT
+    assert payload['immutable_runtime_contract']['game_id'] == 'turn-fixture'
+    assert payload['immutable_runtime_contract']['player']['model'] is None
     assert '贪吃蛇' not in system and '食物' not in system
     assert payload['training_feedback'][0]['trace_sample'][0]['policy_role'] == 'opponent'
     assert payload['training_feedback'][0]['trace_sample'][0]['actor'] == 'black'

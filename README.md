@@ -34,6 +34,10 @@ flowchart LR
 
 每个正式回合创建一个优化任务，任务中的评测局不会递归优化。每局冻结策略；GEPA 只修改两个文本组件，不能改规则、分数、参考对手或执行器。GEPA 固定源码 commit，Python 依赖固定在 `requirements.lock`。
 
+初始化时，LLM 会收到当前游戏的真实观察样本、动作语义和 Decision 能力合同：单步 choice、关闭思考、没有跨步会话记忆或搜索辅助。它先生成游戏资料和初始策略，再由真实对局检验；合同适配并不保证初版一定正确。模型、规则和合同哈希随版本保存。
+
+局后反思默认使用 `complete_events_v1`：在预算内保留完整紧凑事件，优先提供终局、漏胜和循环等关键片段，明确哪些步骤被省略。军棋只包含候选方合法可见观察与公共后果。旧字符摘录 `legacy_excerpt_v1` 仅为可复现对照保留；两者不改变局内观察、动作集合或计分。
+
 | 游戏 | 动作与得分 | 额外说明 |
 | --- | --- | --- |
 | 贪吃蛇 | 上下左右四方向始终提供；食物数为得分 | 不用寻路器或安全动作过滤代打 |
@@ -74,6 +78,8 @@ harnesses/<游戏>/<版本>/
 - [V2 通用框架与新增游戏接口](docs/generic-framework-v2.md)
 - [V2 实测结果](docs/validation-v2.md)
 - [V3 四游戏适配与验证边界](docs/additional-games-v3.md)
+- [六游戏 RSI 诊断与实验设计](docs/rsi-diagnosis-v1.md)
+- [V4 完整反馈与真实对照实验](docs/feedback-validation-v4.md)
 - [V1 总结](docs/project-summary-v1.md)、[V1 历史实测](docs/validation-v1.md)
 - [原始长期架构提案](docs/architecture.md)、[路线图](docs/roadmap.md)
 - [第三方来源与许可证](THIRD_PARTY_NOTICES.md)

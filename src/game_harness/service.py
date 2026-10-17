@@ -444,7 +444,9 @@ class Lab:
                 self.log("GLM-5.3 正在生成游戏背景、规则说明与初版 Harness", "initializing")
                 brief, candidate = coach.initialize(adapter.rules, config["board_size"], config["max_steps"], game_context=context)
                 self.guard()
-                active = self.version(candidate, scope, {"type": "bootstrap", "coach": self.settings.coach_model}, brief=brief, game_context=context)
+                provenance = {"type": "bootstrap", "coach": self.settings.coach_model,
+                              "initialization": copy.deepcopy(getattr(coach, "initialization_provenance", None))}
+                active = self.version(candidate, scope, provenance, brief=brief, game_context=context)
                 self.store.activate(scope, active["id"], None)
                 self.log("初始化完成：" + active["id"], "initializing")
             # Every interrupted gameplay episode keeps one durable job; resume before new gameplay.

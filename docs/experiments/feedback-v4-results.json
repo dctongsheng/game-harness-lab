@@ -1,0 +1,699 @@
+{
+  "schema": "feedback-ab-public-results/v1",
+  "date": "2026-10-17",
+  "runtime": {
+    "model": "startlux-decision-27b-autothink",
+    "think_mode": "never",
+    "all_actions": "Decision choice",
+    "coach": "glm-5.3"
+  },
+  "studies": [
+    {
+      "id": "feedback-v4-gomoku-20261017",
+      "game": "gomoku",
+      "status": "superseded_before_holdout",
+      "manifest_sha256": "9bbf32787529fc1b176991bceb357f3ada023964048f5f73e9245930515857d8",
+      "parent_id": "h-6615906fd9707b25",
+      "proposals": [
+        {
+          "id": "legacy-1",
+          "feedback_format": "legacy_excerpt_v1",
+          "gepa_selected_changed": false,
+          "candidate_id": "exp-candidate-e34678411cc159dd",
+          "parent_scores": [
+            0,
+            100,
+            100,
+            100
+          ],
+          "candidate_scores": [
+            100,
+            100,
+            100,
+            100
+          ],
+          "parent_mean": 75,
+          "candidate_mean": 100,
+          "mean_gain": 25.0,
+          "passes_development_gate": true
+        },
+        {
+          "id": "complete-1",
+          "feedback_format": "complete_events_v1",
+          "gepa_selected_changed": false,
+          "candidate_id": "exp-candidate-d7ebbb6af32b685c",
+          "parent_scores": [
+            0,
+            100,
+            100,
+            100
+          ],
+          "candidate_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "parent_mean": 75,
+          "candidate_mean": 0,
+          "mean_gain": -75.0,
+          "passes_development_gate": false
+        },
+        {
+          "id": "complete-2",
+          "feedback_format": "complete_events_v1",
+          "gepa_selected_changed": false,
+          "candidate_id": "exp-candidate-347771b0c3fd337c",
+          "parent_scores": [
+            0,
+            100,
+            100,
+            100
+          ],
+          "candidate_scores": [
+            100,
+            100,
+            100,
+            0
+          ],
+          "parent_mean": 75,
+          "candidate_mean": 75,
+          "mean_gain": 0.0,
+          "passes_development_gate": false
+        },
+        {
+          "id": "legacy-2",
+          "feedback_format": "legacy_excerpt_v1",
+          "gepa_selected_changed": false,
+          "candidate_id": "exp-candidate-03ec947655ffb603",
+          "parent_scores": [
+            0,
+            100,
+            100,
+            100
+          ],
+          "candidate_scores": [
+            100,
+            100,
+            100,
+            0
+          ],
+          "parent_mean": 75,
+          "candidate_mean": 75,
+          "mean_gain": 0.0,
+          "passes_development_gate": false
+        }
+      ],
+      "costs": {
+        "decision_started": 599,
+        "decision_completed": 599,
+        "decision_failed": 0,
+        "coach_started": 4,
+        "coach_completed": 4,
+        "coach_failed": 0,
+        "health_started": 1,
+        "health_completed": 1,
+        "health_failed": 0,
+        "completed_episodes": 21,
+        "accepted_actions": 599,
+        "episode_attempts": 21,
+        "decision_started_without_response": 0,
+        "coach_started_without_response": 0,
+        "gepa_evaluation_callbacks": 30,
+        "reported_usage": {
+          "decision_input_tokens": 7653215.0,
+          "decision_output_tokens": 0.0,
+          "coach_completion_tokens": 2839.0,
+          "coach_prompt_tokens": 46398.0,
+          "coach_total_tokens": 49237.0
+        },
+        "currency_cost": "not available; no price assumed"
+      },
+      "final": {
+        "status": "not_run",
+        "reason": "Confirmed feedback/player board encoding mismatch; preserve negative batch, repair shared interface and prepare new independent manifest before final."
+      },
+      "action_audit": {
+        "verified_actions": 599,
+        "thinking_off_actions": 599,
+        "rule_replay_passed": true
+      }
+    },
+    {
+      "id": "feedback-v4b-gomoku-20261017",
+      "game": "gomoku",
+      "status": "completed",
+      "manifest_sha256": "4b7d312b58d91bb145ecc3db8a95c7a9657b6659af53a0a9d9033ebc1cc5e61c",
+      "parent_id": "h-6615906fd9707b25",
+      "proposals": [
+        {
+          "id": "legacy-1",
+          "status": "proposed",
+          "feedback_format": "legacy_excerpt_v1",
+          "gepa_selected_changed": true,
+          "passes_development_gate": true,
+          "candidate_id": "exp-candidate-3ff8f4b090bbc313",
+          "parent_scores": [
+            0,
+            100,
+            100,
+            0
+          ],
+          "candidate_scores": [
+            100,
+            100,
+            100,
+            100
+          ],
+          "parent_mean": 50,
+          "candidate_mean": 100,
+          "mean_gain": 50.0
+        },
+        {
+          "id": "complete-1",
+          "status": "proposed",
+          "feedback_format": "complete_events_v1",
+          "gepa_selected_changed": false,
+          "passes_development_gate": false,
+          "candidate_id": "exp-candidate-1bbd58bfd1b7eab8",
+          "parent_scores": [
+            0,
+            100,
+            100,
+            0
+          ],
+          "candidate_scores": [
+            100,
+            100,
+            0,
+            0
+          ],
+          "parent_mean": 50,
+          "candidate_mean": 50,
+          "mean_gain": 0.0
+        },
+        {
+          "id": "complete-2",
+          "status": "proposed",
+          "feedback_format": "complete_events_v1",
+          "gepa_selected_changed": true,
+          "passes_development_gate": true,
+          "candidate_id": "exp-candidate-aa53e44e934db1de",
+          "parent_scores": [
+            0,
+            100,
+            100,
+            0
+          ],
+          "candidate_scores": [
+            100,
+            100,
+            100,
+            100
+          ],
+          "parent_mean": 50,
+          "candidate_mean": 100,
+          "mean_gain": 50.0
+        },
+        {
+          "id": "legacy-2",
+          "status": "rejected_schema",
+          "feedback_format": "legacy_excerpt_v1",
+          "gepa_selected_changed": false,
+          "passes_development_gate": false,
+          "reason": "Harness must contain exactly decision_instructions and strategy_notes"
+        }
+      ],
+      "costs": {
+        "decision_started": 978,
+        "decision_completed": 978,
+        "decision_failed": 0,
+        "coach_started": 4,
+        "coach_completed": 4,
+        "coach_failed": 0,
+        "health_started": 1,
+        "health_completed": 1,
+        "health_failed": 0,
+        "completed_episodes": 41,
+        "accepted_actions": 978,
+        "episode_attempts": 41,
+        "decision_started_without_response": 0,
+        "coach_started_without_response": 0,
+        "gepa_evaluation_callbacks": 30,
+        "reported_usage": {
+          "decision_input_tokens": 12780483.0,
+          "decision_output_tokens": 0.0,
+          "coach_completion_tokens": 3175.0,
+          "coach_prompt_tokens": 48294.0,
+          "coach_total_tokens": 51469.0
+        },
+        "currency_cost": "not available; no price assumed"
+      },
+      "selected_proposal_id": "legacy-1",
+      "final": {
+        "status": "completed",
+        "statistics": {
+          "pairs": [
+            {
+              "id": "final-00",
+              "seed": 136944670,
+              "repeat": 0,
+              "stratum": 0,
+              "order": [
+                "parent",
+                "candidate"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-acf3205e9ea7fd3f090606a4",
+              "candidate_episode_id": "exp-a14089ec14e1d81fa6ce8d04",
+              "difference": 0.0
+            },
+            {
+              "id": "final-01",
+              "seed": 1854399569,
+              "repeat": 0,
+              "stratum": 1,
+              "order": [
+                "parent",
+                "candidate"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-73920e64e5dea2c969ff990d",
+              "candidate_episode_id": "exp-b688f05a0ca51075caff6061",
+              "difference": 0.0
+            },
+            {
+              "id": "final-02",
+              "seed": 982114002,
+              "repeat": 0,
+              "stratum": 0,
+              "order": [
+                "candidate",
+                "parent"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-4137e2cd34b1e7dd6307d42a",
+              "candidate_episode_id": "exp-361fdc9c83325eb1654d8f12",
+              "difference": 0.0
+            },
+            {
+              "id": "final-03",
+              "seed": 1078736627,
+              "repeat": 0,
+              "stratum": 1,
+              "order": [
+                "candidate",
+                "parent"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-204d7ca6b986cd5c27387728",
+              "candidate_episode_id": "exp-dc90135ec12835562dfb1be6",
+              "difference": 0.0
+            },
+            {
+              "id": "final-04",
+              "seed": 2045083668,
+              "repeat": 0,
+              "stratum": 0,
+              "order": [
+                "parent",
+                "candidate"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-01eff88e51200b3e3bda8222",
+              "candidate_episode_id": "exp-5b92ad89f3875fc96d144864",
+              "difference": 0.0
+            },
+            {
+              "id": "final-05",
+              "seed": 1170414733,
+              "repeat": 0,
+              "stratum": 1,
+              "order": [
+                "parent",
+                "candidate"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-de5a3920c40e379cd12113f7",
+              "candidate_episode_id": "exp-abf1d0de82e561ce0e093ce0",
+              "difference": 0.0
+            },
+            {
+              "id": "final-06",
+              "seed": 1699062210,
+              "repeat": 0,
+              "stratum": 0,
+              "order": [
+                "candidate",
+                "parent"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-53c898f6ebd158e1536d5e13",
+              "candidate_episode_id": "exp-c98995e4619e1e08ffa36ac7",
+              "difference": 0.0
+            },
+            {
+              "id": "final-07",
+              "seed": 248205065,
+              "repeat": 0,
+              "stratum": 1,
+              "order": [
+                "candidate",
+                "parent"
+              ],
+              "parent_score": 0,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-7957656964756a28990725db",
+              "candidate_episode_id": "exp-b9145b1cdc5921b2a4efdf03",
+              "difference": 100.0
+            },
+            {
+              "id": "final-08",
+              "seed": 1788753006,
+              "repeat": 0,
+              "stratum": 0,
+              "order": [
+                "parent",
+                "candidate"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-278194b1c8f020422a7db3b5",
+              "candidate_episode_id": "exp-0c58a9426affbe6b6ceebacb",
+              "difference": 0.0
+            },
+            {
+              "id": "final-09",
+              "seed": 474176445,
+              "repeat": 0,
+              "stratum": 1,
+              "order": [
+                "parent",
+                "candidate"
+              ],
+              "parent_score": 0,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-2370fb8c81e959cd083dc311",
+              "candidate_episode_id": "exp-121932c0c3cde0332d4ce745",
+              "difference": 100.0
+            },
+            {
+              "id": "final-10",
+              "seed": 1881237910,
+              "repeat": 0,
+              "stratum": 0,
+              "order": [
+                "candidate",
+                "parent"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-f80c58e251f094f7ba58d0c0",
+              "candidate_episode_id": "exp-787ab35bf0250c66c06cdd4b",
+              "difference": 0.0
+            },
+            {
+              "id": "final-11",
+              "seed": 120288893,
+              "repeat": 0,
+              "stratum": 1,
+              "order": [
+                "candidate",
+                "parent"
+              ],
+              "parent_score": 100,
+              "candidate_score": 100,
+              "parent_episode_id": "exp-bf6cf7a6a5b34158998ba7e7",
+              "candidate_episode_id": "exp-0c5f233e9626e19194adf09b",
+              "difference": 0.0
+            }
+          ],
+          "pair_count": 12,
+          "unique_seed_count": 12,
+          "parent_mean": 83.33333333333333,
+          "candidate_mean": 100,
+          "mean_gain": 16.666666666666668,
+          "min_gain": 0.0,
+          "positive_pairs": 2,
+          "negative_pairs": 0,
+          "strata": {
+            "0": {
+              "seed_clusters": 6,
+              "mean_gain": 0.0
+            },
+            "1": {
+              "seed_clusters": 6,
+              "mean_gain": 33.333333333333336
+            }
+          },
+          "bootstrap_95": [
+            0.0,
+            33.333333333333336
+          ],
+          "bootstrap_seed": 74103,
+          "bootstrap_resamples": 10000,
+          "bootstrap_unit": "paired run ID, stratified by candidate seat; identical empty opening",
+          "inference_limit": "Small development samples and repeated identical Gomoku openings limit interpretation."
+        },
+        "passed": false,
+        "gate": {
+          "minimum_mean_gain": 2.0,
+          "no_pair_regression": true,
+          "bootstrap_95_lower_greater_than": 0
+        },
+        "published": false,
+        "interpretation": "Independent holdout for one development-selected candidate; no automated publishing."
+      },
+      "runtime_contract_hashes": [
+        "fbdbe6b74c3e261d2dd91b7e36e95660bf15ad93eedb47809a1169344557b674"
+      ],
+      "action_audit": {
+        "verified_actions": 978,
+        "thinking_off_actions": 978,
+        "rule_replay_passed": true
+      }
+    },
+    {
+      "id": "feedback-v4b-tetris-20261017",
+      "game": "tetris",
+      "status": "completed",
+      "manifest_sha256": "0cb84fe8f8b29cb2661f1d0a7b6268bf761d5184826995ad8e1ae66592345056",
+      "parent_id": "h-32b33bfd737f197d",
+      "proposals": [
+        {
+          "id": "legacy-1",
+          "status": "proposed",
+          "feedback_format": "legacy_excerpt_v1",
+          "gepa_selected_changed": false,
+          "passes_development_gate": false,
+          "candidate_id": "exp-candidate-ed0f918afed84740",
+          "parent_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "candidate_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "parent_mean": 0,
+          "candidate_mean": 0,
+          "mean_gain": 0.0
+        },
+        {
+          "id": "complete-1",
+          "status": "proposed",
+          "feedback_format": "complete_events_v1",
+          "gepa_selected_changed": false,
+          "passes_development_gate": false,
+          "candidate_id": "exp-candidate-35aaea0b442ee137",
+          "parent_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "candidate_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "parent_mean": 0,
+          "candidate_mean": 0,
+          "mean_gain": 0.0
+        },
+        {
+          "id": "complete-2",
+          "status": "proposed",
+          "feedback_format": "complete_events_v1",
+          "gepa_selected_changed": false,
+          "passes_development_gate": false,
+          "candidate_id": "exp-candidate-9a8c96f4de323806",
+          "parent_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "candidate_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "parent_mean": 0,
+          "candidate_mean": 0,
+          "mean_gain": 0.0
+        },
+        {
+          "id": "legacy-2",
+          "status": "proposed",
+          "feedback_format": "legacy_excerpt_v1",
+          "gepa_selected_changed": false,
+          "passes_development_gate": false,
+          "candidate_id": "exp-candidate-829e128dacc126bf",
+          "parent_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "candidate_scores": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "parent_mean": 0,
+          "candidate_mean": 0,
+          "mean_gain": 0.0
+        }
+      ],
+      "costs": {
+        "decision_started": 1073,
+        "decision_completed": 1073,
+        "decision_failed": 0,
+        "coach_started": 4,
+        "coach_completed": 4,
+        "coach_failed": 0,
+        "health_started": 1,
+        "health_completed": 1,
+        "health_failed": 0,
+        "completed_episodes": 21,
+        "accepted_actions": 1073,
+        "episode_attempts": 21,
+        "decision_started_without_response": 0,
+        "coach_started_without_response": 0,
+        "gepa_evaluation_callbacks": 24,
+        "reported_usage": {
+          "decision_input_tokens": 4500927.0,
+          "decision_output_tokens": 0.0,
+          "coach_completion_tokens": 4305.0,
+          "coach_prompt_tokens": 48634.0,
+          "coach_total_tokens": 52939.0
+        },
+        "currency_cost": "not available; no price assumed"
+      },
+      "selected_proposal_id": null,
+      "final": {
+        "status": "not_run",
+        "reason": "no_candidate_passed_development_gate",
+        "gate": {
+          "minimum_mean_gain": 100,
+          "no_pair_regression": true,
+          "bootstrap_95_lower_greater_than": 0
+        },
+        "published": false,
+        "holdout_unused": true
+      },
+      "runtime_contract_hashes": [
+        "90e20339be295365945a2e019865a3cb45ff6e81b1a70a92af6e39e7000c3490"
+      ],
+      "action_audit": {
+        "verified_actions": 1073,
+        "thinking_off_actions": 1073,
+        "rule_replay_passed": true
+      }
+    }
+  ],
+  "engineering": {
+    "test_cases_passed": 327,
+    "subtests_passed": 9,
+    "wheel_version": "0.4.0",
+    "historical_feedback_audit": {
+      "counts": {
+        "gomoku": {
+          "entries": 3,
+          "events": 9,
+          "public_followups": 0,
+          "terminal_source_covered": 3,
+          "empty": 0
+        },
+        "tetris": {
+          "entries": 6,
+          "events": 12,
+          "public_followups": 0,
+          "terminal_source_covered": 6,
+          "empty": 0
+        },
+        "platformer": {
+          "entries": 4,
+          "events": 13,
+          "public_followups": 0,
+          "terminal_source_covered": 4,
+          "empty": 0
+        },
+        "army": {
+          "entries": 9,
+          "events": 19,
+          "public_followups": 16,
+          "terminal_source_covered": 9,
+          "empty": 0
+        },
+        "xiangqi": {
+          "entries": 9,
+          "events": 51,
+          "public_followups": 0,
+          "terminal_source_covered": 9,
+          "empty": 0
+        },
+        "snake": {
+          "entries": 15,
+          "events": 180,
+          "public_followups": 0,
+          "terminal_source_covered": 15,
+          "empty": 0
+        }
+      },
+      "packs": 14,
+      "max_pack_chars": 31374,
+      "budget_chars": 32000,
+      "method": "Frozen v4b source: rebuild recorded feedback preserving original envelope, then apply pack budget; read-only, no model calls."
+    },
+    "live_server": {
+      "version": "0.4.0",
+      "http_ready": true,
+      "registry_unchanged": true,
+      "episode_count": 138,
+      "active_count": 7
+    }
+  },
+  "total": {
+    "completed_episodes": 83,
+    "decision_actions": 2650,
+    "reflection_calls": 12,
+    "initialization_calls": 2,
+    "published_candidates": 0
+  }
+}

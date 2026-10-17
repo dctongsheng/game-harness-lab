@@ -14,6 +14,8 @@ from typing import Callable
 import httpx
 from dotenv import load_dotenv
 
+from .initialization_contract import build_initialization_contract, initialization_context
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -167,6 +169,8 @@ class CoachProvider:
         self.client = client or httpx.Client(timeout=settings.coach_timeout,
                                             headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
         self.calls: list[dict] = []
+        self.initialization_contract: dict | None = None
+        self.initialization_provenance: dict | None = None
 
     def complete(self, messages, purpose="reflection") -> str:
         if not self.settings.coach_api_key:
@@ -204,25 +208,38 @@ class CoachProvider:
 
     def initialize(self, rules: str | None = None, size: int | None = None,
                    max_steps: int | None = None, *, game_context: dict | None = None) -> tuple[dict, dict]:
+        self.initialization_contract = self.initialization_provenance = None
         context = deepcopy(game_context) if game_context is not None else {
-            "rules": rules, "config": {"board_size": size, "max_steps": max_steps}}
+            "game_id": "snake", "rules": rules,
+            "config": {"board_size": size if size is not None else 8,
+                       "max_steps": max_steps if max_steps is not None else 120}}
         if not isinstance(context, dict) or not isinstance(context.get("rules"), str):
             raise ProviderError("初始化必须提供游戏适配器的固定规则")
         try:
+            context = initialization_context(context)
+            contract = build_initialization_contract(context, self.settings.decision_model)
             context_text = json.dumps(context, ensure_ascii=False, allow_nan=False)
-        except (TypeError, ValueError):
-            raise ProviderError("游戏资料必须为可序列化的 JSON 数据") from None
-        prompt = ("根据下方游戏适配器资料，生成第一版游戏资料和候选玩家 Harness。所有局内决策由 StartLux Decision 完成，"
-                  "你只在开局前和局后工作。不能生成可执行代码或改变规则。"
+            contract_text = json.dumps(contract, ensure_ascii=False, allow_nan=False)
+        except (KeyError, TypeError, ValueError, RuntimeError, OSError):
+            raise ProviderError("无法为游戏构造真实且安全的 Decision 初始化合同；请检查适配器、配置与规则运行环境") from None
+        self.initialization_contract = deepcopy(contract)
+        prompt = ("根据下方固定游戏资料与实际Decision能力合同，为这个游戏设计第一版资料和候选玩家Harness。"
+                  "这不是通用攻略续写：先理解此游戏观察字段、动作粒度和得分，再写适合单步choice选手执行的策略。"
+                  "所有局内决策由配置的StartLux Decision（或同合同的Jev类选手）完成，"
+                  "你只在开局前和局后工作，不能替选手选本局动作。不能生成可执行代码或改变规则。"
                   "返回一个 JSON 对象，仅含 brief 和 candidate。brief 包含 background、goal、"
                   "rules、precautions、strategy 字段（中文文字或列表）；candidate 仅含两个非空字符串："
-                  "decision_instructions（详细但简洁的选择规则）、strategy_notes（策略建议）。"
+                  "decision_instructions（短且明确、可由现有字段判断的选择优先级）、strategy_notes（策略建议）。"
+                  "在brief.strategy解释设计依据：采用哪些实际观察字段、如何匹配动作语义；"
+                  "在brief.precautions明确单步choice、think_mode=never、无跨步会话记忆和缺失辅助信息等边界。"
                   "根据可见状态与完整动作目录指导模型，不要求外部工具。"
                   "尊重 score_spec 的计分方向与预算；若包含 opponent_policy，该对手策略固定，不得优化或覆盖。"
-                  "候选模型将被告知当前 actor 和 policy_role，策略须适用于双方身份。"
+                  "仅使用合同与示例确实存在的字段；例如不能要求不存在的历史、winning_actions、safe_actions或搜索评分。"
+                  "识别实际提供的行棋方/颜色与policy_role；有对手时策略须适用于候选可能执任一方。"
                   "不要把某个种子、隐藏状态、固定路径或测试答案写进策略。"
                   "游戏规则、计分、预算与对手资料为固定上下文：\n"
-                  + context_text + "\n严格按以下结构输出，不增加字段："
+                  + context_text + "\n实际Decision接口合同（能力限制优先，不可许诺不存在的功能）：\n"
+                  + contract_text + "\n严格按以下结构输出，不增加字段："
                   '{"brief":{"background":"...","goal":"...","rules":"...",'
                   '"precautions":"...","strategy":"..."},"candidate":{'
                   '"decision_instructions":"...","strategy_notes":"..."}}')
@@ -236,6 +253,19 @@ class CoachProvider:
                 required = {"background", "goal", "rules", "precautions", "strategy"}
                 if not isinstance(brief, dict) or not required <= set(brief):
                     raise ProviderError("初始化资料缺少背景、目标、规则、注意事项或攻略")
+                call = self.calls[-1] if self.calls and self.calls[-1].get("purpose") == "initialization" else {}
+                self.initialization_provenance = {
+                    "contract_schema_version": contract["schema_version"],
+                    "contract_hash": digest(contract),
+                    "observation_schema_hash": digest(contract["observation_schema"]),
+                    "game_id": contract["game_id"], "rules_version": contract["rules_version"],
+                    "decision_model": self.settings.decision_model, "think_mode": "never",
+                    "coach_requested_model": self.settings.coach_model,
+                    "coach_returned_model": call.get("returned_model"),
+                    "coach_response_hash": digest(content),
+                    "sample_kind": contract["sample"]["kind"],
+                    "identity_verification": "service_reported_name",
+                }
                 return brief, candidate
             except ProviderError as exc:
                 if attempt:

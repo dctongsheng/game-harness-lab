@@ -72,6 +72,36 @@ def seed_active(lab, scope="scope-a"):
     return version
 
 
+def test_bootstrap_persists_decision_initialization_contract(lab, monkeypatch):
+    """The reviewed player contract survives startup in the saved version."""
+    provenance = {"schema_version": "decision-initialization-v1", "contract_hash": "fixture"}
+
+    class Player:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def health(self):
+            return {"ok": True}
+
+        def close(self):
+            pass
+
+    class Coach(Player):
+        initialization_provenance = provenance
+
+        def initialize(self, *args, **kwargs):
+            return {"background": "fixture"}, BASE
+
+    monkeypatch.setattr("game_harness.service.DecisionProvider", Player)
+    monkeypatch.setattr("game_harness.service.CoachProvider", Coach)
+    config = {**DEFAULTS, "game_id": "snake", "episodes": 0}
+    lab._run(config, "contract-scope")
+    version = lab.store.active("contract-scope")
+    assert version["provenance"]["initialization"] == provenance
+    provenance["contract_hash"] = "changed-after-initialization"
+    assert lab.store.get("version", version["id"])["provenance"]["initialization"]["contract_hash"] == "fixture"
+
+
 def episode(version, *, identity="ep-fixture", purpose="play", infra_error=None):
     return {"episode_id": identity, "seed": 101, "harness_id": version["id"],
             "scope": version["scope"], "config": dict(DEFAULTS), "purpose": purpose,

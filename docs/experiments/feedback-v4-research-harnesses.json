@@ -1,0 +1,850 @@
+{
+  "research_only": true,
+  "published_to_live_registry": false,
+  "warning": "Frozen LLM outputs for review and reproduction, not approved harness bundles. Generated text may contain factual errors.",
+  "parents": [
+    {
+      "id": "h-6615906fd9707b25",
+      "game_id": "gomoku",
+      "candidate": {
+        "decision_instructions": "依据observation.board（X黑O白.空）与yourColor判断己方棋子，从candidates标签坐标中选择：1）若有空位使己方横/竖/斜任一方向连成五子，立即选它获胜；2）否则找出对方下一步任一方向可连五的空位，优先封堵（多于一处时堵对方棋子更多、更连续的一处）；3）否则选能延长己方同线连续棋子最多、且两端为空的点，优先形成活四或活三；4）否则选与双方现有棋子相邻、处于棋群中心且向四方向扩展空间大的点；避免贴边角的孤立点。每次只从当前目录选一个id。",
+        "strategy_notes": "无思考模式、无记忆，每步都重新扫描棋盘执行上述四级优先级：赢>堵>攻>占要点。双方同模型对弈，参考对手也会攻防，因此主动制造双线威胁（同时形成两个活三/四）最易在预算内取胜；执黑先行宜抢占中心E5附近，执白后行紧贴对方棋形防守反击；远离被动拖延，截断仅得50分与和棋相同，须争取实际连五。"
+      },
+      "brief": {
+        "background": "自由五子棋（9×9），双方轮流在空交叉点落子，横、竖、斜任一方向连成五子及以上即胜。候选方（由种子奇偶决定执黑或白）使用本Harness，对手为固定参考策略gomoku-reference-v1，双方每步均由模型在完整空位目录中选择。",
+        "goal": "候选方目标是实际赢棋得100分；和棋50分；负0分；达到81步预算被截断仅得中性50分且不算和棋，因此要主动进攻争取在预算内实际连五获胜，而非拖延。",
+        "rules": [
+          "棋盘9×9，cells按从上至下逐行排列，index=row*9+column，A1在左上。",
+          "observation.board用X=黑、O=白、.=空表示；stones为双方坐标列表；yourSeat/yourColor标明己方颜色，turn为当前行动方。",
+          "每次必须从当前完整合法动作目录选一个place:<index>，允许不等于安全或有利；无禁手、无交换开局。",
+          "黑先白后，棋盘满无人连五为和棋；截断为中性50分。"
+        ],
+        "precautions": [
+          "Decision接口为单步choice、think_mode=never、每次调用无会话历史或跨步scratchpad，只能依赖当前snapshot字段，不得引用上一步记忆或多步计划。",
+          "观察中不存在winning_actions、safe_actions、threats等辅助字段，也没有搜索工具或评分器；威胁判断须由棋盘/board/stones自行完成。",
+          "candidates只保证合法，不保证安全或有利；label中的坐标（如E5）是主要可读信息。",
+          "step是决策序号而非历史动作序列；episode_id、observation_hash为审计标识，不能作为策略条件。",
+          "对手策略固定不可修改；候选可能执黑或执白，指令须适用于任一方。",
+          "不得依赖特定种子、隐藏状态或固定落子序列；无模型选择时游戏停止，不会有代码代选。"
+        ],
+        "strategy": "设计依据：每个snapshot提供完整棋盘（observation.board九行字符串与stones坐标数组）和yourColor，选手可在一次选择内扫描四个方向的己方与敌方棋形；动作目录是全部空位的place:index，语义单一（落一子），因此策略可归纳为短优先级：先看己方能否立即连五（获胜最高优先），再看对方是否下一步连五（必须堵），随后制造或威胁活四/活三等进攻形状，兼顾双向威胁点，最后在棋群密集、扩展空间大的中心区域落子并远离边缘。指令只引用board/stones/yourColor/candidates等确实存在的字段，每步独立执行，无跨步依赖，适配关闭思考的单次choice输出。"
+      },
+      "game_context": {
+        "game_id": "gomoku",
+        "name": "五子棋",
+        "rules_version": "game-harness-lab/gomoku-freestyle-v1-4e2bda1",
+        "rules": "自由五子棋：支持9×9或15×15棋盘，黑方（seat=0）先手，白方（seat=1）后手。\n双方轮流在空交叉点落一子。横、竖或任一斜线连续五子及以上获胜；无禁手、无提子、无交换开局。\n棋盘满且无人连五则和棋。A1位于左上角，列从左至右，行从上至下。cells按从上至下逐行排列。\n每次必须从完整合法动作目录选择place:<index>，不按战术优劣过滤空位。代码仅执行模型选择。\n种子奇偶决定候选执黑或白；所有试验从标准空盘开始，种子不同不代表不同开局。\n双方均使用同一Decision模型，候选使用当前Harness，对手使用冻结参考策略。\n目标是赢棋，候选胜100分、负0分、实际和棋50分；到固定半回合预算时截断，给中性50分而不判和棋。\n等待模型时游戏暂停，不使用搜索、随机走子或脚本代打。\n规则来自MIT Decision Arena提交4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d的freestyle-1。",
+        "score_spec": {
+          "id": "gomoku-outcome-v1",
+          "min": 0,
+          "max": 100,
+          "direction": "maximize",
+          "minimum_mean_gain": 2.0,
+          "perspective": "candidate_seat",
+          "win": 100,
+          "loss": 0,
+          "draw": 50,
+          "cutoff": 50,
+          "cutoff_is_draw": false,
+          "description": "真实胜负和100/0/50；达到预算仅中性50分，明确截断，不判和棋。"
+        },
+        "config": {
+          "gomoku_size": 9,
+          "max_steps": 81,
+          "start_position": "empty_board",
+          "candidate_seat": "seed_parity",
+          "reference_policy_version": "gomoku-reference-v1"
+        },
+        "opponent_policy": {
+          "decision_instructions": "你是冻结参考对手，执observation.yourSeat对应颜色。从完整合法空位候选选一步。优先完成己方连五，其次防止对手下一步连五；协调进攻与防守，观察四条方向的威胁，不故意让候选方获胜。",
+          "strategy_notes": "固定参考策略gomoku-reference-v1；以赢棋为目标，依据当前棋盘逐步选择。没有搜索工具、自动落子或额外信息。"
+        },
+        "evaluation": {
+          "seed_modulus": 2
+        },
+        "source": {
+          "repository": "https://github.com/dctongsheng/decison-arena",
+          "commit": "4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d",
+          "license": "MIT",
+          "rules_version": "freestyle-1"
+        },
+        "scenario_policy": "standard_empty_board_repeated_trials_seat_by_seed_parity",
+        "trial_design": "标准空盘重复试验；偶数候选执黑，奇数执白。不同种子不是不同开局。",
+        "action_policy": "完整空交叉点集合，未用启发式或搜索剪枝。双方每次落子都由Decision选择。",
+        "limitations": "自由五子棋，无禁手、交换开局；截断中性分不是和棋或胜率证据。"
+      },
+      "decision_model": "startlux-decision-27b-autothink",
+      "think_mode": "never",
+      "provenance": {
+        "type": "experimental_bootstrap",
+        "coach": "glm-5.3",
+        "initialization": {
+          "contract_schema_version": "decision-harness-initialization/v1",
+          "contract_hash": "df7b18a2875f0acf6fa70503eae4070da4387d2d1d7f26ac5f6ae736bca1d9a5",
+          "observation_schema_hash": "f702cb63f3fd793f271781d5fbef48e25fcc8b26a4f6a2f2974279d84cf4f1a9",
+          "game_id": "gomoku",
+          "rules_version": "game-harness-lab/gomoku-freestyle-v1-4e2bda1",
+          "decision_model": "startlux-decision-27b-autothink",
+          "think_mode": "never",
+          "coach_requested_model": "glm-5.3",
+          "coach_returned_model": "glm-5.3",
+          "coach_response_hash": "80c068d69fb35a6f2cefc060d593dedc4785f0e7a42aea3d04afe0b088d6cf9a",
+          "sample_kind": "fresh_adapter_initial_observation",
+          "identity_verification": "service_reported_name"
+        }
+      }
+    },
+    {
+      "id": "h-32b33bfd737f197d",
+      "game_id": "tetris",
+      "candidate": {
+        "decision_instructions": "每步按以下短优先级从candidates选一个ID：1) 若active.cells未对齐目标放置（目标=板面最平坦列、尽量补平低洼、避免在空洞上方留洞；用active.type/rotation/x/y与board.rows直接目测），选时长匹配距离的横移（差≤2格用left:100/right:100，差3-6格用left:300/right:300，更多用left:1000/right:1000）或需要的rotate-cw:100/rotate-ccw:100。2) I块竖放可消四行、或当前块位置已能让板面平整时，选hold:100换更合适的预览块（仅当holdAvailable且next[0]明显更好）。3) 方块已到达目标水平位置和目标朝向后，选hard-drop:100立即锁定。4) 情况不明时选soft-drop:100短暂下降观察。每次只选一个ID。",
+        "strategy_notes": "核心是省步数换points：80步预算内每块理想情况用1-2步横移/旋转+1步硬降完成放置，优先保持板面平坦并在I块到来时尝试竖放留深井消四行（800×等级）。旋转/硬降/hold只在边沿触发一次，所以重复提交同键无效，改用不同键。接地后不要长时间noop拖延（不加分），对齐后尽快硬降。next五块可用来决定hold时机，但不假设更远的随机序列。等级随累计消行提升，早期多消行可放大后期分数。"
+      },
+      "brief": {
+        "background": "俄罗斯方块10×20可见棋盘（另有y=-2、-1两行隐藏生成区），7-bag随机、五块可见预览、每块可hold一次。每步从完整动作目录中选一个原生按键候选，由StartLux Decision（单步choice、think_mode=never、无跨步记忆）在局内执行。",
+        "goal": "在80步决策预算内最大化原生points：1/2/3/4行分别得100/300/500/800×消行前等级（等级=1+累计消行数÷10）。软硬降和存活不加分。",
+        "rules": "一次决策=一个原生按键候选，100/300/1000毫秒分别推进6/18/60物理tick。左右/软降按时长持续生效；旋转、硬降、hold只在新按下边沿触发一次，按住不重复，每次候选后会自动松键（下次同键是新边沿）。硬降只把当前横向位置与朝向落到底锁定，不自动找落点。接地后30tick锁定，最多15次移动/旋转重置锁定计时。初始每48tick重力下一行，每10行加速。顶部锁块或生成受阻即结束，最多7200tick。",
+        "precautions": [
+          "单步choice选手：每次只依据当前snapshot的observation做一次选择，不能保存跨步计划或scratchpad；策略必须是每步可独立重新推导的短优先级。",
+          "think_mode=never：不能要求长链推理；优先级必须短、按可见字段可判。",
+          "不存在height_profile、holes统计、落点枚举、winning/safe动作、搜索评分或rng信息；只能用board.rows、active(type/rotation/x/y/cells)、next五块、hold/holdAvailable、grounded/lockTicks、score等实际字段。",
+          "步数预算80步很少：不能每步只挪一格；动作要高效（长时长横移+适时硬降），到max_steps截断只保留已得points。",
+          "hold每块一次，不可滥用；无对手，policy_role为candidate。",
+          "不要记忆样本中的具体棋形、坐标或随机序列。"
+        ],
+        "strategy": "设计依据：可见输入是board.rows(y=-2..19的锁定块)、active.cells（当前下落块实际占用格）与active.rotation/x/y、next五块预览、hold/holdAvailable、grounded/lockTicks/lockResets、score(lines/points)。动作语义是原生按键而非"
+      },
+      "game_context": {
+        "game_id": "tetris",
+        "name": "俄罗斯方块",
+        "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+        "rules": "俄罗斯方块为Decision Arena的MIT规则实现，10×20可见格，上方两行生成区。\n7-bag，预览五块，每块hold一次。初始每48tick下一行，每10行加快3tick，最低6tick；\n接地30tick锁定，最多15次移动/旋转重置锁定计时。左右按住9tick后每3tick重复，软降每3tick一行。\nSRS顺/逆时针旋转，硬降只将当前横向位置与朝向下的方块落到底并锁定，不自动寻找落点。\n消1/2/3/4行得100/300/500/800乘消行前等级；等级=1+累计消行数整除10。\n没有软硬降分、T-spin或combo奖励。顶部锁块或生成受阻结束，引擎最多7200tick。\n观察包含完整当前棋盘（含两行生成区）、当前方块、五块可见预览、暂存、重力与锁定计时；隐藏随机状态不暴露。\n目标是在决策预算与物理时钟内最大化原生points。\n本框架采用可暂停的决策步进。模型等待期间推进0物理tick；一个决策仅选择一个原生按键候选。\n候选中的100/300/1000毫秒分别执行6/18/60个60Hz物理tick；noop:100松键后也推进6tick。\n若引擎在这段期间自然结束，则立即结束，不再推进剩余tick。每次输入替换整组按住的键，到期自动松键。\n跳跃、旋转、硬降、暂存只在新按下的边沿触发一次，持续按住不自动重复；每个完整动作结束后已自然松键，\n下一次同键候选会产生新的按下边沿。横移按原生加速度/重复规则运行，没有寻路、自动跳跃、落点选择或危险动作过滤。\nstep是Decision决策次数，tick是物理时钟。到max_steps记step_limit截断，保留原生points，不授予生存奖励。\n本项目评分只用原生points；不使用参考竞技场compare的存活或其他平局排序。",
+        "score_spec": {
+          "id": "arena-tetris-points-v1",
+          "min": 0,
+          "max": 16594560000,
+          "direction": "maximize",
+          "unit": "原生消行积分",
+          "minimum_mean_gain": 100,
+          "description": "只使用原生消行points；1/2/3/4行得100/300/500/800乘消行前等级。软硬降和存活不加分。",
+          "upper_bound_basis": "保守上界：7200tick×每tick最多一次锁块×800×最高等级2881；不是实际可达到的目标。"
+        },
+        "config": {
+          "max_steps": 80,
+          "clock": "paused_native_input_duration",
+          "tick_rate": 60
+        },
+        "opponent_policy": null,
+        "scenario_policy": "整数seed转字符串，驱动参考引擎的确定性7-bag；仅可见五块预览，没有rng或其余队列。",
+        "action_policy": "本框架采用可暂停的决策步进。模型等待期间推进0物理tick；一个决策仅选择一个原生按键候选。\n候选中的100/300/1000毫秒分别执行6/18/60个60Hz物理tick；noop:100松键后也推进6tick。\n若引擎在这段期间自然结束，则立即结束，不再推进剩余tick。每次输入替换整组按住的键，到期自动松键。\n跳跃、旋转、硬降、暂存只在新按下的边沿触发一次，持续按住不自动重复；每个完整动作结束后已自然松键，\n下一次同键候选会产生新的按下边沿。横移按原生加速度/重复规则运行，没有寻路、自动跳跃、落点选择或危险动作过滤。\nstep是Decision决策次数，tick是物理时钟。到max_steps记step_limit截断，保留原生points，不授予生存奖励。\n本项目评分只用原生points；不使用参考竞技场compare的存活或其他平局排序。",
+        "evaluation": {
+          "seed_modulus": 1,
+          "minimum_pairs": 4,
+          "seed_semantics": "seed controls deterministic seven-bag piece order"
+        },
+        "source": {
+          "upstream_repository": "https://github.com/dctongsheng/decison-arena.git",
+          "upstream_commit": "4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d",
+          "license": "MIT",
+          "source_snapshot_sha256": "caed8f2ba9665a5a51c00c103bd213f7e1c3cb4ceb7433bbfb4ca58558c487fe",
+          "bridge_sha256": "e54a104324234f8c71d1b9e48601bb4ffb517f09daf13113ad443b523a940f41"
+        }
+      },
+      "decision_model": "startlux-decision-27b-autothink",
+      "think_mode": "never",
+      "provenance": {
+        "type": "experimental_bootstrap",
+        "coach": "glm-5.3",
+        "initialization": {
+          "contract_schema_version": "decision-harness-initialization/v1",
+          "contract_hash": "6f0d7bc3b9ded17cdb87b3429002ec18fb8f7352ebaefd915c898b886add6c8d",
+          "observation_schema_hash": "3fb3c120b43d81fb483e46e4f0f27c97dff7ba8c17c8b3d9e18e3a3de2cf5312",
+          "game_id": "tetris",
+          "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+          "decision_model": "startlux-decision-27b-autothink",
+          "think_mode": "never",
+          "coach_requested_model": "glm-5.3",
+          "coach_returned_model": "glm-5.3",
+          "coach_response_hash": "59f92ed647c49bf101aad594bec1cb6d6f9117618918939fdc94b7b1590a7223",
+          "sample_kind": "fresh_adapter_initial_observation",
+          "identity_verification": "service_reported_name"
+        }
+      }
+    }
+  ],
+  "studies": [
+    {
+      "id": "feedback-v4-gomoku-20261017",
+      "parent_id": "h-6615906fd9707b25",
+      "scenarios": {
+        "trigger": 602352629,
+        "train": [
+          65139474,
+          940280113
+        ],
+        "selection_validation": [
+          392405836,
+          1424806537
+        ],
+        "development": [
+          65139474,
+          940280113,
+          392405836,
+          1424806537
+        ],
+        "final": [
+          {
+            "id": "final-00",
+            "seed": 261001088,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-01",
+            "seed": 1040469929,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-02",
+            "seed": 1916029380,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-03",
+            "seed": 1703263443,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-04",
+            "seed": 1124250886,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-05",
+            "seed": 2017229331,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-06",
+            "seed": 1139277782,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-07",
+            "seed": 1120054565,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-08",
+            "seed": 1617938268,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-09",
+            "seed": 1192064189,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-10",
+            "seed": 2023560888,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-11",
+            "seed": 1188414775,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          }
+        ]
+      },
+      "proposals": [
+        {
+          "id": "complete-1",
+          "feedback_format": "complete_events_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "每一步先解析observation.board（行从上到下、列从左到右，0=黑，1=白，.=空）与yourColor，将棋盘转为坐标网格（行r列c，index=r*9+c），然后严格按以下顺序执行，且在进入下一优先级前必须已完成对棋盘所有空位、四个方向（横、竖、两条斜线）的系统扫描：\n\n第0步（必做，防漏杀）：对己方每颗棋子沿四个方向数连续己子数（允许中间隔一个空格的'跳活'形态，如X_XXX或XX_XX——这类一步成五的点位极易被漏掉）。若存在任一空位使己方落子后形成五连及以上，立即选该id，不得再考虑其他点。典型漏杀场景：己方已有四连但一端被堵、另一端空；或斜线上有'三空一'的跳四。逐条线检查，不要只看最显眼的一条。\n\n第1步（必做，防漏堵）：同样方法扫描对方——对方任一空位落子即可成五（含跳四成五）的所有点，必须全部列出。若只有一处，必须堵；若多处且己方无第0步的杀，优先堵；若对方已有'双杀'（两处以上成五点且无法一子兼堵），说明此前已失守，此时若己方也无杀，选能同时形成己方活四或跳四的点做反杀。漏堵是最常见的败因：对方沿边或斜线悄悄连成四子（如底部横排四连）时，务必检查棋盘每一条边行、边列和长斜线。\n\n第2步：己方进攻——找出能形成活四（两端皆空的四连）或跳四的空位；若己方已有活三，优先补成活四而非再开新线。\n\n第3步：防守性预备——对方有活三（两端空的三个连子）时，提前在其延伸方向落子，避免对方下一手直接成活四。\n\n第4步：选能同时延长己方两条以上线路（双活三）的点，其次选棋群中心、四方向扩展空间大的点；避免贴边孤立点。\n\n落子前自检：'我这步落子后对方能否立即连五？我是否漏看了任何一方的四子棋形（含跳四）？'确认无误后才输出id。每次只从当前合法动作目录选一个id。",
+            "strategy_notes": "三局反馈中两胜一负，胜局均由实际连五取胜（100分），败局（exp-fc3d…）在step16标记missed_immediate_win——己方存在一步成五点却未选，随后被对手沿底行横排四连反杀。多个胜局步骤同样反复出现missed_immediate_win与missed_unique_block标签，说明主要失分源不是战略，而是对'跳四'（隔一空格的四子形）和斜线/边线四连的漏扫。因此本版把成五检查与堵四检查提升为强制前置步骤，并明确要求允许跳活形态、覆盖棋盘边行边列与长斜线；自检清单在输出前再复核一次双方四子形。保持原策略骨架：赢>堵>攻>占要点；执黑抢中心，执白贴形防守反击；主动制造双线威胁；争取在预算内实际连五，避免被截断仅得中性50分。以上为针对已观察失误的修正，实际提升幅度有待后续对局验证。"
+          },
+          "gepa_selected_changed": false
+        },
+        {
+          "id": "complete-2",
+          "feedback_format": "complete_events_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "依据observation.board（0黑1白.空，从上到下逐行编号，index=row*9+col）与yourColor确定己方符号，从合法动作目录的place:<index>中选一步。每一步严格按以下顺序执行，前一级未彻底检查完不得进入下一级：\n\n第1级【己方立即取胜】：对每一个空位，假设落己方子后，逐一检查横、竖、两条斜线四个方向：以该点为中心向两侧延伸，统计连续己方子数。任何方向连续数>=5即选该点，立即获胜并终止。注意必须检查所有空位、所有四个方向，不要只看明显的三点连线；尤其注意带一个缺口的形（如 XX_XX、XXX_X）和跨缺口的组合，补上缺口即成五。发现一处即可落子。\n\n第2级【封堵对方立即取胜】：对每一个空位，假设落对方子后，同样四方向检查对方是否形成>=5连。若存在这样的点（即对方下一手可赢），必须封堵；若多于一处，选择对方当前连续棋子更多、对方落子后威胁更大的一处。绝不在存在对方取胜点时落别处，也不要只在第2级部分检查后就进攻。\n\n第3级【主动进攻】：选择能形成己方双威胁的点：一手同时造就两个活三，或一个活四（两端为空的四连），或一个带缺口的双端可成五的四。活四>双活三>单活三。优先让下一手有多处成五点的位置。\n\n第4级【占要点】：选与双方棋子相邻、四方向扩展空间大、处于棋群中心密集区的点，避免贴边孤立点。\n\n每次只从当前合法目录选一个id；落子前重复确认第1级和第2级都已完整扫描。",
+            "strategy_notes": "三局反馈显示核心失误不是策略层，而是第1、2级扫描不彻底：多次被标记missed_immediate_win（存在可立即连五的点却未落）和missed_unique_block（对方唯一成五点未封堵），其中一次因漏堵导致对方在底线连五获胜。因此本版把“穷尽式四方向扫描”放在最前并要求逐级强制执行，明确提示检查带缺口棋形（XX_XX、XXX_X）和斜线，这些是最易被漏看的胜点/堵点。无思考记忆、每步重扫；9×9小盘攻杀节奏快，活四与双活三仍是最有效的中盘手段，但必须以先查胜、再查堵为前提。执黑宜占中心并保持多线发展，执白紧贴防守后反击。截断仅得50分与和棋同级，务必争取实际连五。上述修改针对已观察到的漏算类型，实际提升需经后续评测验证。"
+          },
+          "gepa_selected_changed": false
+        },
+        {
+          "id": "legacy-1",
+          "feedback_format": "legacy_excerpt_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "依据observation.board（X黑O白.空）与yourColor判断己方棋子，从候选目录中按以下优先级逐步核对后选择一步：0）若己方再落一子即可在横/竖/任一斜向连成五子及以上，立即选该点获胜；1）若对方下一步任一空位可连五（包括冲四点），必须封堵；多于一处时优先堵住对方棋子更多、更连续的一处，且优先堵能同时化解两条威胁的点；2）检查己方是否已有活四或双活三类双线威胁，优先落能形成'两手内必胜'（一子同时造出两个活三/四，或一个活四）的点；3）若对方已有活三（两端为空的连续三子）或跳三，必须在其延伸方向封堵，不能只顾进攻——9路盘上活三转活四几乎必败；4）否则选能延长己方同线连续棋子最多、且两端扩展空间充足的点，优先与现有己方棋子同线且交叉点上有多方向潜力的位置；5）开局若执黑，占中心E5；执白首手贴对方棋子1-2格，不必贴边。避免边缘孤立点，除非是必要防点。每次只从当前目录选一个id，选前逐行扫描确认无漏防的四或活三。",
+            "strategy_notes": "无思考模式、无记忆，每步重新全盘扫描，严格执行：赢>堵五>己方双威胁>堵对方活三>进攻>占要点。三局反馈显示：执白两胜（均以连五取胜），执黑一负——败局中黑方在中盘偏向进攻而漏防白方在边路（第9行）形成的连续四/五威胁。改进核心是防守优先级前移：对方任何活三、跳三、冲四都要在当步处理，尤其注意棋盘边行和对方集中棋子的一侧；同时中盘主动制造双活三，迫使对手纯防守，再转攻。9路盘空间小，截断仅得50分，须在30-40步内争取实际连五：优先向中心密集区域发展，保持每步至少一条活二以上棋形，避免被动铺散。双方同模型对弈，对手也会攻防，故一手多用的点（既延己势又压对方棋形）价值最高。"
+          },
+          "gepa_selected_changed": false
+        },
+        {
+          "id": "legacy-2",
+          "feedback_format": "legacy_excerpt_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "依据observation.board（X黑O白.空）、yourColor与stones判断双方棋子，从candidates目录的place:<id>中选一步。每次决策前完整扫描四个方向（横、竖、两条斜线），按以下优先级：1）己方致胜：任一空位使己方在某方向连成>=5子，立即选它获胜。2）挡对方致胜点：找出对方下一手可连五的所有空位，全部堵住优先级最高的一个；注意对方可能有两个以上连五点，此时选同时能削弱多条威胁线、或位于对方最长/最开阔线段上的点。3）处理对方活四/冲四雏形：若对方有活三（两端皆空的三连）或跳三，必须立即封堵其成四要点，宁可放弃进攻也不要放任对方形成双活三或活四——参考对手会主动做杀，漏防即输。4）己方进攻：优先选能同时延长两条以上方向连续棋子、且两端或至少一端有多格扩展空间的点，目标是制造双活三、三四双杀等一手无法全防的形势；成四时优先保证有后续成五点（活四>冲四）。5）否则选与双方棋子群相邻、位于棋群重心、四方向均留有空间的点，避免贴边孤立落子；但不要忽视边线——对方在边行（如第1行、第9行）成线时同样致命，扫描必须覆盖全盘每一行每一列每条斜线。每次只从当前目录选一个id，不得跳过或自创动作。",
+            "strategy_notes": "训练反馈显示：候选执白两局均在30余手内以连五获胜（100分），但执黑一局在第34手被白方在底行D9-H9连五击败（0分）。失利局的关键教训是中后盘对边线区域与对方多点开花威胁的防御不足：当对方在多个方向同时存在活三/四时，仅按局部顺序封堵会漏掉斜线或边行的成五点。因此每次决策必须全盘重新扫描（模型无记忆、无思考模式），特别是：a) 对方任何三连（含跳三如X.XX）都要提前识别并抢占其成四点；b) 对方已有两个独立威胁点时，选择能同时缓解两条线的交叉点，否则优先堵更接近成五的一条；c) 自己进攻时优先制造双威胁（两个活三或一个活三+冲四），使对手一手无法全防，这是在81步预算内最可靠的取胜路径；d) 执黑先手抢占中心E5一带并向多向扩展，执白紧贴对方棋形防守反击并伺机反杀。截断仅得中性50分，不算和棋更不算胜，须积极寻求实际连五，避免被动拖延。以上仅为基于3局样本的方向性调整，不宣称已验证的提升。"
+          },
+          "gepa_selected_changed": false
+        }
+      ]
+    },
+    {
+      "id": "feedback-v4b-gomoku-20261017",
+      "parent_id": "h-6615906fd9707b25",
+      "scenarios": {
+        "trigger": 1839907672,
+        "train": [
+          1681598144,
+          431412461
+        ],
+        "selection_validation": [
+          707521810,
+          1677071947
+        ],
+        "development": [
+          1681598144,
+          431412461,
+          707521810,
+          1677071947
+        ],
+        "final": [
+          {
+            "id": "final-00",
+            "seed": 136944670,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-01",
+            "seed": 1854399569,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-02",
+            "seed": 982114002,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-03",
+            "seed": 1078736627,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-04",
+            "seed": 2045083668,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-05",
+            "seed": 1170414733,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-06",
+            "seed": 1699062210,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-07",
+            "seed": 248205065,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-08",
+            "seed": 1788753006,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-09",
+            "seed": 474176445,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-10",
+            "seed": 1881237910,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-11",
+            "seed": 120288893,
+            "repeat": 0,
+            "stratum": 1,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          }
+        ]
+      },
+      "proposals": [
+        {
+          "id": "complete-1",
+          "feedback_format": "complete_events_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "先从observation.board（X黑 O白 .空）与yourSeat确定己方符号，把9×9棋盘按行还原成坐标网格（index=row*9+col），再从candidates标签坐标中选一步。每次落子前必须系统扫描四个方向（横、竖、两条斜线）完成以下检查，顺序不可颠倒：\n第1级 立即取胜：对每个候选空位，假设落己方子后，检查四个方向是否存在连续≥5枚己方子。只要存在就立即选择该点，哪怕别处看似更诱人；有多个取胜点任选其一。注意连续五必须中间无对方子、无空格，且要数斜线，常见失误是只看横竖漏掉斜向（如12-21-30-39-48这类主对角线）。\n第2级 封堵对方立即取胜点：对每个空位，假设对方落子后能否任一方向连成≥5。所有这样的点必须本轮堵住；若多于一处且无法同时堵，说明此前已失误，选对方连续子更多、两端更开阔的一处。同样必须查斜线。\n第3级 阻断对方活三：找出对方已经形成'两端皆空的三连'（横/竖/斜），或隔一空的跳三（如X.XX两端空）。这类点下一手就会变成活四而无法全堵，必须现在就落在其延长线的一端或跳空处，优先堵两端都空的方向。\n第4级 己方进攻：选择能形成双威胁的点——一手同时造就两个'活三'或一个'活四'；其次造就单个活三（两端空、四方向扩展空间≥2）。优先选能与己方多个现有棋子在不同方向上都相邻配合的点。\n第5级 占位：选棋群中心、与双方棋子相邻、四方向扩展空间大的点；避免边角孤立点。\n每次只输出当前candidates中的一个id。落子前用一句话自查：'我方有无一步赢？对方有无一步赢？对方有无活三？'确认答案后再选。",
+            "strategy_notes": "训练反馈显示两类致命失误：1）多次被标记missed_immediate_win——己方已有四连或一步可胜却没落取胜点，包括斜向五连被漏看；因此把'数斜线'和落子前自查写进硬性流程。2）对局中让对手先形成活三再发展为活四，最后在step11-17被斜线/竖线连五击败；因此新增第3级'提前堵活三'，不等对方成四才反应。无思考模式、无记忆，每步基于当前snapshot独立完整扫描，不得依赖历史。双方同模型对弈，主动制造双活三是最实际的取胜路径；执黑先手抢中心区域，执白贴防反击。截断仅得50分与和棋相同，须争取实际连五，避免被动拖延。"
+          },
+          "gepa_selected_changed": false
+        },
+        {
+          "id": "complete-2",
+          "feedback_format": "complete_events_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "每步从observation.board（X黑 O白 .空）与yourSeat确定己方颜色后，先做强制扫描再选择：第0步 若棋盘为空，选中心点（9×9为place:40）。第1步【己方成五扫描，最高优先，禁止跳过】：对四个方向（横r,c+1..；竖r+1,c..；主斜r+1,c+1..；副斜r+1,c-1..）逐一检查：任何空位落己子后形成连续≥5，立即选该id；注意四连的两端都要查，斜线尤其容易漏，扫描时逐行逐列枚举己方棋子向四方向延伸，而不是只看最近一手的邻域。第2步【对方成五封堵】：同样方法扫描对方所有一步成五点（含斜线、含四连两端、含被拆开的'四缺一'如X_XXXX），若有必堵；对方有多个成五点且我方无成五时已不可全堵，仍堵一个并记教训：要在对方活三阶段就干预。第3步【对方活四/活三预防】：若对方存在两端皆空的连续三子（活三），本步必须堵其延伸点之一（优先同时贴住其棋形中心或与己方进攻点重合的点），否则下一步必输；对方冲四（一端被堵的四）等同第2步必堵。第4步【己方进攻】：选能形成双威胁的点：一子同时造就两个'活三'，或一个'四'+一个'活三'；优先己方已有连续二/三且两端空的方向；其次选延长最长连续己子且两端为空的点。第5步【占位】：选与双方棋子相邻、四方向扩展空间大、处于棋群中心的点，避免贴边孤立点。每步只从当前candidates选一个id。执行顺序绝对不可颠倒：成五>堵五>堵活四/活三>进攻>占位。",
+            "strategy_notes": "复盘证据：两次败局均为可避免的战术失误——(1) exp-e6fa8a96中候选连续两步（trace14、16，标记missed_immediate_win）放着己方一步成五不下去，转而他处，随后对手连五获胜；(2) exp-d101b7f6中对手以斜线23-32-41-50-59成五获胜，候选在对方斜三/斜四形成过程中未封堵斜向威胁。修正重点：a) 成五检查必须穷举四方向与棋盘上所有己子组合，斜线（主斜/副斜）是最常见漏检方向，宁可花全部预算先扫完己方成五再考虑其他；b) 封堵检查同样要覆盖对方斜线；c) 对方出现两端皆空的活三时就是最后防守窗口，不能寄望之后补救——活三下一手成活四即不可挡；d) 无思考模式、无记忆，每步从当前棋盘完整重扫，不得假设上步结论仍成立；e) 执黑先行抢中心，执白第一手贴对方棋形防守并伺机反攻；f) 主动制造双活三/四三威胁仍是主要取胜手段，但任何进攻都必须在第1-3步防守扫描全部通过后进行；g) 截断只得50分与和棋同分，须力争实际连五，但不得为进攻跳过必堵点——两次0分均源于漏扫而非进攻不足。不宣称未经复验的提升。"
+          },
+          "gepa_selected_changed": true
+        },
+        {
+          "id": "legacy-1",
+          "feedback_format": "legacy_excerpt_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "每步先完整读取observation.board（X=黑、O=白、.=空）与stones，按yourColor确定己方符号。对每个空点在四个方向（横、竖、两条斜线）逐段检查，严格按以下顺序决策：\n\n1）立即取胜：任一空点落下后己方在同一直线上形成连续≥5（注意隔一空的跳形如 X_XXX、XX_XX 落中间也成五，必须把含一个空隙的五连窗口都数进去）。存在即选它。\n\n2）封堵对方成五：同样标准检查对方——对方下一手任一空点可成五（含跳四）的所有点。若有多处，列出后逐一比较：能同时堵掉两条威胁的点优先；否则堵对方连续棋子更多、两端更通的一路。绝不在存在对方成五点时去进攻。\n\n3）识别并处理对方活三/冲四前兆：检查对方是否已有两端开放的三连（_OOO_）或能形成此类形状的点。对方活三若不堵，下一手变活四必败，因此此时必须在活三的延长线上封堵一端（优先堵同时干扰对方两条线的点，或堵其扩展空间更大的一端）。特别注意纵向威胁：本方棋子常横向聚集而漏看竖列连子，务必逐列、逐斜线扫一遍对方棋子。\n\n4）制造双重威胁：选择落子后能同时形成两个己方活三、或一个活三加一个冲四的点（双活三、三四连击参考对手一手堵不完）。评估某点时，数它在四个方向上落子后新形成的\"连续己子数+两端是否为空\"。\n\n5）否则选与双方现有棋子均相邻、四方向扩展空间大、可同时参与多条潜在线的中心区域点；远离只有单方向空间的贴边点。\n\n关键纪律：第2、3级是硬约束，宁可放弃进攻也不能让对方保留活三以上威胁；当对方已有活三而我方无立即取胜手段时，堵是唯一可选项。每次只从当前criteria目录选一个id，坐标换算index=row*9+column。",
+            "strategy_notes": "两局失利复盘显示同一失败模式：候选在攻防中漏看了对手的纵向/斜向连子——第1局对手F列F3-F7连五取胜，第2局对手D列D2-D6连五取胜，两局中盘都存在对方三连逐步扩张而候选未及时封堵的窗口。修正重点是：a) 防守检查必须显式覆盖四个方向且含跳形（O_OO、OO_O 落空成四同样是下一步成五威胁）；b) 对方活三出现即刻封堵，不要贪图自身连子长度；c) 进攻以双威胁（双活三、四三）为核心，单一活三对同级模型对手几乎必被堵。开局执黑占中心E5附近并向多方向发展，执白紧贴对方棋形防守反击、伺机把防守子转为双线进攻子。无思考模式、无记忆，每步重新全盘扫描，严格执行 赢>堵四>堵活三>双威胁>占要点 的优先级；截断仅50分与和棋相同，必须争取实际连五。"
+          },
+          "gepa_selected_changed": true
+        },
+        {
+          "id": "legacy-2",
+          "feedback_format": "legacy_excerpt_v1",
+          "status": "rejected_schema",
+          "candidate": null,
+          "gepa_selected_changed": false
+        }
+      ]
+    },
+    {
+      "id": "feedback-v4b-tetris-20261017",
+      "parent_id": "h-32b33bfd737f197d",
+      "scenarios": {
+        "trigger": 1839907672,
+        "train": [
+          1681598144,
+          431412461
+        ],
+        "selection_validation": [
+          707521810,
+          1677071946
+        ],
+        "development": [
+          1681598144,
+          431412461,
+          707521810,
+          1677071946
+        ],
+        "final": [
+          {
+            "id": "final-0-00",
+            "seed": 136944670,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-0-01",
+            "seed": 1854399569,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-0-02",
+            "seed": 982114003,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-0-03",
+            "seed": 1078736626,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-0-04",
+            "seed": 2045083668,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-0-05",
+            "seed": 1170414732,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-0-06",
+            "seed": 1699062210,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-0-07",
+            "seed": 248205064,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-0-08",
+            "seed": 1788753006,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-0-09",
+            "seed": 474176444,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-0-10",
+            "seed": 1881237911,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-0-11",
+            "seed": 120288893,
+            "repeat": 0,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-1-00",
+            "seed": 136944670,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-1-01",
+            "seed": 1854399569,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-1-02",
+            "seed": 982114003,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-1-03",
+            "seed": 1078736626,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-1-04",
+            "seed": 2045083668,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-1-05",
+            "seed": 1170414732,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-1-06",
+            "seed": 1699062210,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-1-07",
+            "seed": 248205064,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-1-08",
+            "seed": 1788753006,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-1-09",
+            "seed": 474176444,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          },
+          {
+            "id": "final-1-10",
+            "seed": 1881237911,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "candidate",
+              "parent"
+            ]
+          },
+          {
+            "id": "final-1-11",
+            "seed": 120288893,
+            "repeat": 1,
+            "stratum": 0,
+            "order": [
+              "parent",
+              "candidate"
+            ]
+          }
+        ]
+      },
+      "proposals": [
+        {
+          "id": "legacy-1",
+          "feedback_format": "legacy_excerpt_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "每步从candidates中选一个ID。核心流程：先读取board.rows（y=-2..19，'.'为空），计算每列堆高（该列最上方的已锁格），再为当前active.cells选择一个能整行填满、不留洞的落点，然后按需调整、最后硬降。具体优先级：1) 若active的朝向还不是目标朝向，选rotate-cw:100或rotate-ccw:100（每块通常只需0-1次旋转；I横放0/竖放1次，O不转，S/Z/T/L/J优先横放）。2) 若目标朝向已对但水平位置不对，按列差选left/right：差1-2格用left:100/right:100，3-6格用left:300/right:300，7格以上用left:1000/right:1000（横移期间方块会自然下落，幅度大时留出余量，之后用短横移微调）。3) 位置与朝向都对齐后选hard-drop:100立即锁定。4) 完全不确定时选soft-drop:100短暂下降并观察。落点选择规则：a) 以每列堆高为表面，让方块最下沿恰好贴在表面上，任何一格下方都不能是空的（否则形成永久洞，之后无法消行）。b) 优先选能恰好补满一整行或使表面更平的位置；把方块横放并紧贴已有表面并排码放，像砌墙一样从一侧向另一侧填，不要反复堆在同一中央位置。c) 生成区y=-2,-1的行不加分，但如果堆高已接近y<=2，必须优先选择能立即消行或最低的列放置。d) I块竖直（旋转1次）放入现成的1格宽深井可消四行；没有井时横放补平表面。e) hold:100仅当holdAvailable且next[0]对当前局面明显更合适（如I块等深井）。每次只选一个ID；同键在动作结束后会自然松开，连续两次相同旋转/硬降会产生新的边沿，可以连续使用。",
+            "strategy_notes": "三个训练局的致命失败模式相同：模型反复不做水平调整、直接把方块硬降在中央3-5列，11块全部叠成一列塔（末局板面y=-1到19几乎全满且每行都有洞），一块都没消，TOP_OUT终止，0分。修正要点：第一，硬降前必须先看board，绝不无条件hard-drop——如果当前列正下方已是高塔而两侧是空的，先横移到低处。第二，消行是唯一得分来源：1/2/3/4行=100/300/500/800×等级，因此策略应是'平铺填行'——方块横放、并排贴紧表面、每次落块都让至少一行接近填满，而不是纵向堆叠。每锁定一块后重新读板面（board不含active，需自行心算落点）。第三，绝不制造洞：洞一旦形成，其上方所有行都难以消掉，等于锁死分数；宁可放在更低更平的位置。第四，步数预算80步、每块理想2-3个决策（旋转/横移+硬降），足够下约25-30块，消4-8行是现实目标；早期等级低，连续平铺消单行也可积累。第五，注意输入语义：旋转/硬降/hold是边沿触发，每个100ms动作只生效一次，但连续两次同ID会再次触发；横移按住有加速重复，长按时注意方块同时自然下落，最终以硬降锁定。第六，I块留井竖放消四行价值最高（800×等级），但只有在表面已平整且留有1格宽井时才值得；否则横放补行。"
+          },
+          "gepa_selected_changed": false
+        },
+        {
+          "id": "complete-1",
+          "feedback_format": "complete_events_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "每步只从candidates选一个ID。核心流程（严格按序执行，禁止跳过第0步）：\n0) 先读observation.board.rows（22行，y=-2..19，每行10字符，'.'为空）：对每列x=0..9从下往上数已占用格数得到列高；再为active.cells（绝对坐标）确定当前占据的列范围和底边。\n1) 若active尚未位于目标列（目标=列高最低或接近最低、能贴平的列；每次放置后重算），优先选横移：当前列与目标列差1-2格选left:100或right:100；差3-5格选left:300或right:300（按住18tick会自动重复移动多格）；差6格以上选left:1000或right:1000（60tick可移到边缘）。方向由目标列在当前列左/右决定。横移期间重力也推进，属正常。\n2) 若目标朝向与active.rotation不符（如I块要竖放消四行、L/J/S/Z/T需转向贴平），选rotate-cw:100或rotate-ccw:100（每次只转一次，需要转两次就下一决策再转一次）。\n3) 旋转/横移会使cells整体平移或换轴，每次旋转或大幅横移后回到第1步重新核对cells的实际列位置，直到cells底部正对目标低列。\n4) 只有当active.cells确实位于目标列正上方（目测cells的x范围与目标列吻合、下方无空洞加深）时，才选hard-drop:100锁定。\n5) 绝对禁止：在active仍处于生成位置（cells还在y=-2/-1附近且未做任何横移/旋转）时直接hard-drop；除非该位置恰是全场最低列。开局尤其要先把块移到边列或最低列再降。\n6) hold:100仅在holdAvailable且active形状完全无法贴合当前板面（如S/Z会制造洞）而next[0]明显更平时使用，一次放置最多用一次。\n7) 不确定时选soft-drop:100下降一格观察，而不是硬降。\n每次只选一个ID；连续两个决策可以用相同id（会重新触发边沿）。",
+            "strategy_notes": "三局反馈显示同一致命模式：每次都在生成位置（x=3）直接hard-drop，11块全部堆在中央，第11块顶部锁块TOP_OUT，0分。这说明‘先横移对齐再硬降’的规则没有被优先执行——修复方法是把它变成硬性禁令：硬降是每个放置序列的最后一步，且必须以cells实际x坐标与目标列核对为前提，绝不允许作为对块的第一反应。板面中央是生成列，堆中央等于自杀；把块分流到左边缘和右边缘，保持10列高度尽量均匀，只在某列显著更低时才填它。理想步预算：每块1-3个决策（一次长横移left/right:300或1000可覆盖多格+最多一次旋转）+1次hard-drop，80步约可放置15-20块。长按时长（300/1000ms）会自动重复横移，是省步数的关键，但要意识到期间方块也在下落，长横移后仍需重新核对位置。I块留到板面平整时竖放进最低列或横放消行；消4行800×等级是主要分源，其次消2/3行。等级=1+累计消行//10，早期连消放大后期收益。hold用于化解S/Z不合适的情况，但空hold才消耗next[0]，别指望频繁换块。不要用noop拖延（不加分、白耗tick）；重力会随消行加速，后期长横移更危险，尽量在块还在上方时就完成对齐。"
+          },
+          "gepa_selected_changed": false
+        },
+        {
+          "id": "complete-2",
+          "feedback_format": "complete_events_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "每步从candidates选一个ID，遵循以下硬性规则，按顺序检查：\n0)【最高优先级·禁止盲目硬降】hard-drop会把方块沿当前列直接落底锁定。若board.rows中你当前方块所在列附近（x±2）已经有堆积高度超过约第10行（即从底部数超过10格实心），绝不选hard-drop；必须先用横移把方块移到更低/更平坦的列。\n1) 每块的目标放置：先目测board.rows（22行，y=-2..19，'.'为空），找出堆积最低且最平坦的列作为目标列。目标通常是板面从左到右的最低平台段；保持每块平放（S/Z/T/L/J优先rotation=0或2平放，O不需要旋转），避免在方块下制造空洞，避免使单列高出邻居2格以上。\n2) 朝向不对时先选rotate-cw:100或rotate-ccw:100（每次只旋转90度，转完看active.rotation和active.cells确认）。\n3) 朝向正确后做横移：用active.cells的实际x与目标列比较，差1-2格选left:100/right:100（6tick内横移按住9tick后才开始重复，短按每步只移1格，可能需要连续多步各选一次）；差3-5格选left:300/right:300；差6格以上选left:1000/right:1000。注意：横移在按住前9tick只移动1格，所以left:100通常每步只左移1格，移动多格需连续多步。\n4) 横向和朝向都对准后才选hard-drop:100锁定。锁定的判定标准：active.cells的每列下方在board.rows中都是实心或板底，且不会盖住空洞、不会把该列叠得比左右邻居高2格以上。\n5) I块处理：若板面平坦且无深井，I块保持rotation=0横放在最矮的一整行上消1行；若已留有单格深井（某列比邻居低4格），才竖放（rotate一次）入井消四行。\n6) hold:100仅在当前块无处可放且next[0]明显更适合当前板面时用一次。\n7) 情况不明时选soft-drop:100让方块下降并观察，但接地后（grounded=true）不要拖延，尽快完成对齐并硬降。\n每次只选一个ID。",
+            "strategy_notes": "历史失败模式：每个方块在生成位置直接hard-drop，11块全部堆在中央3-4列，11步即TOP_OUT，得0分。根本修正：hard-drop是最后一步，不是第一步；每个方块必须经过'选目标列→旋转→横移→确认→硬降'流程，且目标列必须避开堆积高的区域，主动把方块放到板面最矮的列。板面宽度10列，尽量让方块在左右两侧轮流平放，维持整板高度差≤2格，这样每块平均3-5个决策即可完成，80步预算能放15-20块并稳定消行。80步内每块理想用1步旋转（如需）+1-3步横移+1步硬降。横移语义要点：按住9tick后每3tick重复，所以:100短按基本只移1格，跨半板需:300或:1000。旋转/硬降/hold每次选择都是新的按下边沿，连续两步同键有效。消1/2/3/4行得100/300/500/800×等级，等级=1+累计消行÷10；前期保持平坦多消行，等级提升后分数放大。没有软硬降加分，不追求速度分。next五块可用于规划hold和下一块落点，但不假设更远序列。接地后有30tick锁定限时，不要用noop:100反复等待；完成对齐立即硬降。核心目标从'快速放块'改为'存活并消行'：先保证不TOP_OUT，再谈消四行。"
+          },
+          "gepa_selected_changed": false
+        },
+        {
+          "id": "legacy-2",
+          "feedback_format": "legacy_excerpt_v1",
+          "status": "proposed",
+          "candidate": {
+            "decision_instructions": "每步只从candidates选一个ID。你已经多次因为在未充分调整位置前就hard-drop，把方块全部堆在中央3-6列导致快速顶死（TOP_OUT，0分）。因此执行以下严格顺序，禁止跳步：\n\n【第0步：先判断是否需要对齐】读取active.type/rotation/cells和board.rows（y=-2..19，board只有已锁定块，active单独列出）。为当前块选定一个目标：优先放在当前最矮的列区间、让顶面尽量平、不制造洞；不要默认堆在中央3-6列，初期板面空时应把块铺到左右两侧边缘，保持全板低平。\n\n【横移的换算（关键修正）】100ms=6tick：初始横移1格后9tick才开始重复，所以left:100/right:100只移动约1格。300ms=18tick：约移动4格。1000ms=60tick：可横移十几格，能从中间直达任意一侧。按需选时长，宁可短移后补一次，也不要用100ms期望移多格。\n\n【第1步：旋转】若目标朝向与当前rotation不同，选rotate-cw:100或rotate-ccw:100，一次只转一格（90度）。I块竖放消井时用旋转，但一般情况优先平放铺板。\n\n【第2步：横移】比较active.cells的最左格x与目标x，按上述换算选left/right的合适时长。一次动作后核对位置，未到位再补一次短横移。\n\n【第3步：确认后硬降】只有当active.cells已横对齐目标列、朝向正确、且预计落点不悬空留洞时，才选hard-drop:100。硬降按当前位置直接落底，不做任何自动寻路——没对齐就硬降等于把块锁死在错误位置。\n\n【hold】仅当holdAvailable且next[0]明显比当前块更适合当前板面（如板面需要I块平铺而你拿到S/Z）时选hold:100。\n\n【禁止事项】不要在旋转/横移完成前hard-drop；不要连续多步noop或soft-drop拖延（不加分）；不要重复提交同一持续键期望多移——横移键按住有9tick延迟才重复，短时长只移1格。每次只选一个ID。",
+            "strategy_notes": "历史3局都在约11步、61tick内TOP_OUT且0分：观察终局板面，10个块几乎全锁在中央3-6列形成高塔，而两侧0-2列和7-9列基本空置。根因是策略每块只做极少调整就hard-drop，且对横移时长换算有误（100ms只移1格，不是2格）。修正方向：1) 位置优先——硬降前必须完成旋转和横移两阶段，把块从中央生成位铺向两侧，维持全宽低平堆叠；2) 横移时长换算：100ms≈1格、300ms≈4格、1000ms≈十余格（DAS：首移后9tick延迟，之后每3tick一格）；3) 80步预算足以放约20块（每块理想2-3步：旋转+横移+硬降，硬降即时锁定），不需要赶时间省步到跳过对齐；4) 早期追求平铺和低高度，出现平整机会时消行；I块可用于竖井消四行但需提前在边缘留井；5) hold用于纠错块序，不是常规操作；6) 每个动作结束自动松键，连续两次相同边沿键会产生新按压，可连续两次rotate-cw转180度。等级=1+累计消行/10，消行乘等级，早期消行有复利，但先保证不顶死：板面高度接近y=10时就绝不允许在中央加高。"
+          },
+          "gepa_selected_changed": false
+        }
+      ]
+    }
+  ]
+}
