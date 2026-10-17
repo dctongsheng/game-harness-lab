@@ -23,7 +23,7 @@ pokemon = ["poke-env @ git+https://github.com/hsahovic/poke-env.git@7ff6212e4e73
 where = ["src"]
 
 [tool.setuptools.package-data]
-game_harness = ["static/*.html", "games/*.cjs", "games/*.ts", "games/vendor/*",
+game_harness = ["static/*.html", "static/*.js", "games/*.cjs", "games/*.ts", "games/vendor/*",
   "games/vendor/arena-board/*", "games/vendor/arena-board/packages/games/src/*.ts",
   "games/vendor/arena-board/packages/core/src/*.ts",
   "games/vendor/arena-arcade/*", "games/vendor/arena-arcade/packages/games/src/arcade/*.ts",

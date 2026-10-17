@@ -16,6 +16,7 @@ from .exporting import export_approved, read_bundle, sync_bundle
 from .store import Store, atomic_json, utcnow
 from .visibility import public_payload
 from .scoring import require_evaluable_result
+from .spectator import SpectatorStore
 
 
 DEFAULTS = {"game_id": "snake", "board_size": 8, "max_steps": 120, "train_games": 3,
@@ -35,6 +36,8 @@ class Lab:
         self.settings = settings
         self.store = Store(data_dir)
         self.store.recover_episode_indexes()
+        self.spectators = SpectatorStore(data_dir)
+        self.spectators.recover()
         self.lock = threading.RLock()
         self.stop_event = threading.Event()
         self.paused = False
@@ -114,6 +117,20 @@ class Lab:
         restricted = {game['id'] for game in game_catalog()
                       if game.get('information_policy', {}).get('seed_is_private')}
         return public_payload(value, restricted)
+
+    def spectator_episodes(self):
+        return self.spectators.episodes()
+
+    def spectator_feed(self, episode_id, after=0):
+        # Unknown IDs differ from old, known games without a full public log.
+        if not self.spectators.exists(episode_id):
+            with self.lock:
+                current = self.current_episode
+                episode = (current if current and current.get("episode_id") == episode_id
+                           else self.store.get("episode", episode_id))
+            if not episode or episode.get("game_id") != "pokemon":
+                raise FileNotFoundError("Pokemon spectator episode does not exist")
+        return self.spectators.feed(episode_id, after)
 
     def state(self):
         with self.lock:
@@ -251,6 +268,14 @@ class Lab:
             initial = preview.snapshot()
         finally:
             preview.close()
+        spectator_enabled = adapter.id == "pokemon"
+        spectator_ready = False
+        if spectator_enabled:
+            try:
+                self.spectators.begin(identity, purpose=purpose, harness_id=harness["id"])
+                spectator_ready = True
+            except (OSError, ValueError):
+                self.log("原版观战日志不可用；Decision 对局照常进行", "spectator_error", episode_id=identity)
         with self.lock:
             self.status = "playing" if purpose == "play" else "evaluating"
             self.current_episode = {"episode_id": identity, "purpose": purpose, "game_id": adapter.id,
@@ -263,12 +288,24 @@ class Lab:
                                             last_latency_ms=record["receipt"]["elapsed_ms"],
                                             last_model=record["receipt"]["model"])
 
+        def on_spectator(delta):
+            if not spectator_ready:
+                raise RuntimeError("spectator storage unavailable")
+            self.spectators.append(identity, delta)
+
         result = run_episode(provider, harness, episode_id=identity, seed=seed,
                              size=config["board_size"], max_steps=config["max_steps"],
                              adapter=adapter, config=config,
                              on_step=on_step, should_stop=self.stop_event.is_set,
+                             on_spectator=on_spectator if spectator_enabled else None,
                              wait_if_paused=self.wait_if_paused,
                              log_path=self.store.root / "traces" / f"{identity}.jsonl")
+        if spectator_ready:
+            try:
+                self.spectators.finish(identity, termination_reason=result.get("termination_reason"),
+                                       error=bool(result.get("spectator_error")))
+            except (OSError, ValueError):
+                self.log("原版观战日志收尾失败；对局结果仍保留", "spectator_error", episode_id=identity)
         result.update(purpose=purpose, job_id=job_id, created_at=utcnow(), scope=harness["scope"], game_id=adapter.id,
                       config=dict(config))
         self.store.save_episode(result)

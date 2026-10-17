@@ -101,6 +101,9 @@ class PokemonSession:
                        for i, side in enumerate(("p1", "p2"))}
         self._public = Battle("battle-gen3-v1", "Seat 1", logger, 3)
         self._recent_events = []
+        # Observer-only transport: never included in snapshot, context, or the
+        # Decision request. Keep every public line, including protocol headers.
+        self._spectator_lines = []
         self._candidate_seat = seed % 2
         self._max_steps = max_steps
         self._closed = False
@@ -127,6 +130,7 @@ class PokemonSession:
     def _consume(self, native):
         self._native = native
         for batch in native["events"]:
+            self._spectator_lines.extend(batch["public"])
             self._parse(self._public, batch["public"])
             for side, view in self._views.items():
                 self._parse(view, batch[side])
@@ -174,6 +178,14 @@ class PokemonSession:
 
     def snapshot(self):
         return deepcopy(self._state)
+
+    def spectator_events(self, after=0):
+        if type(after) is not int or not 0 <= after <= len(self._spectator_lines):
+            raise ValueError("invalid spectator cursor")
+        return {"start_cursor": after, "cursor": len(self._spectator_lines),
+                "lines": self._spectator_lines[after:],
+                **{key: self._state[key] for key in (
+                    "step", "native_turn", "native_terminal", "truncated", "result", "done")}}
 
     def candidates(self):
         if self._state["done"]:

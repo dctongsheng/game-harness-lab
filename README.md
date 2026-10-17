@@ -16,6 +16,8 @@
 
 打开 **http://127.0.0.1:18765**，选择游戏，点击开始实验。支持暂停、继续、停止、历史回放、资料/策略对比以及已批准版本回滚。
 
+宝可梦支持 Showdown 原版精灵动画观战。安装宝可梦环境后运行 `.venv/bin/python scripts/setup_showdown_viewer.py`，在实验台点击“原版动画观战”或打开同一服务的 `/spectate`。可实时看出招、换人和血量变化，支持暂停动画、倍速、重播与追到最新。所有游戏操作仍由 Decision 选择；精灵图片按需从官方资源站加载。[安装、入口和真实验收](docs/pokemon-showdown-spectator-v1.md)。
+
 本机配置的玩家为 `http://127.0.0.1:18080/v1/systemone` / `startlux-decision-27b-autothink`，教练为 `glm-5.3`。需要认证时，在本地 `.env` 设置 `DECISION_API_KEY_FILE=~/.config/startlux-decision/api.key`；密钥只进入 HTTP Authorization，不进入模型 state、实验 manifest 或 Git。模型服务的全局思考默认值未改，每次玩家请求覆盖为 `never` 并验证遥测。
 
 ## 如何进化
@@ -87,6 +89,7 @@ harnesses/<游戏>/<版本>/
 - [V5 俄罗斯方块结构事实与目标记忆](docs/tetris-context-validation-v5.md)
 - [V6 俄罗斯方块按键控制、LLM 修订与配对实验](docs/tetris-control-validation-v6.md)
 - [宝可梦 poke-env 接入与真实实验](docs/pokemon-integration-v1.md)
+- [Showdown 原版精灵动画观战与真实验收](docs/pokemon-showdown-spectator-v1.md)
 - [Overcooked-AI 双人厨房接入与真实实验](docs/overcooked-integration-v1.md)
 - [V1 总结](docs/project-summary-v1.md)、[V1 历史实测](docs/validation-v1.md)
 - [原始长期架构提案](docs/architecture.md)、[路线图](docs/roadmap.md)

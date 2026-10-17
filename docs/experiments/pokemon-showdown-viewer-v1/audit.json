@@ -1,0 +1,296 @@
+{
+  "schema": "pokemon-showdown-viewer-audit-v1",
+  "created_at": "2026-10-17T08:23:38.521601+00:00",
+  "status": "passed",
+  "audit_model_calls": 0,
+  "episode_count": 4,
+  "native_completed_episodes": 4,
+  "decision_calls": 75,
+  "thinking_off_verified_calls": 75,
+  "recorded_full_http_request_count": 0,
+  "outcomes": {
+    "win": 3,
+    "loss": 1
+  },
+  "public_protocol_lines": 331,
+  "event_counts": {
+    "move_events": 49,
+    "damage_events": 43,
+    "heal_events": 6,
+    "hp_change_events": 49,
+    "switch_events_including_initial_sendouts": 23,
+    "initial_sendouts": 8,
+    "in_battle_switch_events": 15,
+    "forced_drag_events": 0,
+    "faint_events": 17,
+    "native_turn_events": 31,
+    "win_events": 4,
+    "tie_events": 0
+  },
+  "all_native_public_protocol_exact_match": true,
+  "method": {
+    "receipt_and_private_native_state_audit": "audit_pokemon_run.audit_episode(episode, frozen_harness, require_requests=False)",
+    "public_protocol_audit": "Separate fresh native PokemonSession replay from recorded choices; compare every full public protocol line and final progress with saved sidecar.",
+    "hash_encoding": "SHA-256 of UTF-8 JSON using ensure_ascii=False, sort_keys=True, separators=(comma, colon), matching game_harness.providers.digest",
+    "permitted_normalization": "Only native |t:| wallclock transport lines; zero present in these saved and replayed streams. No other lines removed or reordered.",
+    "outgoing_http_payloads": "Not recorded by ordinary UI provider; reconstructed policy bindings and raw response receipts are checked, but this audit is not proof of exact outgoing HTTP bytes."
+  },
+  "sources": {
+    "poke_env_commit": "7ff6212e4e738efd46f1ea52035b37a8bba1e386",
+    "showdown_commit": "7244fe8e28fa8bc4d0809ae30d183c608b62bb2b"
+  },
+  "limits": [
+    "Four local UI-driven battles demonstrate viewer integration and replay fidelity, not a skill improvement benchmark or ladder rating.",
+    "Raw response model identity is service reported; think_used=false and reasoning_tokens=0 are verified for every saved receipt.",
+    "Private seeds, team sets, request bodies, pending choices and full private states are intentionally excluded from this report."
+  ],
+  "episodes": [
+    {
+      "episode_id": "ep-e58edfe088854efe",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "play",
+      "candidate_seat": 0,
+      "steps": 13,
+      "native_turn": 5,
+      "actors": {
+        "p1": 6,
+        "p2": 7
+      },
+      "roles": {
+        "candidate": 6,
+        "opponent": 7
+      },
+      "status": "audited_native_terminal",
+      "valid_for_evaluation": true,
+      "native_terminal": true,
+      "truncated": false,
+      "result": "win",
+      "score": 100,
+      "observed_compatibility_score": null,
+      "termination_reason": "native_win",
+      "recorded_request_count": 0,
+      "decision_calls": 13,
+      "thinking_off_verified_calls": 13,
+      "decision_latency_total_ms": 3728.544,
+      "source_hash": "8747e5a8c8ab2382e53e3bd0782c1b64dceef23a1fe7aa351bc7374d478207da",
+      "decision_action_kinds": {
+        "move": 10,
+        "switch": 3
+      },
+      "decision_choices_sha256": "3d121dbe48053f319d5740e568fb87326cac5042822405fec357b2290dc42fb9",
+      "spectator_status": "complete",
+      "spectator_complete_from_start": true,
+      "spectator_cursor": 59,
+      "public_protocol_lines": 59,
+      "public_protocol_sha256": "c41b569f63bea9cf6edcf15fc0c3dde4cf221b99e558dc624afd4c42cdb258f8",
+      "native_replay_public_protocol_sha256": "c41b569f63bea9cf6edcf15fc0c3dde4cf221b99e558dc624afd4c42cdb258f8",
+      "native_public_protocol_exact_match": true,
+      "native_public_protocol_normalized_match": true,
+      "ignored_timestamp_lines": {
+        "saved": 0,
+        "replay": 0
+      },
+      "event_counts": {
+        "move_events": 7,
+        "damage_events": 7,
+        "heal_events": 0,
+        "hp_change_events": 7,
+        "switch_events_including_initial_sendouts": 5,
+        "initial_sendouts": 2,
+        "in_battle_switch_events": 3,
+        "forced_drag_events": 0,
+        "faint_events": 4,
+        "native_turn_events": 5,
+        "win_events": 1,
+        "tie_events": 0
+      }
+    },
+    {
+      "episode_id": "ep-eb36fa1767184a56",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "search_validation",
+      "candidate_seat": 0,
+      "steps": 32,
+      "native_turn": 14,
+      "actors": {
+        "p1": 16,
+        "p2": 16
+      },
+      "roles": {
+        "candidate": 16,
+        "opponent": 16
+      },
+      "status": "audited_native_terminal",
+      "valid_for_evaluation": true,
+      "native_terminal": true,
+      "truncated": false,
+      "result": "loss",
+      "score": 0,
+      "observed_compatibility_score": null,
+      "termination_reason": "native_win",
+      "recorded_request_count": 0,
+      "decision_calls": 32,
+      "thinking_off_verified_calls": 32,
+      "decision_latency_total_ms": 10918.902,
+      "source_hash": "5005dc5918f51bb821b4aed0672c4a78ffd780080a849c91605f24999a9a7ed3",
+      "decision_action_kinds": {
+        "move": 27,
+        "switch": 5
+      },
+      "decision_choices_sha256": "37e276362b57a75f13c92f89d4df88ea18513f6bbe3de68c67da963781bf19b5",
+      "spectator_status": "complete",
+      "spectator_complete_from_start": true,
+      "spectator_cursor": 137,
+      "public_protocol_lines": 137,
+      "public_protocol_sha256": "75c7ce9b12761f413450a46e1e8484e822a01ddefdc8d8ff4ccd3bd0187ceaed",
+      "native_replay_public_protocol_sha256": "75c7ce9b12761f413450a46e1e8484e822a01ddefdc8d8ff4ccd3bd0187ceaed",
+      "native_public_protocol_exact_match": true,
+      "native_public_protocol_normalized_match": true,
+      "ignored_timestamp_lines": {
+        "saved": 0,
+        "replay": 0
+      },
+      "event_counts": {
+        "move_events": 24,
+        "damage_events": 18,
+        "heal_events": 6,
+        "hp_change_events": 24,
+        "switch_events_including_initial_sendouts": 7,
+        "initial_sendouts": 2,
+        "in_battle_switch_events": 5,
+        "forced_drag_events": 0,
+        "faint_events": 5,
+        "native_turn_events": 14,
+        "win_events": 1,
+        "tie_events": 0
+      }
+    },
+    {
+      "episode_id": "ep-b3801847c5e344ba",
+      "harness_id": "h-4ed0bc307e8c027f",
+      "purpose": "search_train",
+      "candidate_seat": 0,
+      "steps": 13,
+      "native_turn": 5,
+      "actors": {
+        "p1": 6,
+        "p2": 7
+      },
+      "roles": {
+        "candidate": 6,
+        "opponent": 7
+      },
+      "status": "audited_native_terminal",
+      "valid_for_evaluation": true,
+      "native_terminal": true,
+      "truncated": false,
+      "result": "win",
+      "score": 100,
+      "observed_compatibility_score": null,
+      "termination_reason": "native_win",
+      "recorded_request_count": 0,
+      "decision_calls": 13,
+      "thinking_off_verified_calls": 13,
+      "decision_latency_total_ms": 3762.937,
+      "source_hash": "b7a5ad7fb4f9836697736d0b4f729b2a198c1670b3ce3356e5840dd4c320082f",
+      "decision_action_kinds": {
+        "move": 10,
+        "switch": 3
+      },
+      "decision_choices_sha256": "3d121dbe48053f319d5740e568fb87326cac5042822405fec357b2290dc42fb9",
+      "spectator_status": "complete",
+      "spectator_complete_from_start": true,
+      "spectator_cursor": 59,
+      "public_protocol_lines": 59,
+      "public_protocol_sha256": "c41b569f63bea9cf6edcf15fc0c3dde4cf221b99e558dc624afd4c42cdb258f8",
+      "native_replay_public_protocol_sha256": "c41b569f63bea9cf6edcf15fc0c3dde4cf221b99e558dc624afd4c42cdb258f8",
+      "native_public_protocol_exact_match": true,
+      "native_public_protocol_normalized_match": true,
+      "ignored_timestamp_lines": {
+        "saved": 0,
+        "replay": 0
+      },
+      "event_counts": {
+        "move_events": 7,
+        "damage_events": 7,
+        "heal_events": 0,
+        "hp_change_events": 7,
+        "switch_events_including_initial_sendouts": 5,
+        "initial_sendouts": 2,
+        "in_battle_switch_events": 3,
+        "forced_drag_events": 0,
+        "faint_events": 4,
+        "native_turn_events": 5,
+        "win_events": 1,
+        "tie_events": 0
+      }
+    },
+    {
+      "episode_id": "ep-f5f7fc3236ba4911",
+      "harness_id": "h-2d49e187610ed093",
+      "purpose": "search_train",
+      "candidate_seat": 0,
+      "steps": 17,
+      "native_turn": 7,
+      "actors": {
+        "p1": 8,
+        "p2": 9
+      },
+      "roles": {
+        "candidate": 8,
+        "opponent": 9
+      },
+      "status": "audited_native_terminal",
+      "valid_for_evaluation": true,
+      "native_terminal": true,
+      "truncated": false,
+      "result": "win",
+      "score": 100,
+      "observed_compatibility_score": null,
+      "termination_reason": "native_win",
+      "recorded_request_count": 0,
+      "decision_calls": 17,
+      "thinking_off_verified_calls": 17,
+      "decision_latency_total_ms": 5312.11,
+      "source_hash": "87eb456ad75214afcfe77fee152013d80d9a8288a78e7650e49ab0cef799b1a8",
+      "decision_action_kinds": {
+        "move": 13,
+        "switch": 4
+      },
+      "decision_choices_sha256": "fc15c534f09b30048c2829ab95577737bc0b6429b1ea76d42037ac28fc4f9dd3",
+      "spectator_status": "complete",
+      "spectator_complete_from_start": true,
+      "spectator_cursor": 76,
+      "public_protocol_lines": 76,
+      "public_protocol_sha256": "ed8fe5dfc3c1db123546c8023054dda94a3a3b8ad0e9b1202ebb29495775cdde",
+      "native_replay_public_protocol_sha256": "ed8fe5dfc3c1db123546c8023054dda94a3a3b8ad0e9b1202ebb29495775cdde",
+      "native_public_protocol_exact_match": true,
+      "native_public_protocol_normalized_match": true,
+      "ignored_timestamp_lines": {
+        "saved": 0,
+        "replay": 0
+      },
+      "event_counts": {
+        "move_events": 11,
+        "damage_events": 11,
+        "heal_events": 0,
+        "hp_change_events": 11,
+        "switch_events_including_initial_sendouts": 6,
+        "initial_sendouts": 2,
+        "in_battle_switch_events": 4,
+        "forced_drag_events": 0,
+        "faint_events": 4,
+        "native_turn_events": 7,
+        "win_events": 1,
+        "tie_events": 0
+      }
+    }
+  ],
+  "audit_source_sha256": {
+    "scripts/audit_pokemon_run.py": "cce94bfc332ebc3e23a8b00c1a7e99240c31c4c5455742db2f2974d57ed848ad",
+    "src/game_harness/games/pokemon.py": "6462356b6640ad8e0575ec88c6b9791f0e14491e684ee84b1e981046578a7a9c",
+    "src/game_harness/games/pokemon_bridge.cjs": "65bad42a4d83b1f813e62274e427905e56cdfe3b45467cc5b81c6073f9f0ac04",
+    "src/game_harness/runtime.py": "ee9a97b8b3d4e413073e3b67debd930a8d4f5124474bdd812c48a08e7f19a54c",
+    "src/game_harness/spectator.py": "92c54322554658b8cde1e097961af6c0e7ea321d0c01060facbef024e2f7d5d1"
+  }
+}

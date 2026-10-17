@@ -103,7 +103,7 @@ def _policy_instructions(policy, rules):
 
 def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
                 adapter=None, config=None, on_step=None, should_stop=None,
-                wait_if_paused=None, log_path=None) -> dict:
+                wait_if_paused=None, log_path=None, on_spectator=None) -> dict:
     """Run a frozen candidate against adapter-owned rules and optional opponent.
 
     Adapters expose observations and the complete allowed action catalog, but
@@ -147,6 +147,8 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
     last_state = {"game_id": adapter.id, "score": 0, "step": 0, "done": False, "reason": None}
     started = time.monotonic()
     log_file = None
+    spectator_cursor = 0
+    spectator_error = None
 
     def log(event):
         if log_file is not None:
@@ -155,6 +157,22 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
 
     def stopped():
         return bool(should_stop is not None and should_stop())
+
+    def publish_spectator():
+        # Presentation is a side channel: never merge it into state, instructions,
+        # receipts or action selection. A failed viewer cannot choose or stop moves.
+        nonlocal spectator_cursor, spectator_error
+        if on_spectator is None or spectator_error is not None:
+            return
+        events = getattr(session, 'spectator_events', None)
+        if events is None:
+            return
+        try:
+            delta = events(spectator_cursor)
+            on_spectator(deepcopy(delta))
+            spectator_cursor = delta['cursor']
+        except Exception as exc:
+            spectator_error = {'type': type(exc).__name__, 'message': 'Public spectator stream unavailable'}
 
     def fail(exc, stage=None):
         details = {"type": type(exc).__name__, "message": str(exc),
@@ -185,6 +203,7 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
              "rules_version": adapter.rules_version, "game_context": frozen_context,
              "policy_hashes": policy_hashes, "candidate_hash": expected_hash,
              "initial_state": last_state})
+        publish_spectator()
         while not last_state["done"]:
             if stopped():
                 reason = "stopped"
@@ -245,6 +264,7 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
             trace.append(record)
             latencies.append(receipt["elapsed_ms"])
             log({"type": "step", "episode_id": episode_id, **record})
+            publish_spectator()
             if on_step is not None:
                 on_step(deepcopy(record))
         if reason is None:
@@ -282,6 +302,8 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
     }
     if tetris_context_config is not None:
         result["tetris_context_config"] = deepcopy(tetris_context_config)
+    if spectator_error is not None:
+        result['spectator_error'] = spectator_error
     try:
         log({"type": "episode_end", **{k: v for k, v in result.items() if k != "trace"}})
     except Exception as exc:

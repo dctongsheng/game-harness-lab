@@ -43,6 +43,63 @@ def create_app(data_dir: Path | None = None, settings: Settings | None = None):
     def games():
         return {"games": game_catalog()}
 
+    @app.get('/spectate')
+    def spectate():
+        return FileResponse(Path(__file__).parent / 'static' / 'spectate.html')
+
+    @app.get('/showdown/{filename}')
+    def showdown_page(filename: str):
+        if filename == 'manifest.json':
+            from .showdown_assets import manifest
+            try:
+                return JSONResponse(manifest())
+            except (OSError, ValueError, KeyError):
+                raise HTTPException(404, '原版观战组件尚未安装') from None
+        filename = {'frame': 'showdown-frame.html', 'frame.js': 'showdown-frame.js'}.get(filename, filename)
+        allowed = {'showdown-frame.html': 'text/html', 'showdown-frame.js': 'text/javascript',
+                   'spectate.js': 'text/javascript'}
+        if filename not in allowed:
+            raise HTTPException(404, '观战文件不存在')
+        response = FileResponse(Path(__file__).parent / 'static' / filename, media_type=allowed[filename])
+        if filename == 'showdown-frame.html':
+            response.headers['Content-Security-Policy'] = (
+                "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' https://play.pokemonshowdown.com data:; connect-src 'none'; "
+                "font-src 'self' https://play.pokemonshowdown.com; media-src 'none'; "
+                "frame-ancestors 'self'; base-uri 'none'; form-action 'none'")
+        return response
+
+    @app.get('/api/showdown-viewer')
+    def showdown_status():
+        from .showdown_assets import manifest
+        try:
+            data = manifest()
+            return {'available': True, 'client': data['client']}
+        except (OSError, ValueError, KeyError):
+            return {'available': False, 'message': '原版观战组件尚未安装。运行 .venv/bin/python scripts/setup_showdown_viewer.py'}
+
+    @app.get('/showdown/assets/{name:path}')
+    def showdown_asset(name: str):
+        from .showdown_assets import asset
+        try:
+            path, mime = asset(name)
+            return FileResponse(path, media_type=mime)
+        except (OSError, ValueError, KeyError):
+            raise HTTPException(404, '原版观战资源不可用或校验失败') from None
+
+    @app.get('/api/spectator/episodes')
+    def spectator_episodes():
+        return {'episodes': lab.spectator_episodes()}
+
+    @app.get('/api/spectator/{episode_id}')
+    def spectator_episode(episode_id: str, after: int = 0):
+        try:
+            return lab.spectator_feed(episode_id, after)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from None
+        except FileNotFoundError:
+            raise HTTPException(404, '回合不存在') from None
+
     @app.get("/api/harnesses/{game_id}/{version_id}")
     def harness(game_id: str, version_id: str):
         try:
