@@ -19,6 +19,19 @@ inside the distributed vendor directory.
 GEPA is pinned by source commit in `pyproject.toml`; its MIT notice and other
 dependencies' license notices remain in their installed distributions.
 
+## Google RRSI and BetterGI agent integration (external, optional)
+
+- Google RRSI: https://github.com/google-research/rrsi, Apache-2.0, pinned to
+  `be50316e1db05914068a973f322770ef08ed7ba1` in the optional `rrsi` extra. Upstream
+  notices remain in the installed distribution. The Genshin snapshot Domain
+  calls the upstream evaluation and search interfaces; it does not train model weights.
+- BetterGI: https://github.com/babalae/better-genshin-impact, GPL-3.0, base commit
+  `b3f90e70494320639eeccc8c559612d02d2d9ef0`. `integrations/bettergi/` contains the
+  provenance and development patch. `scripts/setup_genshin_bridge.py` applies it
+  to a separate checkout and preserves the upstream license and branding. The
+  modified BetterGI source and distributed derived application remain subject
+  to GPL-3.0. No proprietary Genshin game client or game artwork is bundled.
+
 ## Pillow (external, optional)
 
 - Upstream: https://github.com/python-pillow/Pillow, optional package pinned to **12.0.0** (`vision` extra).

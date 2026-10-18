@@ -1,0 +1,1067 @@
+diff --git a/BetterGenshinImpact.AgentBridge/AgentCommandHost.cs b/BetterGenshinImpact.AgentBridge/AgentCommandHost.cs
+new file mode 100644
+index 00000000..4c73023c
+--- /dev/null
++++ b/BetterGenshinImpact.AgentBridge/AgentCommandHost.cs
+@@ -0,0 +1,311 @@
++using System.Diagnostics;
++using Newtonsoft.Json.Linq;
++
++namespace BetterGenshinImpact.AgentBridge;
++
++public sealed record GameObservation(JObject Scope, JObject Facts, string[] Images);
++public sealed record SkillOutcome(string Status, string Reason, JObject Evidence);
++
++public interface IAgentGameBackend
++{
++    Task<GameObservation> CaptureAsync(CancellationToken cancellationToken);
++    Task<SkillOutcome> ExecuteAsync(JObject option, CancellationToken cancellationToken);
++    void ReleaseInputs();
++}
++
++/// <summary>
++/// Local authority for one input lease. No model request runs in this process.
++/// Cached observations and full options are authoritative; client hashes are
++/// audit references, never substitutes for host-side semantic validation.
++/// </summary>
++public sealed class AgentCommandHost : IAsyncDisposable
++{
++    private sealed record Frame(JObject Observation, JArray Options, long CapturedAt);
++    private sealed class CommandState(JObject command)
++    {
++        internal JObject Command { get; } = (JObject)command.DeepClone();
++        internal JObject Result { get; set; } = ResultFor(command.Value<string>("command_id")!, "running");
++        internal long StartBy { get; set; }
++    }
++
++    private readonly object _gate = new();
++    private readonly SemaphoreSlim _captureGate = new(1, 1);
++    private readonly IAgentGameBackend _backend;
++    private readonly JArray _options;
++    private readonly JObject _metadata;
++    private readonly Dictionary<long, Frame> _frames = new();
++    private readonly Dictionary<string, CommandState> _commands = new(StringComparer.Ordinal);
++    private readonly CancellationTokenSource _lifetime = new();
++    private readonly Task _watchdog;
++    private readonly TimeSpan _leaseTimeout;
++    private readonly string _sessionId = Guid.NewGuid().ToString("N");
++    private long _frameId;
++    private long _generation;
++    private long _lastContact = Stopwatch.GetTimestamp();
++    private bool _halted = true;
++    private bool _disposed;
++    private bool _releaseFailed;
++    private JObject? _scope;
++    private CommandState? _active;
++    private CancellationTokenSource? _activeCancellation;
++
++    public AgentCommandHost(IAgentGameBackend backend, JArray options, TimeSpan? leaseTimeout = null, JObject? metadata = null)
++    {
++        _backend = backend;
++        _options = (JArray)options.DeepClone();
++        _metadata = (JObject)(metadata?.DeepClone() ?? new JObject());
++        var ids = new HashSet<string>(StringComparer.Ordinal);
++        foreach (var option in _options.Cast<JObject>())
++        {
++            if (string.IsNullOrWhiteSpace(option.Value<string>("id")) || !ids.Add(option.Value<string>("id")!)
++                || option["preconditions"] is not JObject { Count: > 0 }
++                || option.Value<int>("ttl_ms") is < 100 or > 30000
++                || option.Value<int>("timeout_ms") is < 100 or > 300000)
++                throw new ArgumentException("Invalid or duplicate agent option.", nameof(options));
++        }
++        _leaseTimeout = leaseTimeout ?? TimeSpan.FromSeconds(3);
++        if (_leaseTimeout <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(leaseTimeout));
++        _watchdog = WatchdogAsync();
++    }
++
++    public JObject Describe() => (JObject)_metadata.DeepClone();
++
++    public void Arm()
++    {
++        lock (_gate)
++        {
++            ObjectDisposedException.ThrowIf(_disposed, this);
++            if (_releaseFailed) throw new InvalidOperationException("Input release failed; restart the execution host.");
++            if (_active is not null) throw new InvalidOperationException("Previous skill is still stopping.");
++            _halted = false;
++            _generation++;
++            _frames.Clear();
++            _lastContact = Stopwatch.GetTimestamp();
++        }
++    }
++
++    public async Task<JObject> ObserveAsync(CancellationToken cancellationToken)
++    {
++        await _captureGate.WaitAsync(cancellationToken).ConfigureAwait(false);
++        try
++        {
++            var captured = await _backend.CaptureAsync(cancellationToken).ConfigureAwait(false);
++            bool changed;
++            lock (_gate) changed = _scope is not null && !JToken.DeepEquals(_scope, captured.Scope);
++            if (changed) Stop();
++            lock (_gate)
++            {
++                ObjectDisposedException.ThrowIf(_disposed, this);
++                _scope = (JObject)captured.Scope.DeepClone();
++                var observation = new JObject
++                {
++                    ["session_id"] = _sessionId, ["scope"] = _scope.DeepClone(),
++                    ["frame_id"] = ++_frameId, ["control_generation"] = _generation,
++                    ["facts"] = captured.Facts.DeepClone(), ["images"] = new JArray(captured.Images)
++                };
++                var options = _halted ? new JArray() : new JArray(_options.Cast<JObject>()
++                    .Where(option => Available(option, captured.Facts)).Select(option => option.DeepClone()));
++                _frames.Add(_frameId, new Frame((JObject)observation.DeepClone(), options, Stopwatch.GetTimestamp()));
++                while (_frames.Count > 128) _frames.Remove(_frames.Keys.Min());
++                if (_active is null) _lastContact = Stopwatch.GetTimestamp();
++                return observation;
++            }
++        }
++        finally { _captureGate.Release(); }
++    }
++
++    public JArray Candidates(long frameId)
++    {
++        lock (_gate)
++        {
++            if (_active is null) _lastContact = Stopwatch.GetTimestamp();
++            if (!_frames.TryGetValue(frameId, out var frame)) throw new InvalidOperationException("Unknown frame.");
++            return (JArray)frame.Options.DeepClone();
++        }
++    }
++
++    public async Task<JObject> StartAsync(JObject command, CancellationToken cancellationToken)
++    {
++        var identity = command.Value<string>("command_id");
++        if (string.IsNullOrWhiteSpace(identity) || identity.Length > 128)
++            throw new ArgumentException("Invalid command ID.");
++        lock (_gate)
++        {
++            if (_commands.TryGetValue(identity, out var existing))
++            {
++                if (!JToken.DeepEquals(existing.Command, command)) throw new ArgumentException("Command ID reused with a different payload.");
++                _lastContact = Stopwatch.GetTimestamp();
++                return (JObject)existing.Result.DeepClone();
++            }
++        }
++        // Capture outside the command lock so a blocked screenshot cannot block stop.
++        var current = await ObserveAsync(cancellationToken).ConfigureAwait(false);
++        lock (_gate)
++        {
++            if (_commands.TryGetValue(identity, out var existing))
++            {
++                if (!JToken.DeepEquals(existing.Command, command)) throw new ArgumentException("Command ID reused with a different payload.");
++                return (JObject)existing.Result.DeepClone();
++            }
++            ObjectDisposedException.ThrowIf(_disposed, this);
++            if (_halted || _active is not null) return ResultFor(identity, "cancelled", "host_stopped_or_busy");
++            if (_commands.Count >= 4096) throw new InvalidOperationException("Command ledger is full; restart the session.");
++            if (command["source_frame_id"]?.Type != JTokenType.Integer
++                || !_frames.TryGetValue(command.Value<long>("source_frame_id"), out var source)
++                || command["control_generation"]?.Type != JTokenType.Integer
++                || command.Value<long>("control_generation") != _generation
++                || command.Value<string>("session_id") != _sessionId
++                || !JToken.DeepEquals(command["scope"], current["scope"])
++                || !JToken.DeepEquals(source.Observation["scope"], current["scope"])
++                || source.Observation.Value<long>("control_generation") != _generation
++                || command.Value<string>("origin") != "decision"
++                || command.Value<string>("action_granularity") != "skill"
++                || command["option"] is not JObject option)
++                return ResultFor(identity, "cancelled", "stale_or_invalid_binding");
++            var offered = source.Options.Cast<JObject>().SingleOrDefault(item => item.Value<string>("id") == option.Value<string>("id"));
++            if (offered is null || !JToken.DeepEquals(offered, option)
++                || !Available(option, (JObject)current["facts"]!))
++                return ResultFor(identity, "cancelled", "action_semantics_or_preconditions_changed");
++            var elapsed = Stopwatch.GetElapsedTime(source.CapturedAt).TotalMilliseconds;
++            if (command["remaining_ttl_ms"]?.Type != JTokenType.Integer
++                || command.Value<int>("remaining_ttl_ms") <= 0 || elapsed >= option.Value<int>("ttl_ms"))
++                return ResultFor(identity, "cancelled", "expired");
++            var now = Stopwatch.GetTimestamp();
++            var state = new CommandState(command)
++            {
++                StartBy = Math.Min(source.CapturedAt + (long)(option.Value<int>("ttl_ms") * (double)Stopwatch.Frequency / 1000),
++                    now + (long)(command.Value<int>("remaining_ttl_ms") * (double)Stopwatch.Frequency / 1000))
++            };
++            var cancellation = new CancellationTokenSource(option.Value<int>("timeout_ms"));
++            _active = state;
++            _activeCancellation = cancellation;
++            _commands.Add(identity, state);
++            _lastContact = Stopwatch.GetTimestamp();
++            _ = Task.Run(() => ExecuteAsync(state, (JObject)option.DeepClone(), cancellation));
++            return (JObject)state.Result.DeepClone();
++        }
++    }
++
++    public JObject Reconcile(string commandId)
++    {
++        lock (_gate)
++        {
++            if (_active?.Command.Value<string>("command_id") == commandId)
++                _lastContact = Stopwatch.GetTimestamp();
++            return _commands.TryGetValue(commandId, out var state)
++                ? (JObject)state.Result.DeepClone() : ResultFor(commandId, "unknown", "command_not_found");
++        }
++    }
++
++    public JObject Cancel(string commandId)
++    {
++        bool active;
++        lock (_gate) active = _active?.Command.Value<string>("command_id") == commandId;
++        if (active) Stop();
++        return Reconcile(commandId);
++    }
++
++    public void Stop()
++    {
++        CancellationTokenSource? cancellation;
++        lock (_gate)
++        {
++            _halted = true;
++            _generation++;
++            _frames.Clear();
++            cancellation = _activeCancellation;
++        }
++        try { cancellation?.Cancel(); }
++        catch (ObjectDisposedException) { }
++        finally { ReleaseInputs(); }
++    }
++
++    private async Task ExecuteAsync(CommandState state, JObject option, CancellationTokenSource cancellation)
++    {
++        using var releaseOnCancel = cancellation.Token.Register(ReleaseInputs);
++        JObject result;
++        try
++        {
++            cancellation.Token.ThrowIfCancellationRequested();
++            if (Stopwatch.GetTimestamp() >= state.StartBy) throw new TimeoutException("Command expired before execution.");
++            var outcome = await _backend.ExecuteAsync(option, cancellation.Token).ConfigureAwait(false);
++            var status = cancellation.IsCancellationRequested ? "cancelled" : outcome.Status;
++            if (status is not ("succeeded" or "failed" or "cancelled" or "unknown"))
++                throw new InvalidOperationException("Backend returned a nonterminal outcome.");
++            result = ResultFor(state.Command.Value<string>("command_id")!, status, outcome.Reason, outcome.Evidence);
++        }
++        catch (Exception exception)
++        {
++            result = ResultFor(state.Command.Value<string>("command_id")!,
++                cancellation.IsCancellationRequested ? "cancelled" : "failed", exception.GetType().Name);
++        }
++        finally { ReleaseInputs(); }
++        lock (_gate)
++        {
++            if (_releaseFailed)
++                result = ResultFor(state.Command.Value<string>("command_id")!, "unknown", "input_release_failed");
++            else if (_halted || state.Command.Value<long>("control_generation") != _generation)
++                result = ResultFor(state.Command.Value<string>("command_id")!, "cancelled", "control_invalidated");
++            state.Result = result;
++            if (ReferenceEquals(_active, state))
++            {
++                _active = null;
++                _activeCancellation = null;
++            }
++        }
++        cancellation.Dispose();
++    }
++
++    private void ReleaseInputs()
++    {
++        try { _backend.ReleaseInputs(); }
++        catch (Exception)
++        {
++            lock (_gate)
++            {
++                _halted = true;
++                _generation++;
++                _releaseFailed = true;
++            }
++        }
++    }
++
++    private async Task WatchdogAsync()
++    {
++        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
++        try
++        {
++            while (await timer.WaitForNextTickAsync(_lifetime.Token).ConfigureAwait(false))
++            {
++                bool expired;
++                lock (_gate) expired = _active is not null && !_halted
++                    && Stopwatch.GetElapsedTime(_lastContact) > _leaseTimeout;
++                if (expired) Stop();
++            }
++        }
++        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
++    }
++
++    private static bool Available(JObject option, JObject facts) =>
++        ((JObject)option["preconditions"]!).Properties()
++        .All(property => facts.TryGetValue(property.Name, out var value) && JToken.DeepEquals(value, property.Value));
++
++    private static JObject ResultFor(string identity, string status, string reason = "", JObject? evidence = null) =>
++        new() { ["command_id"] = identity, ["status"] = status, ["reason"] = reason,
++                ["evidence"] = evidence?.DeepClone() ?? new JObject() };
++
++    public async ValueTask DisposeAsync()
++    {
++        lock (_gate)
++        {
++            if (_disposed) return;
++            _disposed = true;
++        }
++        Stop();
++        _lifetime.Cancel();
++        await _watchdog.ConfigureAwait(false);
++        _lifetime.Dispose();
++        // A native skill owns the capture gate until it exits. Do not dispose
++        // synchronization primitives underneath a late native completion.
++    }
++}
+diff --git a/BetterGenshinImpact.AgentBridge/AgentPipeServer.cs b/BetterGenshinImpact.AgentBridge/AgentPipeServer.cs
+new file mode 100644
+index 00000000..ae55d8ac
+--- /dev/null
++++ b/BetterGenshinImpact.AgentBridge/AgentPipeServer.cs
+@@ -0,0 +1,112 @@
++using System.Buffers.Binary;
++using System.IO.Pipes;
++using System.Text;
++using Newtonsoft.Json;
++using Newtonsoft.Json.Linq;
++
++namespace BetterGenshinImpact.AgentBridge;
++
++public static class AgentPipeProtocol
++{
++    public const int MaxPayloadBytes = 16 * 1024 * 1024;
++
++    public static async Task<JObject> ReadAsync(Stream stream, CancellationToken cancellationToken)
++    {
++        var header = new byte[4];
++        await stream.ReadExactlyAsync(header, cancellationToken).ConfigureAwait(false);
++        var count = BinaryPrimitives.ReadInt32LittleEndian(header);
++        if (count is <= 0 or > MaxPayloadBytes) throw new InvalidDataException("Invalid agent frame length.");
++        var payload = new byte[count];
++        await stream.ReadExactlyAsync(payload, cancellationToken).ConfigureAwait(false);
++        return JObject.Parse(new UTF8Encoding(false, true).GetString(payload));
++    }
++
++    public static async Task WriteAsync(Stream stream, JObject payload, CancellationToken cancellationToken)
++    {
++        var raw = Encoding.UTF8.GetBytes(payload.ToString(Formatting.None));
++        if (raw.Length is <= 0 or > MaxPayloadBytes) throw new InvalidDataException("Invalid agent frame length.");
++        var header = new byte[4];
++        BinaryPrimitives.WriteInt32LittleEndian(header, raw.Length);
++        await stream.WriteAsync(header, cancellationToken).ConfigureAwait(false);
++        await stream.WriteAsync(raw, cancellationToken).ConfigureAwait(false);
++        await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
++    }
++}
++
++/// <summary>Per-user local IPC. A separate control pipe keeps stop independent of screenshots.</summary>
++public sealed class AgentPipeServer(AgentCommandHost host, string name) : IAsyncDisposable
++{
++    private readonly CancellationTokenSource _lifetime = new();
++    private readonly List<Task> _listeners = [];
++
++    public void Start()
++    {
++        if (!System.Text.RegularExpressions.Regex.IsMatch(name, "^[a-zA-Z0-9_.-]{1,100}$"))
++            throw new ArgumentException("Invalid agent pipe name.");
++        if (_listeners.Count != 0) throw new InvalidOperationException("Agent pipes are already running.");
++        // Multiple independent workers let status polling proceed during capture.
++        for (var index = 0; index < 4; index++) _listeners.Add(ListenAsync(name, false));
++        _listeners.Add(ListenAsync(name + ".control", true));
++    }
++
++    private async Task ListenAsync(string pipeName, bool controlOnly)
++    {
++        while (!_lifetime.IsCancellationRequested)
++        {
++            await using var pipe = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 8,
++                PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
++            try
++            {
++                await pipe.WaitForConnectionAsync(_lifetime.Token).ConfigureAwait(false);
++                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
++                timeout.CancelAfter(TimeSpan.FromSeconds(10));
++                var request = await AgentPipeProtocol.ReadAsync(pipe, timeout.Token).ConfigureAwait(false);
++                var identity = request.Value<string>("request_id");
++                JObject response;
++                try
++                {
++                    if (request.Value<int>("version") != 1 || string.IsNullOrWhiteSpace(identity))
++                        throw new ArgumentException("Invalid agent envelope.");
++                    var operation = request.Value<string>("operation");
++                    if (controlOnly && operation != "stop") throw new ArgumentException("Control pipe accepts stop only.");
++                    var data = request["data"] as JObject ?? new JObject();
++                    JToken result;
++                    switch (operation)
++                    {
++                        case "describe": result = host.Describe(); break;
++                        case "arm": host.Arm(); result = new JObject(); break;
++                        case "observe": result = await host.ObserveAsync(timeout.Token).ConfigureAwait(false); break;
++                        case "candidates": result = host.Candidates(data.Value<long>("frame_id")); break;
++                        case "start": result = await host.StartAsync(data, timeout.Token).ConfigureAwait(false); break;
++                        case "reconcile": result = host.Reconcile(data.Value<string>("command_id") ?? ""); break;
++                        case "cancel": result = host.Cancel(data.Value<string>("command_id") ?? ""); break;
++                        case "stop": host.Stop(); result = new JObject(); break;
++                        default: throw new ArgumentException("Unsupported agent operation.");
++                    }
++                    response = new JObject { ["version"] = 1, ["request_id"] = identity,
++                                             ["success"] = true, ["data"] = result };
++                }
++                catch (Exception exception) when (exception is ArgumentException or InvalidOperationException
++                                                   or JsonException or IOException)
++                {
++                    response = new JObject { ["version"] = 1, ["request_id"] = identity,
++                                             ["success"] = false, ["error"] = exception.GetType().Name };
++                }
++                await AgentPipeProtocol.WriteAsync(pipe, response, timeout.Token).ConfigureAwait(false);
++            }
++            catch (Exception exception) when (exception is IOException or OperationCanceledException
++                                               or JsonException or DecoderFallbackException)
++            {
++                // A bad/disconnected client does not terminate the listener.
++            }
++        }
++    }
++
++    public async ValueTask DisposeAsync()
++    {
++        _lifetime.Cancel();
++        host.Stop();
++        await Task.WhenAll(_listeners).ConfigureAwait(false);
++        _lifetime.Dispose();
++    }
++}
+diff --git a/BetterGenshinImpact.AgentBridge/BetterGenshinImpact.AgentBridge.csproj b/BetterGenshinImpact.AgentBridge/BetterGenshinImpact.AgentBridge.csproj
+new file mode 100644
+index 00000000..dc33ff40
+--- /dev/null
++++ b/BetterGenshinImpact.AgentBridge/BetterGenshinImpact.AgentBridge.csproj
+@@ -0,0 +1,11 @@
++<Project Sdk="Microsoft.NET.Sdk">
++  <PropertyGroup>
++    <TargetFramework>net8.0</TargetFramework>
++    <ImplicitUsings>enable</ImplicitUsings>
++    <Nullable>enable</Nullable>
++    <LangVersion>12</LangVersion>
++  </PropertyGroup>
++  <ItemGroup>
++    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
++  </ItemGroup>
++</Project>
+diff --git a/BetterGenshinImpact/App.xaml.cs b/BetterGenshinImpact/App.xaml.cs
+index e301c68e..330986bb 100644
+--- a/BetterGenshinImpact/App.xaml.cs
++++ b/BetterGenshinImpact/App.xaml.cs
+@@ -161,6 +161,7 @@ public partial class App : Application
+                 services.AddHostedService(sp => sp.GetRequiredService<InstanceService>());
+                 // App Host
+                 services.AddHostedService<ApplicationHostService>();
++                services.AddHostedService<BetterGenshinImpact.Service.Agent.StartLuxAgentBridgeService>();
+                 // Page resolver service
+                 services.AddSingleton<INavigationService, NavigationService>();
+                 services.AddSingleton<IUpdateService, UpdateService>();
+diff --git a/BetterGenshinImpact/BetterGenshinImpact.csproj b/BetterGenshinImpact/BetterGenshinImpact.csproj
+index e27f6e7f..e512631d 100644
+--- a/BetterGenshinImpact/BetterGenshinImpact.csproj
++++ b/BetterGenshinImpact/BetterGenshinImpact.csproj
+@@ -1,5 +1,8 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+ 
++	<ItemGroup>
++		<ProjectReference Include="..\BetterGenshinImpact.AgentBridge\BetterGenshinImpact.AgentBridge.csproj" />
++	</ItemGroup>
+ 	<PropertyGroup>
+ 		<AssemblyName>BetterGI</AssemblyName>
+ 		<Version>0.66.2-alpha.2</Version>
+diff --git a/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs b/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs
+new file mode 100644
+index 00000000..298ff2eb
+--- /dev/null
++++ b/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs
+@@ -0,0 +1,245 @@
++using System;
++using System.Collections.Generic;
++using System.Globalization;
++using System.IO;
++using System.Linq;
++using System.Security.Cryptography;
++using System.Text;
++using System.Text.RegularExpressions;
++using System.Threading;
++using System.Threading.Tasks;
++using BetterGenshinImpact.AgentBridge;
++using BetterGenshinImpact.Core.Recognition.OCR;
++using BetterGenshinImpact.Core.Script;
++using BetterGenshinImpact.GameTask;
++using BetterGenshinImpact.GameTask.AutoPathing;
++using BetterGenshinImpact.GameTask.AutoPathing.Model;
++using BetterGenshinImpact.GameTask.Common;
++using BetterGenshinImpact.GameTask.Common.BgiVision;
++using BetterGenshinImpact.GameTask.Common.Job;
++using BetterGenshinImpact.Core.Input;
++using BetterGenshinImpact.Helpers;
++using Newtonsoft.Json.Linq;
++using OpenCvSharp;
++
++namespace BetterGenshinImpact.Service.Agent;
++
++/// <summary>Development execution adapter. Daily success remains externally verified.</summary>
++internal sealed class BetterGiAgentBackend : IAgentGameBackend
++{
++    private readonly JObject _binding;
++    private readonly Dictionary<string, byte[]> _resources = new(StringComparer.Ordinal);
++    private readonly SemaphoreSlim _captureGate = new(1, 1);
++    private int _ownsTask;
++    internal JArray Options { get; }
++    internal JObject Metadata { get; }
++    internal event Action? ManualStop;
++
++    internal BetterGiAgentBackend(string configurationPath)
++    {
++        var configuration = JObject.Parse(File.ReadAllText(configurationPath));
++        _binding = (JObject)(configuration["binding"]?.DeepClone()
++                            ?? throw new InvalidDataException("Agent account binding is required."));
++        if (!Regex.IsMatch(_binding.Value<string>("account_id") ?? "", "^[0-9]{8,10}$")
++            || string.IsNullOrWhiteSpace(_binding.Value<string>("server_id"))
++            || _binding["server_utc_offset_minutes"]?.Type != JTokenType.Integer
++            || _binding.Value<int>("server_utc_offset_minutes") is < -720 or > 840)
++            throw new InvalidDataException("Invalid agent account/server binding.");
++        var packPath = configuration.Value<string>("pack_directory")
++                       ?? throw new InvalidDataException("Agent task pack directory is required.");
++        var root = Path.GetFullPath(Path.IsPathRooted(packPath) ? packPath
++            : Path.Combine(Path.GetDirectoryName(Path.GetFullPath(configurationPath))!, packPath));
++        if ((File.GetAttributes(root) & FileAttributes.ReparsePoint) != 0)
++            throw new InvalidDataException("Agent task pack cannot be a linked directory.");
++        var manifestRaw = File.ReadAllBytes(Path.Combine(root, "manifest.json"));
++        var manifest = JObject.Parse(Encoding.UTF8.GetString(manifestRaw));
++        if (manifest.Value<int>("schema_version") != 2 || manifest.Value<string>("game_id") != "genshin"
++            || manifest.Value<string>("environment") != "windows"
++            || manifest.Value<string>("release_status") != "development"
++            || string.IsNullOrWhiteSpace(manifest.Value<string>("decision_model")))
++            throw new InvalidDataException("Only an explicit Windows development task pack is supported.");
++        var totalBytes = 0L;
++        foreach (var property in ((JObject)(manifest["files"] ?? throw new InvalidDataException("Missing pack resources."))).Properties())
++        {
++            var name = property.Name;
++            if (name.Split('/').Any(part => string.IsNullOrEmpty(part) || part is "." or "..")
++                || name.Contains('\\') || name.Contains(':') || Path.IsPathRooted(name))
++                throw new InvalidDataException("Invalid agent resource path.");
++            var path = Path.GetFullPath(Path.Combine(root, name));
++            if (!path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
++                throw new InvalidDataException("Agent resource escapes its pack.");
++            for (var cursor = path; !string.Equals(cursor, root, StringComparison.OrdinalIgnoreCase); cursor = Path.GetDirectoryName(cursor)!)
++                if ((File.GetAttributes(cursor) & FileAttributes.ReparsePoint) != 0)
++                    throw new InvalidDataException("Agent resources cannot contain links.");
++            var size = new FileInfo(path).Length;
++            totalBytes += size;
++            if (size > 32 * 1024 * 1024 || totalBytes > 64 * 1024 * 1024)
++                throw new InvalidDataException("Agent resources exceed the size budget.");
++            var bytes = File.ReadAllBytes(path);
++            if (!string.Equals(Convert.ToHexString(SHA256.HashData(bytes)), property.Value.Value<string>(), StringComparison.OrdinalIgnoreCase))
++                throw new InvalidDataException("Agent task pack resource hash mismatch.");
++            _resources.Add(name, bytes);
++        }
++        Options = JArray.Parse(Encoding.UTF8.GetString(_resources["actions.json"]));
++        foreach (var option in Options.Cast<JObject>())
++        {
++            var skill = option.Value<string>("skill");
++            if (skill is not ("observe.capture" or "path.run" or "dialogue.select"))
++                throw new InvalidDataException("Agent task pack references an unsupported native skill.");
++            if (skill != "observe.capture" && (option["preconditions"]?["account_verified"]?.Type != JTokenType.Boolean
++                || option["preconditions"]?.Value<bool>("account_verified") != true
++                || option["preconditions"]?.Value<bool>("foreground") != true))
++                throw new InvalidDataException("Input skills must guard the account and foreground window.");
++        }
++        Metadata = new JObject
++        {
++            ["protocol_version"] = 1, ["manifest_file_sha256"] = Convert.ToHexString(SHA256.HashData(manifestRaw)).ToLowerInvariant(),
++            ["decision_model"] = manifest["decision_model"]!.DeepClone(),
++            ["environment"] = "windows", ["release_status"] = "development"
++        };
++    }
++
++    public async Task<GameObservation> CaptureAsync(CancellationToken cancellationToken)
++    {
++        await _captureGate.WaitAsync(cancellationToken).ConfigureAwait(false);
++        try
++        {
++            return await Task.Run(() =>
++            {
++                cancellationToken.ThrowIfCancellationRequested();
++                if (!TaskContext.Instance().IsInitialized) throw new InvalidOperationException("Start the BetterGI capture service first.");
++                using var region = TaskControl.CaptureToRectArea();
++                var scene = Bv.WhichGameUi(region) switch
++                {
++                    GameUiCategory.Main => "world", GameUiCategory.Talk => "dialogue",
++                    GameUiCategory.BigMap => "map", _ => "unknown"
++                };
++                var text = OcrFactory.Paddle.Ocr(region.SrcMat);
++                var uid = Regex.Match(text, @"UID\s*[:：]?\s*(\d{8,10})", RegexOptions.IgnoreCase);
++                var accountVerified = uid.Success && uid.Groups[1].Value == _binding.Value<string>("account_id");
++                var serverTime = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromMinutes(_binding.Value<int>("server_utc_offset_minutes")));
++                var scope = new JObject
++                {
++                    ["account_id"] = uid.Success ? uid.Groups[1].Value : _binding.Value<string>("account_id"),
++                    ["server_id"] = _binding.Value<string>("server_id"),
++                    ["game_day"] = serverTime.AddHours(-4).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
++                };
++                var facts = new JObject
++                {
++                    ["scene"] = scene, ["ocr_text"] = text, ["account_verified"] = accountVerified,
++                    ["foreground"] = SystemControl.IsGenshinImpactActiveByProcess(),
++                    ["region"] = _binding.Value<string>("region"), ["region_source"] = "configured_task_region"
++                };
++                Cv2.ImEncode(".png", region.SrcMat, out var png);
++                cancellationToken.ThrowIfCancellationRequested();
++                return new GameObservation(scope, facts, ["data:image/png;base64," + Convert.ToBase64String(png)]);
++            }, cancellationToken).ConfigureAwait(false);
++        }
++        finally { _captureGate.Release(); }
++    }
++
++    public async Task<SkillOutcome> ExecuteAsync(JObject option, CancellationToken cancellationToken)
++    {
++        if (option.Value<string>("skill") == "observe.capture")
++        {
++            var state = await CaptureAsync(cancellationToken).ConfigureAwait(false);
++            return new SkillOutcome("succeeded", "observation_captured", new JObject { ["facts"] = state.Facts });
++        }
++        if (!await TaskControl.TaskSemaphore.WaitAsync(0, cancellationToken).ConfigureAwait(false))
++            return new SkillOutcome("failed", "another_bettergi_task_owns_input", new JObject());
++        Interlocked.Exchange(ref _ownsTask, 1);
++        var runner = new TaskRunner();
++        var cancellationInitialized = false;
++        try
++        {
++            cancellationToken.ThrowIfCancellationRequested();
++            runner.Init();
++            CancellationContext.Instance.Set();
++            cancellationInitialized = true;
++            RunnerContext.Instance.Clear();
++            using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancellationContext.Instance.Cts.Token);
++            using var manualStop = CancellationContext.Instance.Cts.Token.Register(() =>
++            {
++                if (CancellationContext.Instance.IsManualStop) ManualStop?.Invoke();
++            });
++            var token = linked.Token;
++            using var focusLease = CancellationTokenSource.CreateLinkedTokenSource(token);
++            var focusMonitor = MonitorForegroundAsync(focusLease.Token);
++            try
++            {
++                var arguments = option["arguments"] as JObject ?? new JObject();
++                if (option.Value<string>("skill") == "path.run")
++                {
++                    var resource = arguments.Value<string>("route") ?? "";
++                    if (!_resources.TryGetValue(resource, out var bytes)) throw new InvalidDataException("Route is outside the pinned task pack.");
++                    var task = PathingTask.BuildFromJson(Encoding.UTF8.GetString(bytes));
++                    var executor = new PathExecutor(token);
++                    await executor.Pathing(task).ConfigureAwait(false);
++                    token.ThrowIfCancellationRequested();
++                    if (!executor.SuccessEnd) return new SkillOutcome("failed", "path_executor_did_not_complete", new JObject());
++                }
++                else if (option.Value<string>("skill") == "dialogue.select")
++                {
++                    var text = arguments.Value<string>("text");
++                    if (string.IsNullOrWhiteSpace(text) || text.Length > 128) throw new InvalidDataException("Invalid dialogue text.");
++                    var result = await new ChooseTalkOptionTask().SingleSelectText(text, token, 3, true).ConfigureAwait(false);
++                    if (result != TalkOptionRes.FoundAndClick) return new SkillOutcome("failed", "dialogue_option_not_selected", new JObject());
++                }
++                else throw new InvalidDataException("Unsupported input skill.");
++
++                // Native execution and independent postcondition verification are separate.
++                await Task.Delay(150, token).ConfigureAwait(false);
++                var after = await CaptureAsync(token).ConfigureAwait(false);
++                var expectedText = arguments.Value<string>("verify_text");
++                var verified = !string.IsNullOrWhiteSpace(expectedText) && expectedText.Length <= 128
++                               && (after.Facts.Value<string>("ocr_text") ?? "").Contains(expectedText, StringComparison.Ordinal);
++                return new SkillOutcome(verified ? "succeeded" : "unknown",
++                    verified ? "visual_text_postcondition_observed" : "native_returned_postcondition_unverified",
++                    new JObject { ["execution_completed"] = true, ["visual_postcondition_verified"] = verified,
++                                  ["commission_completion_verified"] = false, ["daily_reward_verified"] = false,
++                                  ["after_facts"] = after.Facts });
++            }
++            finally
++            {
++                focusLease.Cancel();
++                await focusMonitor.ConfigureAwait(false);
++            }
++        }
++        finally
++        {
++            try
++            {
++                runner.End();
++                if (cancellationInitialized) CancellationContext.Instance.Clear();
++                RunnerContext.Instance.Clear();
++            }
++            finally
++            {
++                ReleaseInputs();
++                Interlocked.Exchange(ref _ownsTask, 0);
++                TaskControl.TaskSemaphore.Release();
++            }
++        }
++    }
++
++    public void ReleaseInputs()
++    {
++        // Do not release keys owned by an unrelated BetterGI task after a busy rejection.
++        if (Volatile.Read(ref _ownsTask) != 0) InputHub.ReleaseAll();
++    }
++
++    private async Task MonitorForegroundAsync(CancellationToken cancellationToken)
++    {
++        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
++        try
++        {
++            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
++            {
++                if (SystemControl.IsGenshinImpactActiveByProcess()) continue;
++                ManualStop?.Invoke();
++                return;
++            }
++        }
++        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
++    }
++}
+diff --git a/BetterGenshinImpact/Service/Agent/StartLuxAgentBridgeService.cs b/BetterGenshinImpact/Service/Agent/StartLuxAgentBridgeService.cs
+new file mode 100644
+index 00000000..463dae6a
+--- /dev/null
++++ b/BetterGenshinImpact/Service/Agent/StartLuxAgentBridgeService.cs
+@@ -0,0 +1,34 @@
++using System;
++using System.Threading;
++using System.Threading.Tasks;
++using BetterGenshinImpact.AgentBridge;
++using Microsoft.Extensions.Hosting;
++using Microsoft.Extensions.Logging;
++
++namespace BetterGenshinImpact.Service.Agent;
++
++public sealed class StartLuxAgentBridgeService(ILogger<StartLuxAgentBridgeService> logger) : IHostedService
++{
++    private AgentCommandHost? _host;
++    private AgentPipeServer? _server;
++
++    public Task StartAsync(CancellationToken cancellationToken)
++    {
++        var configuration = Environment.GetEnvironmentVariable("STARTLUX_AGENT_CONFIG");
++        if (string.IsNullOrWhiteSpace(configuration)) return Task.CompletedTask;
++        var backend = new BetterGiAgentBackend(configuration);
++        _host = new AgentCommandHost(backend, backend.Options, metadata: backend.Metadata);
++        backend.ManualStop += _host.Stop;
++        var pipeName = Environment.GetEnvironmentVariable("STARTLUX_AGENT_PIPE") ?? "startlux-genshin";
++        _server = new AgentPipeServer(_host, pipeName);
++        _server.Start();
++        logger.LogInformation("StartLux development agent bridge started on local pipe {PipeName}", pipeName);
++        return Task.CompletedTask;
++    }
++
++    public async Task StopAsync(CancellationToken cancellationToken)
++    {
++        if (_server is not null) await _server.DisposeAsync();
++        if (_host is not null) await _host.DisposeAsync();
++    }
++}
+diff --git a/Test/BetterGenshinImpact.AgentBridge.Fixture/BetterGenshinImpact.AgentBridge.Fixture.csproj b/Test/BetterGenshinImpact.AgentBridge.Fixture/BetterGenshinImpact.AgentBridge.Fixture.csproj
+new file mode 100644
+index 00000000..403fa84c
+--- /dev/null
++++ b/Test/BetterGenshinImpact.AgentBridge.Fixture/BetterGenshinImpact.AgentBridge.Fixture.csproj
+@@ -0,0 +1,11 @@
++<Project Sdk="Microsoft.NET.Sdk">
++  <PropertyGroup>
++    <OutputType>Exe</OutputType>
++    <TargetFramework>net8.0</TargetFramework>
++    <ImplicitUsings>enable</ImplicitUsings>
++    <Nullable>enable</Nullable>
++  </PropertyGroup>
++  <ItemGroup>
++    <ProjectReference Include="../../BetterGenshinImpact.AgentBridge/BetterGenshinImpact.AgentBridge.csproj" />
++  </ItemGroup>
++</Project>
+diff --git a/Test/BetterGenshinImpact.AgentBridge.Fixture/Program.cs b/Test/BetterGenshinImpact.AgentBridge.Fixture/Program.cs
+new file mode 100644
+index 00000000..0b8adab3
+--- /dev/null
++++ b/Test/BetterGenshinImpact.AgentBridge.Fixture/Program.cs
+@@ -0,0 +1,51 @@
++using BetterGenshinImpact.AgentBridge;
++using Newtonsoft.Json;
++using Newtonsoft.Json.Linq;
++
++if (args.Length != 1) throw new ArgumentException("A fixture pipe name is required.");
++var backend = new FixtureBackend();
++var options = JArray.Parse("""
++    [{"id":"talk","label":"Talk to Katheryne","skill":"dialogue","skill_version":"1",
++      "arguments":{"target":"katheryne"},
++      "preconditions":{"scene":"world","target":"katheryne","region":"mondstadt"},
++      "timeout_ms":30000,"ttl_ms":3000}]
++    """);
++await using var host = new AgentCommandHost(backend, options);
++await using var server = new AgentPipeServer(host, args[0]);
++server.Start();
++Console.WriteLine(JsonConvert.SerializeObject(new
++{
++    ready = true, synthetic_fixture = true,
++    unix_pipe_path = Path.Combine(Path.GetTempPath(), "CoreFxPipe_" + args[0])
++}));
++await Console.In.ReadLineAsync();
++
++internal sealed class FixtureBackend : IAgentGameBackend
++{
++    private readonly object _gate = new();
++    private int _executions;
++
++    public Task<GameObservation> CaptureAsync(CancellationToken cancellationToken)
++    {
++        lock (_gate)
++        {
++            var scope = JObject.Parse("""{"account_id":"fixture-account","server_id":"fixture-server","game_day":"2026-10-18"}""");
++            var facts = new JObject { ["scene"] = "world", ["target"] = _executions == 0 ? "katheryne" : "none",
++                                      ["region"] = "mondstadt" };
++            return Task.FromResult(new GameObservation(scope, facts, []));
++        }
++    }
++
++    public Task<SkillOutcome> ExecuteAsync(JObject option, CancellationToken cancellationToken)
++    {
++        cancellationToken.ThrowIfCancellationRequested();
++        lock (_gate)
++        {
++            _executions++;
++            return Task.FromResult(new SkillOutcome("succeeded", "synthetic_fixture",
++                new JObject { ["synthetic_fixture"] = true, ["executions"] = _executions }));
++        }
++    }
++
++    public void ReleaseInputs() { }
++}
+diff --git a/Test/BetterGenshinImpact.AgentBridge.Tests/AgentBridgeTests.cs b/Test/BetterGenshinImpact.AgentBridge.Tests/AgentBridgeTests.cs
+new file mode 100644
+index 00000000..bf4cc411
+--- /dev/null
++++ b/Test/BetterGenshinImpact.AgentBridge.Tests/AgentBridgeTests.cs
+@@ -0,0 +1,198 @@
++using System.Buffers.Binary;
++using BetterGenshinImpact.AgentBridge;
++using Newtonsoft.Json.Linq;
++using Xunit;
++
++namespace BetterGenshinImpact.AgentBridge.Tests;
++
++public sealed class AgentBridgeTests
++{
++    private static readonly JObject Option = JObject.Parse("""
++        {"id":"talk","label":"Talk","skill":"dialogue.select","skill_version":"1",
++         "arguments":{"text":"Katheryne"},"preconditions":{"scene":"world","account_verified":true},
++         "ttl_ms":3000,"timeout_ms":30000}
++        """);
++
++    private sealed class Backend : IAgentGameBackend
++    {
++        internal JObject Scope = JObject.Parse("""{"account_id":"fixture","server_id":"fixture","game_day":"2026-10-18"}""");
++        internal JObject Facts = JObject.Parse("""{"scene":"world","account_verified":true}""");
++        internal readonly TaskCompletionSource Started = new(TaskCreationOptions.RunContinuationsAsynchronously);
++        internal readonly TaskCompletionSource Cancelled = new(TaskCreationOptions.RunContinuationsAsynchronously);
++        internal TaskCompletionSource? CaptureEntered;
++        internal TaskCompletionSource? FinishCapture;
++        internal int Calls;
++        internal int Releases;
++        internal bool ThrowOnRelease;
++
++        public async Task<GameObservation> CaptureAsync(CancellationToken cancellationToken)
++        {
++            if (CaptureEntered is not null)
++            {
++                CaptureEntered.TrySetResult();
++                await FinishCapture!.Task.WaitAsync(cancellationToken);
++            }
++            return new GameObservation((JObject)Scope.DeepClone(), (JObject)Facts.DeepClone(), []);
++        }
++
++        public async Task<SkillOutcome> ExecuteAsync(JObject option, CancellationToken cancellationToken)
++        {
++            Interlocked.Increment(ref Calls);
++            Started.TrySetResult();
++            using var registration = cancellationToken.Register(() => Cancelled.TrySetResult());
++            await Task.Delay(Timeout.Infinite, cancellationToken);
++            return new SkillOutcome("succeeded", "fixture", new JObject());
++        }
++
++        public void ReleaseInputs()
++        {
++            Interlocked.Increment(ref Releases);
++            if (ThrowOnRelease) throw new IOException("Fixture release failure");
++        }
++    }
++
++    private static JObject Command(JObject observation, string id = "command-1", JObject? option = null) => new()
++    {
++        ["command_id"] = id, ["request_id"] = "decision-1",
++        ["session_id"] = observation["session_id"]!.DeepClone(),
++        ["scope"] = observation["scope"]!.DeepClone(),
++        ["control_generation"] = observation["control_generation"]!.DeepClone(),
++        ["source_frame_id"] = observation["frame_id"]!.DeepClone(),
++        ["basis_hash"] = "fixture", ["catalog_hash"] = "fixture", ["remaining_ttl_ms"] = 3000,
++        ["option"] = option?.DeepClone() ?? Option.DeepClone(),
++        ["origin"] = "decision", ["action_granularity"] = "skill"
++    };
++
++    [Fact]
++    public async Task DuplicateCommandIsNotExecutedTwice()
++    {
++        var backend = new Backend();
++        await using var host = new AgentCommandHost(backend, new JArray(Option));
++        host.Arm();
++        var state = await host.ObserveAsync(CancellationToken.None);
++        var command = Command(state);
++        Assert.Equal("running", (await host.StartAsync(command, CancellationToken.None)).Value<string>("status"));
++        Assert.Equal("running", (await host.StartAsync(command, CancellationToken.None)).Value<string>("status"));
++        await backend.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
++        Assert.Equal(1, backend.Calls);
++        var changed = (JObject)command.DeepClone();
++        changed["option"]!["arguments"]!["text"] = "Another target";
++        await Assert.ThrowsAsync<ArgumentException>(() => host.StartAsync(changed, CancellationToken.None));
++    }
++
++    [Fact]
++    public async Task ChangedGuardOrActionArgumentsCannotExecute()
++    {
++        var backend = new Backend();
++        await using var host = new AgentCommandHost(backend, new JArray(Option));
++        host.Arm();
++        var state = await host.ObserveAsync(CancellationToken.None);
++        var changed = (JObject)Option.DeepClone();
++        changed["arguments"]!["text"] = "Another target";
++        Assert.Equal("cancelled", (await host.StartAsync(Command(state, option: changed), CancellationToken.None)).Value<string>("status"));
++        backend.Facts["scene"] = "map";
++        Assert.Equal("cancelled", (await host.StartAsync(Command(state), CancellationToken.None)).Value<string>("status"));
++        Assert.Equal(0, backend.Calls);
++    }
++
++    [Fact]
++    public async Task StopDuringCaptureInvalidatesQueuedCommandWithoutWaitingForCapture()
++    {
++        var backend = new Backend();
++        await using var host = new AgentCommandHost(backend, new JArray(Option));
++        host.Arm();
++        var state = await host.ObserveAsync(CancellationToken.None);
++        backend.CaptureEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
++        backend.FinishCapture = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
++        var pending = host.StartAsync(Command(state), CancellationToken.None);
++        await backend.CaptureEntered.Task.WaitAsync(TimeSpan.FromSeconds(2));
++        host.Stop();
++        Assert.True(backend.Releases > 0);
++        backend.FinishCapture.TrySetResult();
++        Assert.Equal("cancelled", (await pending).Value<string>("status"));
++        Assert.Equal(0, backend.Calls);
++    }
++
++    [Fact]
++    public async Task OnlyOneInputLeaseCanExecute()
++    {
++        var backend = new Backend();
++        await using var host = new AgentCommandHost(backend, new JArray(Option));
++        host.Arm();
++        var state = await host.ObserveAsync(CancellationToken.None);
++        await host.StartAsync(Command(state), CancellationToken.None);
++        await backend.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
++        Assert.Equal("cancelled", (await host.StartAsync(Command(state, "second"), CancellationToken.None)).Value<string>("status"));
++        Assert.Equal(1, backend.Calls);
++        host.Stop();
++        await backend.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(2));
++        Assert.True(backend.Releases > 0);
++    }
++
++    [Fact]
++    public async Task AccountSwitchRequiresExplicitRearm()
++    {
++        var backend = new Backend();
++        await using var host = new AgentCommandHost(backend, new JArray(Option));
++        host.Arm();
++        var before = await host.ObserveAsync(CancellationToken.None);
++        backend.Scope["account_id"] = "other";
++        var after = await host.ObserveAsync(CancellationToken.None);
++        Assert.Empty(host.Candidates(after.Value<long>("frame_id")));
++        Assert.True(after.Value<long>("control_generation") > before.Value<long>("control_generation"));
++        Assert.Equal("cancelled", (await host.StartAsync(Command(before), CancellationToken.None)).Value<string>("status"));
++        Assert.Equal(0, backend.Calls);
++    }
++
++    [Fact]
++    public async Task LocalWatchdogCancelsWhenTheAgentStopsPolling()
++    {
++        var backend = new Backend();
++        await using var host = new AgentCommandHost(backend, new JArray(Option), TimeSpan.FromMilliseconds(50));
++        host.Arm();
++        var state = await host.ObserveAsync(CancellationToken.None);
++        await host.StartAsync(Command(state), CancellationToken.None);
++        await backend.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
++        await backend.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(2));
++        Assert.True(backend.Releases > 0);
++    }
++
++    [Fact]
++    public async Task SkillTimeoutIsEnforcedWithoutPython()
++    {
++        var backend = new Backend();
++        var option = (JObject)Option.DeepClone();
++        option["timeout_ms"] = 100;
++        await using var host = new AgentCommandHost(backend, new JArray(option));
++        host.Arm();
++        var state = await host.ObserveAsync(CancellationToken.None);
++        await host.StartAsync(Command(state, option: option), CancellationToken.None);
++        await backend.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
++        await backend.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(2));
++        Assert.True(backend.Releases > 0);
++    }
++
++    [Fact]
++    public async Task FailedInputReleasePreventsRearming()
++    {
++        var backend = new Backend { ThrowOnRelease = true };
++        await using var host = new AgentCommandHost(backend, new JArray(Option));
++        host.Stop();
++        Assert.Throws<InvalidOperationException>(() => host.Arm());
++    }
++
++    [Fact]
++    public async Task FramingPreservesUnicodeAndRejectsTruncatedOrOversizedPayloads()
++    {
++        await using var stream = new MemoryStream();
++        var message = new JObject { ["text"] = "领取每日奖励", ["value"] = 0, ["unknown"] = null };
++        await AgentPipeProtocol.WriteAsync(stream, message, CancellationToken.None);
++        stream.Position = 0;
++        Assert.True(JToken.DeepEquals(message, await AgentPipeProtocol.ReadAsync(stream, CancellationToken.None)));
++        var header = new byte[4];
++        BinaryPrimitives.WriteInt32LittleEndian(header, AgentPipeProtocol.MaxPayloadBytes + 1);
++        await Assert.ThrowsAsync<InvalidDataException>(() => AgentPipeProtocol.ReadAsync(new MemoryStream(header), CancellationToken.None));
++        BinaryPrimitives.WriteInt32LittleEndian(header, 10);
++        await Assert.ThrowsAsync<EndOfStreamException>(() => AgentPipeProtocol.ReadAsync(new MemoryStream(header), CancellationToken.None));
++    }
++}
+diff --git a/Test/BetterGenshinImpact.AgentBridge.Tests/BetterGenshinImpact.AgentBridge.Tests.csproj b/Test/BetterGenshinImpact.AgentBridge.Tests/BetterGenshinImpact.AgentBridge.Tests.csproj
+new file mode 100644
+index 00000000..4def4cbe
+--- /dev/null
++++ b/Test/BetterGenshinImpact.AgentBridge.Tests/BetterGenshinImpact.AgentBridge.Tests.csproj
+@@ -0,0 +1,15 @@
++<Project Sdk="Microsoft.NET.Sdk">
++  <PropertyGroup>
++    <TargetFramework>net8.0</TargetFramework>
++    <ImplicitUsings>enable</ImplicitUsings>
++    <Nullable>enable</Nullable>
++    <IsTestProject>true</IsTestProject>
++    <IsPackable>false</IsPackable>
++  </PropertyGroup>
++  <ItemGroup>
++    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
++    <PackageReference Include="xunit" Version="2.5.3" />
++    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
++    <ProjectReference Include="../../BetterGenshinImpact.AgentBridge/BetterGenshinImpact.AgentBridge.csproj" />
++  </ItemGroup>
++</Project>

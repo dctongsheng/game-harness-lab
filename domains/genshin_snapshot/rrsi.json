@@ -1,0 +1,11 @@
+{
+  "T": 10,
+  "k": 2,
+  "m": 2,
+  "delta": 0.02,
+  "eval_parallel": 1,
+  "invalid_missing_frac": 0,
+  "evaluation_mode": "snapshot",
+  "release_status": "research_only",
+  "notes": "Replace the synthetic suite with captured evolve/heldout observations before measuring model improvements"
+}

@@ -2,7 +2,7 @@
 
 **通用游戏 Harness 进化框架：游戏适配器 + Decision 玩家 + GEPA 局后优化 + 验收后导出。** 当前支持贪吃蛇、中国象棋、军棋、五子棋、俄罗斯方块、原创平台跳跃、Overcooked-AI 双人厨房和宝可梦对战（poke-env）。
 
-所有局内动作都由 StartLux Decision 选择，显式 `think_mode=never`、`allow_none=false`。GLM-5.3 负责游戏资料、策略设计、历史经验提取与局后反思。适配器负责规则、完整动作集和计分，运行器负责模型调用与执行校验。
+原有八款游戏实验的局内动作都由 StartLux Decision 选择，显式 `think_mode=never`、`allow_none=false`。GLM-5.3 负责游戏资料、策略设计、历史经验提取与局后反思。适配器负责规则、完整动作集和计分，运行器负责模型调用与执行校验。
 
 ## 启动
 
@@ -75,6 +75,44 @@ harnesses/<游戏>/<版本>/
 包包含游戏资料、固定规则与评分、策略、版本血缘、验收结果和文件哈希。未通过候选不会导出成批准版本。[查看已导出 Harness](harnesses/)。
 
 `HARNESS_GIT_SYNC=1` 可在导出后自动提交该包并推送 `origin`，不暂存其他源码或用户改动；示例配置默认关闭。网络失败保留本地产物并标记待重试。详情见 [框架设计](docs/generic-framework-v2.md)。
+
+## 原神实时控制开发分支
+
+`game_harness.genshin` 新增独立的实时运行器、StartLux 图片决策、Windows 命名管道客户端、v2 开发任务包、每日奖励证据校验和 Google RRSI 快照评测适配器。StartLux 选择技能，BetterGI 执行连续移动和对话；动作粒度为 `skill`，请求允许弃选。截图帧可以持续变化，执行前重新核对账号、游戏日、控制代次和技能前置条件。停止使用独立控制管道，迟到响应不能重新获得控制。
+
+安装开发依赖并验证合成样例：
+
+```sh
+uv pip install --python .venv/bin/python -e '.[test,vision,rrsi]'
+.venv/bin/python -m game_harness.genshin validate-pack domains/genshin_snapshot/harness
+.venv/bin/python -m game_harness.genshin snapshot \
+  --pack domains/genshin_snapshot/harness --suite examples/genshin/synthetic-suite.json \
+  --output data/genshin-snapshot.json --fixture-provider
+```
+
+合成样例仅验证接口与评分流程，不代表模型效果或原神实机成功。原生 Google RRSI 已固定源码版本；提交当前代码后可运行以下命令验证其 baseline/worktree 流程。实际搜索还需要配置 RRSI 的 Vertex 教练服务与真实 StartLux 模型任务包。
+
+```sh
+.venv/bin/python -m game_harness.genshin rrsi baseline \
+  --suite examples/genshin/synthetic-suite.json --fixture-provider
+```
+
+Windows 执行桥接以固定 BetterGI 上游版本和私有补丁交付，可以复现到独立目录：
+
+```sh
+python scripts/setup_genshin_bridge.py --checkout .runtime/bettergi-agent
+```
+
+配置 `STARTLUX_AGENT_CONFIG` 指向本地 JSON，其中 `pack_directory` 是 Windows v2 任务包路径，`binding` 含 `account_id`（UID）、`server_id`、`server_utc_offset_minutes` 和 `region`。`STARTLUX_AGENT_PIPE` 默认 `startlux-genshin`。任务包必须标记 `environment=windows`，固定真实模型部署名，并要求输入技能的 `account_verified` 与 `foreground` 前置条件为 `true`。支持的原生技能为 `observe.capture`、`path.run`、`dialogue.select`；路线来自已校验哈希的包内资源，`verify_text` 用于独立的操作后画面检查。缺少验证时执行结果为 `unknown`，不报告委托或奖励成功。
+
+```powershell
+# 启动已编译 BetterGI 与截图器后，在同一权限级别的终端运行
+python -m game_harness.genshin run --pack C:\agent\daily-pack --pipe startlux-genshin --trace C:\agent\runs\daily.jsonl
+```
+
+`GENSHIN_DECISION_URL` 默认 Bamboo `/v1/decisions`，密钥沿用 `DECISION_API_KEY_FILE`。客户端和执行器必须加载完全相同的任务包。当前没有随包提供经过实机验收的每日委托路线、语音界面或用户安装器；完整 Windows 游戏回归和每日领取仍需后续验证。快照 RRSI 冠军不能作为客户端发布版本。
+
+跨语言 IPC 回归可设置 `GENSHIN_DOTNET` 和 `GENSHIN_BRIDGE_FIXTURE_DLL` 后运行 `tests/test_genshin.py`；没有 .NET fixture 时这一个测试会跳过。合成基线、快照评测和实时游戏轨迹分别标记，未知原石数量保持 `null`。
 
 ## 验证与文档
 

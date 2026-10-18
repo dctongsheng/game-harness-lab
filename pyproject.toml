@@ -12,16 +12,21 @@ dependencies = [
   "uvicorn>=0.30,<1",
   "httpx[socks]>=0.27,<1",
   "python-dotenv>=1,<2",
+  "pydantic>=2.10,<3",
   "gepa @ https://github.com/gepa-ai/gepa/archive/f1cfdee2856e9dc4b5b4dc5cc2e391d0aa20d819.zip"
 ]
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10"]
 vision = ["Pillow==12.0.0"]
+rrsi = ["rrsi @ git+https://github.com/google-research/rrsi.git@be50316e1db05914068a973f322770ef08ed7ba1"]
 pokemon = ["poke-env @ git+https://github.com/hsahovic/poke-env.git@7ff6212e4e738efd46f1ea52035b37a8bba1e386"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.scripts]
+genshin-agent = "game_harness.genshin.__main__:main"
 
 [tool.setuptools.package-data]
 game_harness = ["static/*.html", "static/*.js", "games/*.cjs", "games/*.ts", "games/vendor/*",

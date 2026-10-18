@@ -1,0 +1,2 @@
+# Patch context preserves upstream indentation and blank-line prefixes.
+integrations/bettergi/*.patch -whitespace
