@@ -110,7 +110,15 @@ python scripts/setup_genshin_bridge.py --checkout .runtime/bettergi-agent
 python -m game_harness.genshin run --pack C:\agent\daily-pack --pipe startlux-genshin --trace C:\agent\runs\daily.jsonl
 ```
 
-`GENSHIN_DECISION_URL` 默认 Bamboo `/v1/decisions`，密钥沿用 `DECISION_API_KEY_FILE`。客户端和执行器必须加载完全相同的任务包。当前没有随包提供经过实机验收的每日委托路线、语音界面或用户安装器；完整 Windows 游戏回归和每日领取仍需后续验证。快照 RRSI 冠军不能作为客户端发布版本。
+`GENSHIN_DECISION_URL` 默认 Bamboo `/v1/decisions`，密钥沿用 `DECISION_API_KEY_FILE`。客户端和执行器必须加载完全相同的任务包。快照 RRSI 冠军不能作为客户端发布版本。
+
+Windows 桌面预览版位于 `desktop/`，支持本地中文语音“开始每日任务”“停止”和文字指令。安装包包含中文 Vosk 模型、Python Agent 和 BetterGI，用户无需另外安装 Python 或 .NET。当前支持 Windows 11 22H2 及以上 x64；游戏需要中文界面、蒙德委托以及可用的 BetterGI 战斗策略。首次设置填写游戏程序路径、UID、服务器、Bamboo Key 和排行榜第一模型的真实部署 ID；必须确认该部署对应 **StartLux Decision v1.1 27B Instant**，不会把 AutoThink 别名自动当作同一权重。密钥用当前用户 DPAPI 加密，经子进程 stdin 传递，不进入命令行、环境变量或轨迹。
+
+每次运行从固定版本 AutoCommission 资源生成哈希校验的任务包，等待进入主界面并核对 UID 后才接管。Decision 在扫描、四个单项委托、每日领奖动作中选择。每项执行后重新打开冒险之证，逐项保存完成标记原始截图；状态不明、路线失败、任务未变为完成均停止。四项真实委托确认完成后才前往凯瑟琳，仅选择每日委托奖励，再用冒险之证“今日奖励已领取”核验。历练点不作为真实委托完成证据，未识别原石数量时保持 `null`。结果与截图保存在 `%LOCALAPPDATA%\StartLux\Genshin\runs`。
+
+私有分支的 [Windows 工作流](https://github.com/dctongsheng/game-harness-lab/actions/workflows/genshin.yml) 构建 `StartLux-Genshin-Windows-preview` 安装包附件，并执行安装、独立运行时检查、中文模型原生解码检查、WPF 控件检查和卸载。附件保留 14 天。构建步骤：安装 `requirements-desktop.lock`，应用 BetterGI 固定补丁，运行 `python scripts/build_genshin_desktop.py --bettergi PATH`，最后用 Inno Setup 6 编译 `desktop/installer.iss`。
+
+安装包为开发预览，尚无原神实机端到端成功证据；CI 没有原神或麦克风，不能证明委托成功率、语音识别准确率或原石到账。安装包随附 GPL 对应源码、补丁和第三方许可。每日领取实机验收仍需在用户 Windows 游戏环境完成。
 
 跨语言 IPC 回归可设置 `GENSHIN_DOTNET` 和 `GENSHIN_BRIDGE_FIXTURE_DLL` 后运行 `tests/test_genshin.py`；没有 .NET fixture 时这一个测试会跳过。合成基线、快照评测和实时游戏轨迹分别标记，未知原石数量保持 `null`。
 

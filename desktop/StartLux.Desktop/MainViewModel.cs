@@ -52,8 +52,14 @@ public partial class MainViewModel : ObservableObject
     public void StoreCredential(string value)
     {
         if (string.IsNullOrWhiteSpace(value)) return; // Empty box preserves a previously saved credential.
-        var encrypted = ProtectedData.Protect(Encoding.UTF8.GetBytes(value), null, DataProtectionScope.CurrentUser);
-        File.WriteAllBytes(Path.Combine(_home, "credential.dpapi"), encrypted);
+        try
+        {
+            var encrypted = ProtectedData.Protect(Encoding.UTF8.GetBytes(value), null, DataProtectionScope.CurrentUser);
+            File.WriteAllBytes(Path.Combine(_home, "credential.dpapi.tmp"), encrypted);
+            File.Move(Path.Combine(_home, "credential.dpapi.tmp"), Path.Combine(_home, "credential.dpapi"), true);
+        }
+        catch (Exception e) when (e is IOException or CryptographicException or UnauthorizedAccessException)
+        { Status = "密钥保存失败，请检查当前用户目录权限"; }
     }
 
     [RelayCommand]
@@ -66,6 +72,8 @@ public partial class MainViewModel : ObservableObject
         { Status = "请填写游戏路径、UID 和已确认的排行榜第一模型部署 ID"; return; }
         var credential = Path.Combine(_home, "credential.dpapi");
         if (!File.Exists(credential)) { Status = "请填写 Bamboo API Key"; return; }
+        if (Process.GetProcessesByName("BetterGI").Any())
+        { Status = "请先关闭已打开的 BetterGI，再启动接管，以免两个执行器同时操作游戏"; return; }
         try
         {
             _stopping = false;
@@ -115,6 +123,7 @@ public partial class MainViewModel : ObservableObject
                     Application.Current.MainWindow.WindowState = WindowState.Minimized;
                 }
                 else if (state == "running") Status = "正在执行每日委托 · 可语音说“停止”";
+                else if (state == "waiting_for_game") Status = "等待进入游戏主界面（最多三分钟），请完成登录";
                 else if (state == "progress") Progress = message["execution"]?.ToString(Formatting.None) ?? "";
                 else if (state == "finished")
                 {
@@ -200,6 +209,8 @@ public partial class MainViewModel : ObservableObject
     {
         if (_closing) return;
         _closing = true; _voice?.Dispose(); _voice = null;
-        await StopAsync(); _host?.Dispose(); Closed = true;
+        await StopAsync();
+        if (StartCommand.ExecutionTask is { } execution) await execution;
+        _host?.Dispose(); Closed = true;
     }
 }

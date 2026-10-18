@@ -14,7 +14,7 @@ from game_harness.genshin.contracts import (AccountScope, ActionOption, ActionRe
 from game_harness.genshin.daily import (CommissionEvidence, RewardEvidence, VisualEvidence,
                                       verify_daily)
 from game_harness.genshin.decision import StartLuxRealtimeProvider
-from game_harness.genshin.desktop import prepare_daily_pack, report_from_observation
+from game_harness.genshin.desktop import prepare_daily_pack, report_from_observation, wait_for_game_ready
 from game_harness.genshin.runner import AuditLog, RealtimeRunner
 from game_harness.genshin.taskpack import TaskPack, build_taskpack, export_taskpack, portable_resource_path
 from game_harness.providers import ProviderError, Settings
@@ -346,6 +346,19 @@ def test_vendored_commission_routes_and_recognition_assets_match_pinned_source()
     assert "Data/RecognitionObject/Completed.png" in files
     for name, expected in files.items():
         assert hashlib.sha256((root / "upstream" / name).read_bytes()).hexdigest() == expected
+
+
+def test_desktop_waits_for_world_and_never_arms_a_different_account(monkeypatch):
+    session = FixtureSession()
+    ready = observation(facts={"account_verified": True, "foreground": True, "scene": "world"})
+    states = iter([observation(facts={"scene": "loading"}), ready])
+    session.observe = lambda: next(states)
+    monkeypatch.setattr("game_harness.genshin.desktop.time.sleep", lambda seconds: None)
+    wait_for_game_ready(session, SCOPE.account_id)
+    assert session.starts == []
+    session.observe = lambda: ready
+    with pytest.raises(ValueError, match="UID differs"):
+        wait_for_game_ready(session, "another-account")
 
 
 def test_desktop_report_requires_journal_screenshots_and_independent_reward():

@@ -117,6 +117,23 @@ def main():
     # .NET notices, exact package versions and source/source-license links.
     shutil.copyfile(ROOT / "desktop/THIRD_PARTY_NOTICES.txt", notices / "desktop.txt")
     shutil.copyfile(ROOT / "desktop/APACHE-2.0.txt", notices / "APACHE-2.0.txt")
+    for assets_path in [ROOT / "desktop/StartLux.Desktop/obj/project.assets.json",
+                        args.bettergi / "BetterGenshinImpact/obj/project.assets.json"]:
+        assets = json.loads(assets_path.read_text(encoding="utf-8"))
+        for library in assets["libraries"].values():
+            if library.get("type") != "package":
+                continue
+            for folder in assets["packageFolders"]:
+                package = Path(folder) / library["path"]
+                if not package.is_dir():
+                    continue
+                for name in library.get("files", []):
+                    if Path(name).name.lower().startswith(("license", "copying", "notice")):
+                        source = package / name
+                        if source.is_file():
+                            destination = notices / "nuget" / library["path"] / name
+                            destination.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copyfile(source, destination)
     shutil.copyfile(args.bettergi / "BetterGenshinImpact/obj/project.assets.json", sources / "bettergi-packages.json")
     shutil.copyfile(ROOT / "desktop/StartLux.Desktop/obj/project.assets.json", sources / "desktop-packages.json")
     result = subprocess.run([str(target / "agent/genshin-agent.exe"), "self-test"], check=True, capture_output=True, text=True)

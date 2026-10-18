@@ -85,6 +85,22 @@ def emit(event):
     print(json.dumps(event, ensure_ascii=False), flush=True)
 
 
+def wait_for_game_ready(session, uid, *, seconds=180):
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        try:
+            state = session.observe()
+            if state.scope.account_id != uid:
+                raise ValueError("game UID differs from the requested account")
+            if (state.facts.get("account_verified") is True and state.facts.get("foreground") is True
+                    and state.facts.get("scene") == "world"):
+                return
+        except (OSError, TimeoutError, ConnectionError, RuntimeError):
+            pass  # Read-only startup/capture failures can be retried before arming.
+        time.sleep(1)
+    raise TimeoutError("game did not reach the verified account's world view")
+
+
 class ExecutionHeartbeat:
     """Keep the native lease alive independently of OCR and screenshot transport."""
     def __init__(self, controller):
@@ -118,7 +134,14 @@ def main():
         emit({"status": "runtime_ready", "platform": sys.platform})
         return
     if args.operation == "stop":
-        WindowsPipeSession(args.pipe).stop()
+        for attempt in range(3):
+            try:
+                WindowsPipeSession(args.pipe).stop()
+                break
+            except (OSError, TimeoutError, ConnectionError):
+                if attempt == 2:
+                    raise
+                time.sleep(0.05)
         emit({"status": "stop_sent"})
         return
     if args.config is None:
@@ -167,6 +190,8 @@ def main():
     heartbeat.thread.start()
     termination = "error"
     try:
+        emit({"status": "waiting_for_game"})
+        wait_for_game_ready(session, config["uid"])
         session.arm()
         emit({"status": "running", "trace": str(run / "trace.jsonl")})
         deadline = time.monotonic() + 3600
