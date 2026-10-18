@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>俄罗斯方块 V8 · Decision 实时体验</title>
+  <style>
+    :root{--bg:#f5f6f2;--surface:#fff;--ink:#192620;--muted:#758078;--line:#e4e8e1;--green:#206548;--soft:#edf6e7;--red:#b64f44;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #77a87a;outline-offset:3px}h1,h2,p{margin:0}h1{font-size:26px;letter-spacing:-.6px}h2{font-size:14px}header{padding:21px 32px;border-bottom:1px solid var(--line);background:#ffffffb8;display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{font-weight:650}.muted{color:var(--muted)}.mono{font-family:var(--mono)}.small{font-size:11px}.hidden{display:none!important}main{max-width:1120px;margin:auto;padding:29px 28px}.intro{margin-bottom:22px}.intro p{color:var(--muted);margin-top:6px}.eyebrow{color:var(--muted);font:10px var(--mono);letter-spacing:1.6px;margin-bottom:8px}.workspace{display:grid;grid-template-columns:minmax(360px,1.4fr) minmax(290px,1fr);gap:20px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}.panel-head{padding:17px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}.tag{font-size:10px;border-radius:5px;padding:4px 8px;background:var(--soft);color:var(--green);white-space:nowrap}.stats{display:grid;grid-template-columns:repeat(3,1fr);margin:18px 20px;border:1px solid var(--line);border-radius:10px;padding:12px 0}.stat{padding:0 15px;border-left:1px solid var(--line)}.stat:first-child{border:0}.stat-label{font-size:10px;color:var(--muted)}.stat-value{font:500 25px/1.5 var(--mono)}.stat-value small{font:10px var(--mono);color:var(--muted)}.board{background:#17231e;margin:0 20px;border-radius:12px;min-height:410px;display:flex;align-items:center;justify-content:center;overflow:hidden}.board img{display:block;width:min(100%,350px);height:auto}.empty{text-align:center;color:#bdd0b5;padding:55px 25px}.empty strong{display:block;font-size:16px;font-weight:500;margin-bottom:8px}.empty p{font-size:11px;color:#8da486}.action{padding:14px 20px;display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:11px;color:var(--muted)}.action strong{color:var(--green);font-weight:550}.stack{display:grid;gap:18px}.body{padding:18px 20px}.status{font-size:17px;font-weight:600;margin-bottom:5px}.status-note{font-size:12px;color:var(--muted);min-height:40px}.buttons{display:flex;gap:8px;margin-top:15px}.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 13px;color:#425347;font-size:12px;font-weight:550}.btn:not(:disabled):hover{background:#f0f4ee}.btn.primary{background:var(--green);border-color:var(--green);color:#fff}.btn.primary:not(:disabled):hover{background:#174c35}.btn.danger{color:var(--red)}.buttons .btn{flex:1}.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}.field input{width:100%;border:1px solid var(--line);border-radius:7px;background:#fcfdfb;padding:8px 9px;color:var(--ink);font:12px var(--mono)}.checkbox{display:flex;align-items:center;gap:7px;margin-top:12px;color:var(--muted);font-size:11px}.checkbox input{accent-color:var(--green)}.run{width:100%;margin-top:17px}.note{font-size:11px;color:var(--muted);margin-top:13px;line-height:1.9}.research{padding:12px 14px;background:#f7f9f4;border:1px solid #edf0e8;border-radius:9px;font-size:11px;color:#687963;line-height:1.9}.model{overflow-wrap:anywhere;font:10px/1.7 var(--mono);color:var(--muted);margin-top:11px}details summary{cursor:pointer;padding:16px 20px;font-size:12px;font-weight:550}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.9 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#60715d;background:#f8faf5;padding:13px;margin:0 20px 18px;border-radius:8px;max-height:300px;overflow:auto}.error{background:#fff3f0;border:1px solid #ebd4cd;color:#943e35;border-radius:10px;padding:12px 15px;margin-bottom:18px;font-size:12px}.history{margin-top:20px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:11px;text-align:left;white-space:nowrap}th{font-weight:500;color:var(--muted);background:#fafbf8}th,td{padding:12px 20px;border-bottom:1px solid #edf0e8}td.score{color:var(--green);font:500 14px var(--mono)}tr:last-child td{border:0}.empty-row{text-align:center;padding:26px;color:var(--muted)}footer{font-size:10px;color:var(--muted);padding-top:18px}.connection{font-size:11px;color:var(--muted)}
+    @media(max-width:760px){header{padding:17px 19px}main{padding:23px 16px}.workspace{grid-template-columns:1fr}.board img{width:min(100%,330px)}h1{font-size:23px}.board{min-height:330px}th,td{padding:11px 14px}}
+  </style>
+</head>
+<body>
+  <header><span class="brand">Game Harness Lab</span><span class="connection" id="connection">正在连接本地服务…</span></header>
+  <main>
+    <div class="intro"><div class="eyebrow">TETRIS / V8 EXPERIENCE</div><h1>看 Decision 玩俄罗斯方块</h1><p>视觉棋盘 + 落点后果 + 目标记忆。点击开始，实时观察模型如何移动、旋转与消行。</p></div>
+    <div id="error" class="error hidden" role="alert"></div>
+    <section class="workspace">
+      <div class="panel">
+        <div class="panel-head"><h2>实时棋盘</h2><span class="tag" id="boardStatus">等待开始</span></div>
+        <div class="stats"><div class="stat"><div class="stat-label">原生得分</div><div class="stat-value" id="score">—</div></div><div class="stat"><div class="stat-label">已消行</div><div class="stat-value" id="lines">—</div></div><div class="stat"><div class="stat-label">动作次数</div><div class="stat-value"><span id="steps">—</span><small id="stepLimit"> / 80</small></div></div></div>
+        <div class="board"><div class="empty" id="empty"><strong>等你开始这一局</strong><p>每个按键和持续时间都由 Decision 选择。<br>模型等待期间，游戏物理时钟暂停。</p></div><img id="frame" class="hidden" alt="俄罗斯方块当前真实棋盘及下一块预览"></div>
+        <div class="action"><span>最近动作 <strong id="action">—</strong></span><span id="latency">等待 Decision</span></div>
+      </div>
+      <aside class="stack">
+        <section class="panel"><div class="panel-head"><h2>体验控制</h2><span class="tag">思考关闭 · never</span></div><div class="body">
+          <div class="status" id="status" aria-live="polite">准备就绪</div><p class="status-note" id="statusNote">点击下方按钮开始真实对局。</p>
+          <div class="buttons"><button class="btn" id="pause" disabled>暂停</button><button class="btn" id="resume" disabled>继续</button><button class="btn danger" id="stop" disabled>停止</button></div>
+          <form id="runForm" style="margin-top:21px"><div class="grid"><div class="field"><label for="seed">随机种子</label><input id="seed" type="number" min="0" max="2147483647" step="1" required></div><div class="field"><label for="maxSteps">每局动作上限</label><input id="maxSteps" type="number" min="8" max="1000" step="1" value="80" required></div></div><label class="checkbox"><input id="randomSeed" type="checkbox" checked>每次开始时使用新种子</label><button class="btn primary run" id="start" type="submit" disabled>开始 Decision 对局</button></form>
+          <p class="note" id="budgetNote">默认 80 次动作，与本轮对照实验相同。调大上限可以继续观察，但不属于已验证的实验窗口。</p><div class="model" id="model">StartLux Decision</div>
+        </div></section>
+        <section class="panel"><div class="body"><div class="research">当前使用 V8 研究版 Harness，目标和按键均由 Decision 决策。本页只体验固定策略，不启动局后进化，也不更改生产默认版本。</div><p class="note">棋盘来自当前原生游戏状态；白边标出正在下落的方块。画面在每次动作后更新，模型等待时保持不动。</p></div></section>
+        <details class="panel"><summary>查看当前目标规划提示</summary><pre id="goalInstructions">等待服务提供冻结的目标提示。</pre></details>
+      </aside>
+    </section>
+    <section class="panel history"><div class="panel-head"><h2>本次体验记录</h2><span class="muted small" id="historyCount">0 局</span></div><div class="table-wrap"><table><thead><tr><th>记录时间</th><th>种子</th><th>得分</th><th>消行</th><th>动作</th><th>结束原因</th></tr></thead><tbody id="history"><tr><td colspan="6" class="empty-row">完成或停止一局后，记录会保存在这里。</td></tr></tbody></table></div></section>
+    <footer>真实模型调用 · 开局冻结 Harness · 无自动寻路与算法代打</footer>
+  </main>
+  <script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const number = value => value != null && Number.isFinite(Number(value)) ? Number(value).toLocaleString('zh-CN') : '—';
+    const reason = value => ({step_limit:'达到动作上限',TOP_OUT:'堆顶结束',SPAWN_BLOCKED:'生成位置受阻',TIME_LIMIT:'达到物理时限',stopped:'已停止',infra_error:'模型或环境异常',provider_failure:'模型请求失败'}[value] || value || '—');
+    const actions = {left:'左移',right:'右移','rotate-cw':'顺时针旋转','rotate-ccw':'逆时针旋转','hard-drop':'硬降','soft-drop':'软降',hold:'暂存',noop:'松键等待'};
+    let state = null, connected = false, commandPending = false, pollPending = false;
+    let frameKey = null, framePending = false, imageURL = null, historyKey = null;
+    function newSeed(){ const values = new Uint32Array(1); crypto.getRandomValues(values); return values[0] & 0x7fffffff; }
+    $('seed').value = newSeed();
+    function error(message){ $('error').textContent = message; $('error').classList.toggle('hidden', !message); }
+    async function api(path, body){
+      const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 15000);
+      try {
+        const response = await fetch(path, {cache:'no-store',signal:controller.signal,...(body === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})});
+        const data = await response.json();
+        if(!response.ok || data.ok === false){ const detail = data.detail || data.error || '请求失败'; throw new Error(typeof detail === 'string' ? detail : '请求参数无效，请检查种子与动作上限。'); }
+        return data;
+      } catch(err){ if(err.name === 'AbortError') throw new Error('本地服务暂未响应，请稍后查看状态。'); throw err; }
+      finally { clearTimeout(timer); }
+    }
+    function controls(){
+      const busy = !!state?.busy, blocked = !connected || commandPending;
+      $('start').disabled = blocked || busy;
+      $('pause').disabled = blocked || !busy || state.paused || state.stop_requested;
+      $('resume').disabled = blocked || !busy || !state.paused || state.stop_requested;
+      $('stop').disabled = blocked || !busy || state.stop_requested;
+      for(const id of ['seed','maxSteps','randomSeed']) $(id).disabled = busy || commandPending;
+    }
+    async function refreshFrame(key){
+      if(framePending || key === frameKey) return;
+      framePending = true;
+      const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 10000);
+      try {
+        const response = await fetch('/api/tetris/frame?v=' + encodeURIComponent(key),{cache:'no-store',signal:controller.signal});
+        if(!response.ok) throw new Error('棋盘图片暂不可用');
+        const blob = await response.blob();
+        if(!blob.type.startsWith('image/')) throw new Error('棋盘图片格式无效');
+        const previous = imageURL; imageURL = URL.createObjectURL(blob);
+        $('frame').src = imageURL; $('frame').classList.remove('hidden'); $('empty').classList.add('hidden');
+        if(previous) URL.revokeObjectURL(previous);
+        frameKey = key;
+      } catch(err){ $('latency').textContent = '画面暂未更新，正在重试'; }
+      finally { clearTimeout(timer); framePending = false; }
+    }
+    function render(){
+      const ep = state.current_episode, snapshot = ep?.snapshot;
+      const busy = !!state.busy;
+      const status = state.stop_requested && busy ? '正在停止' : busy && state.paused ? '已暂停' : busy ? 'Decision 正在游玩' : state.status === 'failed' ? '本局未完成' : state.status === 'stopped' ? '已停止' : snapshot ? '本局已结束' : '准备就绪';
+      $('status').textContent = status; $('boardStatus').textContent = status;
+      $('statusNote').textContent = state.stop_requested && busy ? '等待当前模型请求返回，然后停止推进游戏。' : busy && state.paused ? '当前请求可能仍在返回；继续后恢复游戏。' : busy ? '模型先选择目标，再逐个决定按键与持续时间。' : snapshot ? '可以换一个种子，开始新一局。' : '点击下方按钮开始真实对局。';
+      $('score').textContent = number(snapshot?.score);
+      $('lines').textContent = number(snapshot?.metrics?.lines ?? snapshot?.observation?.score?.lines);
+      $('steps').textContent = number(snapshot?.step);
+      $('stepLimit').textContent = ' / ' + number(snapshot?.max_steps ?? state.settings?.max_steps ?? 80);
+      const rawAction = typeof ep?.last_action === 'string' ? ep.last_action : ep?.last_action?.choice_id;
+      const [key,duration] = (rawAction || '').split(':');
+      $('action').textContent = rawAction ? `${actions[key] || key}${duration ? ' · ' + duration + ' ms' : ''}` : '—';
+      $('latency').textContent = ep?.last_latency_ms != null ? `按键决策 ${number(Math.round(ep.last_latency_ms))} ms` : busy ? '等待 Decision 返回' : '等待 Decision';
+      $('model').textContent = (ep?.last_model || state.settings?.decision_model || 'StartLux Decision') + ' · think_mode=never';
+      if(state.experience?.goal_instructions) $('goalInstructions').textContent = state.experience.goal_instructions;
+      if(snapshot && ep.episode_id) refreshFrame(ep.episode_id + ':' + snapshot.step);
+      const episodes = (state.episodes || []).filter(item => item.game_id === 'tetris').slice(0,20);
+      const signature = JSON.stringify(episodes.map(item => [item.episode_id,item.score,item.termination_reason]));
+      if(signature !== historyKey){
+        historyKey = signature; $('historyCount').textContent = episodes.length + ' 局';
+        $('history').innerHTML = episodes.length ? episodes.map(item => {
+          const final = item.final_state || {}, date = new Date(item.created_at);
+          const at = Number.isNaN(date.getTime()) ? '—' : date.toLocaleTimeString('zh-CN',{hour12:false});
+          return `<tr><td>${escapeHTML(at)}</td><td class="mono">${escapeHTML(item.seed ?? '—')}</td><td class="score">${number(item.score)}</td><td>${number(final.metrics?.lines ?? final.observation?.score?.lines)}</td><td>${number(item.steps)}</td><td>${escapeHTML(reason(item.termination_reason || item.reason))}</td></tr>`;
+        }).join('') : '<tr><td colspan="6" class="empty-row">完成或停止一局后，记录会保存在这里。</td></tr>';
+      }
+      if(state.error) error('本局提示：' + state.error);
+      controls();
+    }
+    async function refresh(){
+      if(pollPending) return;
+      pollPending = true;
+      try { state = await api('/api/state'); connected = true; $('connection').textContent = '本地服务已连接'; render(); }
+      catch(err){ connected = false; $('connection').textContent = '连接中断，正在重试'; controls(); }
+      finally { pollPending = false; }
+    }
+    async function command(path,body={}){
+      if(commandPending) return;
+      commandPending = true; error(''); controls();
+      try { await api(path,body); await refresh(); }
+      catch(err){ error(err.message || '操作失败，请稍后重试。'); }
+      finally { commandPending = false; controls(); }
+    }
+    $('runForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      if(!connected || commandPending || state?.busy || !$('runForm').reportValidity()) return;
+      if($('randomSeed').checked) $('seed').value = newSeed();
+      await command('/api/run',{seed:Number($('seed').value),max_steps:Number($('maxSteps').value)});
+    });
+    $('seed').addEventListener('input',() => { $('randomSeed').checked = false; });
+    $('pause').addEventListener('click',() => command('/api/pause'));
+    $('resume').addEventListener('click',() => command('/api/resume'));
+    $('stop').addEventListener('click',() => command('/api/stop'));
+    refresh(); setInterval(refresh,500);
+  </script>
+</body>
+</html>

@@ -4,6 +4,12 @@
 
 **12 对正式实验中，新方案均分从 0 提升到 708.33，12/12 局消行，共 77 行。** 仍由 Decision 选择每个目标与按键，关闭思考。两组都使用视觉，本轮比较的是独立目标提示＋条件落点后果组成的规划方案。
 
+## 本地实时体验
+
+运行 `.venv/bin/python -m game_harness.tetris_experience --port 18768`，打开 <http://127.0.0.1:18768/>。点击“开始 Decision 对局”即可看冻结 V8 Harness 实时操作，支持暂停、继续、停止和换种子重开。默认 80 次动作；增加上限属于新的体验条件，不属于上表的正式对照结果。
+
+体验页每次目标和按键请求都使用当前棋盘图片，显式关闭思考。模型等待时游戏暂停；画面按每个已执行动作更新。数据、完整请求、回执和 PNG 独立保存到 `data/experiences/tetris-v8/`，不写生产版本、不运行局后 GEPA，也不修改冻结实验的证据。普通实验台仍在原端口运行。
+
 ## 借鉴了什么
 
 本轮参考 [thelau/jev-tetris](https://github.com/thelau/jev-tetris/tree/9869b602965cf002afff766013f8c068846d36aa)（MIT）和 [pedroarruda07/jev-plays-tetris](https://github.com/pedroarruda07/jev-plays-tetris/tree/0d66fbc68c5cc075e750b2528d45f5371070989d)。核查的是固定版本源码，没有安装运行它们，也不将项目方成绩当成本地复现结果。

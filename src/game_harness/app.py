@@ -11,8 +11,9 @@ from .games import game_catalog
 from .exporting import read_bundle
 
 
-def create_app(data_dir: Path | None = None, settings: Settings | None = None):
-    lab = Lab(settings or Settings.load(), data_dir or ROOT / "data")
+def create_app(data_dir: Path | None = None, settings: Settings | None = None, *,
+               lab: Lab | None = None, index_file: Path | None = None):
+    lab = lab or Lab(settings or Settings.load(), data_dir or ROOT / "data")
     app = FastAPI(title="Game Harness Lab", docs_url=None, redoc_url=None)
     app.state.lab = lab
 
@@ -33,7 +34,7 @@ def create_app(data_dir: Path | None = None, settings: Settings | None = None):
 
     @app.get("/")
     def index():
-        return FileResponse(Path(__file__).parent / "static" / "index.html")
+        return FileResponse(index_file or Path(__file__).parent / "static" / "index.html")
 
     @app.get("/api/state")
     def state():
