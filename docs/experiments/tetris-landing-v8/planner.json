@@ -1,0 +1,86 @@
+{
+  "schema": "tetris-landing-planner/v1",
+  "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+  "provenance": {
+    "type": "offline_llm_goal_prompt_initialization",
+    "created_at": "2026-10-18T03:25:29.355162+00:00",
+    "parent_hash": "b9aa0a81c22f1ec16773bdfc00c49ba051c646d8e353fa06ae40ac6a33fc256d",
+    "parent_candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+    "manifest_hash": "c3148ea66e20357989b3098a9ebe99ea017bdd2b509e8cefcabfb59c631f83b6",
+    "historical_evidence_hash": "2c5c586dc2266a01bb9788342b535277a1b7bf38cce21735df0fda331417462b",
+    "interface_hash": "5e993c02ccf0ebb82952f8e5e83f31180c177c821181919149e7a759d6f97d3d",
+    "research": [
+      {
+        "repository": "thelau/jev-tetris",
+        "commit": "9869b602965cf002afff766013f8c068846d36aa",
+        "license": "MIT",
+        "urls": [
+          "https://github.com/thelau/jev-tetris/blob/9869b602965cf002afff766013f8c068846d36aa/src/describe.js",
+          "https://github.com/thelau/jev-tetris/blob/9869b602965cf002afff766013f8c068846d36aa/src/tetris.js",
+          "https://github.com/thelau/jev-tetris/blob/9869b602965cf002afff766013f8c068846d36aa/docs/findings.md"
+        ],
+        "lesson": "Compare consistently described placement consequences. Its simplified static reachability, fitted five-question probability weights and direct placement execution are NOT adopted. Reported scores were tuned on the same three seeds."
+      },
+      {
+        "repository": "pedroarruda07/jev-plays-tetris",
+        "commit": "0d66fbc68c5cc075e750b2528d45f5371070989d",
+        "license": "No explicit license found; study the design, do not copy source",
+        "urls": [
+          "https://github.com/pedroarruda07/jev-plays-tetris/blob/0d66fbc68c5cc075e750b2528d45f5371070989d/src/placements.ts",
+          "https://github.com/pedroarruda07/jev-plays-tetris/blob/0d66fbc68c5cc075e750b2528d45f5371070989d/src/jev/request.ts",
+          "https://github.com/pedroarruda07/jev-plays-tetris/blob/0d66fbc68c5cc075e750b2528d45f5371070989d/src/jev/execution.ts"
+        ],
+        "lesson": "Distinguish final layout from input execution and bind targets to the current piece. Its automatic path controller, >255-option heuristic shortlist and probability argmax replacement are NOT adopted."
+      }
+    ],
+    "input_files": [
+      {
+        "sha256": "caaeb3d3ea7b845905d95a578849489d54333079eaaf4a44bd54b520a94104e6"
+      },
+      {
+        "sha256": "ca39fb6d77df44d097ea44f9a4ab9d3f08518e8db104e2d4b2b8cc86946b4c9c"
+      },
+      {
+        "sha256": "c4ab738967be24037a3bcc9c68a53c645347c3241188e0ecf9b000dbd22ee553"
+      }
+    ],
+    "coach_model": "glm-5.3",
+    "coach_calls": [
+      {
+        "index": 1,
+        "purpose": "tetris_landing_goal_initialization",
+        "input_hash": "202c54c53b5b581814b79b6de1a6d674009cbaca4938924749beb3f8e4801b7d",
+        "status": "accepted",
+        "call": {
+          "purpose": "tetris_landing_goal_initialization",
+          "requested_model": "glm-5.3",
+          "returned_model": "glm-5.3",
+          "usage": {
+            "completion_tokens": 379,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "prompt_tokens": 26808,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 27187
+          },
+          "elapsed_ms": 9596.39,
+          "response_hash": "9086e057ff5ed373b3da6d8d882d2d8d0d7c74bfeaa51532a5d83ef244fbc81c"
+        },
+        "response_hash": "9086e057ff5ed373b3da6d8d882d2d8d0d7c74bfeaa51532a5d83ef244fbc81c"
+      }
+    ],
+    "new_game_results_seen": false,
+    "new_decision_calls": 0,
+    "action_policy_changed": false,
+    "native_action_catalog_changed": false,
+    "goal_ids_and_order_changed": false,
+    "goal_criterion_descriptions_added": true,
+    "strategy_source": "Exact goal_instructions from the first schema-valid coach response, without manual edits",
+    "validation_limit": "Schema and provenance only; semantic quality and gameplay benefit require separate verification",
+    "source_artifact_sha256": "788a2d85171b8113c7631f1ed4b136f99719c2e77550e8abe444800864c0b923",
+    "publication_note": "Local file paths removed. Goal prompt and all call/source hashes unchanged; this public JSON differs from the raw frozen planner file."
+  }
+}

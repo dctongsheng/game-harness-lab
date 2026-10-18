@@ -1,0 +1,95 @@
+{
+  "id": "landing-planning-2fd8b603374a82bb",
+  "brief": {
+    "background": "俄罗斯方块原生按键Harness：80步决策预算，每个决策只选一个原生按键（含时长），没有落点预测或评分。四组共用同一策略，仅tetris_features与decision_goal_memory可选存在，出现时才使用。",
+    "goal": "在有限步数内定目标、逐键执行、及时锁块，铺平棋盘并消行，最大化原生points。",
+    "rules": "10×20棋盘+2行生成区；7-bag五块预览；每块hold一次；软降每3tick一行；横移按住9tick后每3tick重复；100/300/1000ms分别推进6/18/60tick；旋转/硬降/hold仅新按下边沿触发一次；硬降按当前位置与朝向直接落底锁定。消1/2/3/4行得100/300/500/800乘消行前等级。columns[].height是列顶高度非占用数；active.cells是实际占用格。",
+    "precautions": "短按横移不保证一格，动作后必须按实际cells核对；软降100ms约推进两行；每个新块先定目标旋转，再平移，到位立即硬降；避免同块内来回横移不锁定（历史大量left:300/right:1000摆动得0分）；目标不可达时自行clear或换目标，程序不代选；无目标记忆时不得假设已保存目标。",
+    "strategy": "每块流程：读棋盘（有tetris_features用height/hole_ys，否则读board.rows）→有decision_goal_memory则沿用target.leftmost_column/rotation，否则按“落最矮列、铺平补洞”自选→先rotate到目标朝向（差3次用rotate-ccw），再按列距选left/right时长逐步靠近并核对，到位立即hard-drop。每块控制在6-8步，避免在中央堆高。"
+  },
+  "experience_summary": [
+    {
+      "claim": "长按横移来回摆动导致80步内几乎不锁块、得分为0",
+      "evidence_episode_ids": [
+        "exp-b2903c427bed3f6bff55b256",
+        "exp-c5de200f86f44455366de11a",
+        "exp-411e927fe9faddb34ffc0531",
+        "exp-115c151b10ddf8f76f216a21"
+      ],
+      "limitations": "证据来自动作计数摘要，未见逐步细节；成因可能是目标缺失或过度修正。"
+    },
+    {
+      "claim": "同一方块内先left:300后right:1000式的方向反转频繁出现，浪费步数",
+      "evidence_episode_ids": [
+        "exp-b2903c427bed3f6bff55b256",
+        "exp-25ca3f79e209f4a8c61890d4"
+      ],
+      "limitations": "仅两个含明细的轨迹索引，未观察全部步骤。"
+    }
+  ],
+  "candidate": {
+    "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。",
+    "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。"
+  },
+  "game_id": "tetris",
+  "config": {
+    "game_id": "tetris",
+    "max_steps": 80
+  },
+  "game_context": {
+    "game_id": "tetris",
+    "name": "俄罗斯方块",
+    "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+    "rules": "俄罗斯方块为Decision Arena的MIT规则实现，10×20可见格，上方两行生成区。\n7-bag，预览五块，每块hold一次。初始每48tick下一行，每10行加快3tick，最低6tick；\n接地30tick锁定，最多15次移动/旋转重置锁定计时。左右按住9tick后每3tick重复，软降每3tick一行。\nSRS顺/逆时针旋转，硬降只将当前横向位置与朝向下的方块落到底并锁定，不自动寻找落点。\n消1/2/3/4行得100/300/500/800乘消行前等级；等级=1+累计消行数整除10。\n没有软硬降分、T-spin或combo奖励。顶部锁块或生成受阻结束，引擎最多7200tick。\n观察包含完整当前棋盘（含两行生成区）、当前方块、五块可见预览、暂存、重力与锁定计时；隐藏随机状态不暴露。\n目标是在决策预算与物理时钟内最大化原生points。\n本框架采用可暂停的决策步进。模型等待期间推进0物理tick；一个决策仅选择一个原生按键候选。\n候选中的100/300/1000毫秒分别执行6/18/60个60Hz物理tick；noop:100松键后也推进6tick。\n若引擎在这段期间自然结束，则立即结束，不再推进剩余tick。每次输入替换整组按住的键，到期自动松键。\n跳跃、旋转、硬降、暂存只在新按下的边沿触发一次，持续按住不自动重复；每个完整动作结束后已自然松键，\n下一次同键候选会产生新的按下边沿。横移按原生加速度/重复规则运行，没有寻路、自动跳跃、落点选择或危险动作过滤。\nstep是Decision决策次数，tick是物理时钟。到max_steps记step_limit截断，保留原生points，不授予生存奖励。\n本项目评分只用原生points；不使用参考竞技场compare的存活或其他平局排序。",
+    "score_spec": {
+      "id": "arena-tetris-points-v1",
+      "min": 0,
+      "max": 16594560000,
+      "direction": "maximize",
+      "unit": "原生消行积分",
+      "minimum_mean_gain": 100,
+      "description": "只使用原生消行points；1/2/3/4行得100/300/500/800乘消行前等级。软硬降和存活不加分。",
+      "upper_bound_basis": "保守上界：7200tick×每tick最多一次锁块×800×最高等级2881；不是实际可达到的目标。"
+    },
+    "config": {
+      "max_steps": 80,
+      "clock": "paused_native_input_duration",
+      "tick_rate": 60
+    },
+    "opponent_policy": null,
+    "scenario_policy": "整数seed转字符串，驱动参考引擎的确定性7-bag；仅可见五块预览，没有rng或其余队列。",
+    "action_policy": "本框架采用可暂停的决策步进。模型等待期间推进0物理tick；一个决策仅选择一个原生按键候选。\n候选中的100/300/1000毫秒分别执行6/18/60个60Hz物理tick；noop:100松键后也推进6tick。\n若引擎在这段期间自然结束，则立即结束，不再推进剩余tick。每次输入替换整组按住的键，到期自动松键。\n跳跃、旋转、硬降、暂存只在新按下的边沿触发一次，持续按住不自动重复；每个完整动作结束后已自然松键，\n下一次同键候选会产生新的按下边沿。横移按原生加速度/重复规则运行，没有寻路、自动跳跃、落点选择或危险动作过滤。\nstep是Decision决策次数，tick是物理时钟。到max_steps记step_limit截断，保留原生points，不授予生存奖励。\n本项目评分只用原生points；不使用参考竞技场compare的存活或其他平局排序。",
+    "evaluation": {
+      "seed_modulus": 1,
+      "minimum_pairs": 4,
+      "seed_semantics": "seed controls deterministic seven-bag piece order"
+    },
+    "source": {
+      "upstream_repository": "https://github.com/dctongsheng/decison-arena.git",
+      "upstream_commit": "4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d",
+      "license": "MIT",
+      "source_snapshot_sha256": "caed8f2ba9665a5a51c00c103bd213f7e1c3cb4ceb7433bbfb4ca58558c487fe",
+      "bridge_sha256": "e54a104324234f8c71d1b9e48601bb4ffb517f09daf13113ad443b523a940f41"
+    }
+  },
+  "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+  "decision_model": "startlux-decision-27b-autothink",
+  "think_mode": "never",
+  "tetris_context_config": {
+    "schema": "tetris-context-v3",
+    "structured_facts": true,
+    "decision_goal_memory": true,
+    "replan_every_actions": 4,
+    "control_feedback": true,
+    "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。"
+  },
+  "provenance": {
+    "type": "research_only_reusable_v7_baseline",
+    "source_experiment": "tetris-control-v6-20261017",
+    "source_arm": "repaired",
+    "source_frozen_parent_hash": "6cab9ee6cb22aeca9c6dbd07432ff23b0c18d846b981659c553689ec27408230",
+    "candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+    "brief_hash": "eacd2a92ed28e69d458bd6fe2436ab96f6e352651d1a2ea0d6f12214513c8643",
+    "note": "Retains all runtime policy/context fields. Omits historical local paths and old coach transcripts. This is not an approved or promoted Harness."
+  }
+}

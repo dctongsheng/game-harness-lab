@@ -1,0 +1,58 @@
+{
+  "prompt_hash": "d28ad15d237a6aaa6790fe8e5581273440c0021364c498e8ef970d659d1ae9ab",
+  "coach_calls": [
+    {
+      "index": 1,
+      "purpose": "tetris_landing_goal_initialization",
+      "input_hash": "202c54c53b5b581814b79b6de1a6d674009cbaca4938924749beb3f8e4801b7d",
+      "status": "accepted",
+      "call": {
+        "purpose": "tetris_landing_goal_initialization",
+        "requested_model": "glm-5.3",
+        "returned_model": "glm-5.3",
+        "usage": {
+          "completion_tokens": 379,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 26808,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 27187
+        },
+        "elapsed_ms": 9596.39,
+        "response_hash": "9086e057ff5ed373b3da6d8d882d2d8d0d7c74bfeaa51532a5d83ef244fbc81c"
+      },
+      "response_hash": "9086e057ff5ed373b3da6d8d882d2d8d0d7c74bfeaa51532a5d83ef244fbc81c"
+    }
+  ],
+  "parent_candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+  "historical_evidence_hash": "2c5c586dc2266a01bb9788342b535277a1b7bf38cce21735df0fda331417462b",
+  "manually_edited": false,
+  "new_game_results_seen": false,
+  "research": [
+    {
+      "repository": "thelau/jev-tetris",
+      "commit": "9869b602965cf002afff766013f8c068846d36aa",
+      "license": "MIT",
+      "urls": [
+        "https://github.com/thelau/jev-tetris/blob/9869b602965cf002afff766013f8c068846d36aa/src/describe.js",
+        "https://github.com/thelau/jev-tetris/blob/9869b602965cf002afff766013f8c068846d36aa/src/tetris.js",
+        "https://github.com/thelau/jev-tetris/blob/9869b602965cf002afff766013f8c068846d36aa/docs/findings.md"
+      ],
+      "lesson": "Compare consistently described placement consequences. Its simplified static reachability, fitted five-question probability weights and direct placement execution are NOT adopted. Reported scores were tuned on the same three seeds."
+    },
+    {
+      "repository": "pedroarruda07/jev-plays-tetris",
+      "commit": "0d66fbc68c5cc075e750b2528d45f5371070989d",
+      "license": "No explicit license found; study the design, do not copy source",
+      "urls": [
+        "https://github.com/pedroarruda07/jev-plays-tetris/blob/0d66fbc68c5cc075e750b2528d45f5371070989d/src/placements.ts",
+        "https://github.com/pedroarruda07/jev-plays-tetris/blob/0d66fbc68c5cc075e750b2528d45f5371070989d/src/jev/request.ts",
+        "https://github.com/pedroarruda07/jev-plays-tetris/blob/0d66fbc68c5cc075e750b2528d45f5371070989d/src/jev/execution.ts"
+      ],
+      "lesson": "Distinguish final layout from input execution and bind targets to the current piece. Its automatic path controller, >255-option heuristic shortlist and probability argmax replacement are NOT adopted."
+    }
+  ]
+}

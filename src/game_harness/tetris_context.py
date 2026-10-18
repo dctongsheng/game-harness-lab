@@ -39,31 +39,60 @@ class TetrisContextError(ReceiptError):
 def validate_config(config):
     expected = {"schema", "structured_facts", "decision_goal_memory", "replan_every_actions"}
     schema = config.get("schema") if isinstance(config, dict) else None
-    if schema == "tetris-context-v2":
+    if schema in ("tetris-context-v2", "tetris-context-v3"):
         expected = expected | {"control_feedback"}
+    if schema == "tetris-context-v3":
+        expected = expected | {"goal_instructions"}
     if not isinstance(config, dict) or set(config) != expected:
         raise TetrisContextError("Tetris context requires its exact frozen configuration")
-    if schema not in ("tetris-context-v1", "tetris-context-v2"):
+    if schema not in ("tetris-context-v1", "tetris-context-v2", "tetris-context-v3"):
         raise TetrisContextError("Unknown Tetris context schema")
     if any(type(config[key]) is not bool for key in ("structured_facts", "decision_goal_memory")):
         raise TetrisContextError("Tetris context feature flags must be booleans")
     if type(config["replan_every_actions"]) is not int or config["replan_every_actions"] != 4:
         raise TetrisContextError("Tetris context replans every four game actions")
-    if schema == "tetris-context-v2":
+    if schema in ("tetris-context-v2", "tetris-context-v3"):
         if config["structured_facts"] is not True or config["decision_goal_memory"] is not True:
             raise TetrisContextError("Tetris context v2 requires structural facts and Decision goal memory")
         if type(config["control_feedback"]) is not bool:
             raise TetrisContextError("Tetris control feedback flag must be boolean")
+    if schema == "tetris-context-v3":
+        if config["control_feedback"] is not True:
+            raise TetrisContextError("Tetris v3 requires control feedback")
+        prompt = config["goal_instructions"]
+        if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 12000:
+            raise TetrisContextError("Tetris v3 requires a frozen nonempty goal prompt of at most 12000 characters")
     return deepcopy(config)
+
+
+def _context_contract(config):
+    if config["schema"] != "tetris-context-v3":
+        return CONTEXT_CONTRACT
+    return CONTEXT_CONTRACT.replace("可选玩家接口合同（四组共用）：", "玩家接口合同（v3条件落点规划）：").replace(
+        "不按棋盘过滤、搜索或排序，也不保证目标可达或安全。",
+        "不按棋盘过滤或优劣排序；额外条件落点投影与后果描述不改变候选ID和顺序，也不保证目标可达或安全。")
 
 
 def context_instructions(instructions, config):
     """Exact shared instructions, retaining v1 bytes when feedback is off."""
     frozen = validate_config(config)
-    result = instructions + "\n" + CONTEXT_CONTRACT
+    result = instructions + "\n" + _context_contract(frozen)
     if frozen.get("control_feedback", False):
         result += "\n" + CONTROL_CONTRACT
+    if frozen["schema"] == "tetris-context-v3":
+        from .tetris_landing import LANDING_CONTRACT
+        result += "\n" + LANDING_CONTRACT
     return result
+
+
+def goal_instructions(instructions, config):
+    """Separate v3 planning from action policy; retain exact v1/v2 bytes."""
+    frozen = validate_config(config)
+    if frozen["schema"] != "tetris-context-v3":
+        return context_instructions(instructions, frozen) + "\n" + GOAL_INSTRUCTIONS
+    from .tetris_landing import LANDING_CONTRACT
+    return (frozen["goal_instructions"] + "\n" + _context_contract(frozen) + "\n"
+            + CONTROL_CONTRACT + "\n" + LANDING_CONTRACT + "\n" + GOAL_INSTRUCTIONS)
 
 
 def goal_catalog():
@@ -74,6 +103,27 @@ def goal_catalog():
          "label": f"目标最左占用列={column}，目标朝向={rotation}；不保证可达或安全"}
         for column in range(10) for rotation in range(4)
     ]
+
+
+def planning_catalog(state, config):
+    """Describe each conditional outcome equally; never prune or rank goals."""
+    catalog = goal_catalog()
+    if validate_config(config)["schema"] != "tetris-context-v3":
+        return catalog
+    projections = state["tetris_landing_projections"]["candidates"]
+    _require([p["id"] for p in projections] == [c["id"] for c in catalog[2:]],
+             "Conditional projections must preserve every goal in coordinate order")
+    for choice, result in zip(catalog[2:], projections):
+        if not result["pose_valid"]:
+            consequence = "假设起始姿态无效：" + result["invalid_reason"] + "；后果未知"
+        else:
+            consequence = (f"假设先达到目标姿态再直落：消{result['lines_cleared']}行，"
+                f"原生积分+{result['points_delta']}，空洞{result['holes_before']}→{result['holes_after']}"
+                f"（净变化{result['holes_delta']:+d}），最大列高{result['max_height']}，"
+                f"总列高{result['total_height']}，相邻列高度差绝对值之和{result['bumpiness']}，"
+                f"锁定后隐藏行占用={'是' if result['top_out'] else '否'}")
+        choice["label"] += "；" + consequence + "；原生按键路径未验证"
+    return catalog
 
 
 def _require(condition, message):
@@ -166,8 +216,10 @@ class TetrisDecisionHarness:
         state = deepcopy(state)
         criteria = deepcopy(criteria)
         context_fields = ("tetris_features", "decision_goal_memory")
-        if self.config["schema"] == "tetris-context-v2":
+        if self.config["schema"] in ("tetris-context-v2", "tetris-context-v3"):
             context_fields += ("tetris_control_facts",)
+        if self.config["schema"] == "tetris-context-v3":
+            context_fields += ("tetris_landing_projections",)
         _require(not any(key in state for key in context_fields),
                  "Raw runtime state already contains context fields")
         scope = _scope(state)
@@ -193,15 +245,19 @@ class TetrisDecisionHarness:
             state["decision_goal_memory"] = self._memory(state["step"])
         if self._control is not None:
             state["tetris_control_facts"] = self._control.facts(self._target)
+        if self.config["schema"] == "tetris-context-v3":
+            from .tetris_landing import build_landing_projections
+            state["tetris_landing_projections"] = build_landing_projections(state)
         action_instructions = context_instructions(instructions, self.config)
         due = self.config["decision_goal_memory"] and self._scope_actions % self.config["replan_every_actions"] == 0
         if due:
             planning_state = deepcopy(state)
             planning_state["selection_purpose"] = "update_goal_memory_only"
-            planning_state["candidates"] = goal_catalog()
+            choices = planning_catalog(state, self.config)
+            planning_state["candidates"] = choices
             planning_id = f"{request_id}:goal"
-            receipt = self._call("goal", planning_state, action_instructions + "\n" + GOAL_INSTRUCTIONS,
-                                 goal_catalog(), planning_id)
+            receipt = self._call("goal", planning_state, goal_instructions(instructions, self.config),
+                                 choices, planning_id)
             choice = receipt["choice_id"]
             if choice == "clear":
                 self._target, self._created_step = None, None

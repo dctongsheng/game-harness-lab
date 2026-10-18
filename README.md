@@ -59,6 +59,8 @@ flowchart LR
 
 俄罗斯方块还可在实验运行器中附加当前棋盘 PNG：每次目标选择和按键均把图片送给 Decision，保留相同文字与完整动作目录。先安装可选依赖 `uv pip install --python .venv/bin/python '.[vision]'`。接入方式、配对对照及实际结果见 [V7 视觉输入验证](docs/tetris-vision-validation-v7.md)；网页常规模式不会自动启用实验配置。
 
+V8 增加独立的 GLM 目标提示与完整 40 项条件落点后果：把消行、空洞和堆高写入目标选项描述。程序不筛选目标、不执行路径，每个实际按键仍由 Decision 决定。条件落点不代表按键路径可达；两组均保留视觉的 12 对真实对照中，均分由 0 提升到 708.33，新方案 12/12 局消行；详情见 [V8 落点规划验证](docs/tetris-landing-validation-v8.md)。
+
 运行中的全部版本与轨迹位于本地 `data/`，不提交 Git。**通过配对验收的版本自动导出到：**
 
 ```text
@@ -91,6 +93,7 @@ harnesses/<游戏>/<版本>/
 - [V5 俄罗斯方块结构事实与目标记忆](docs/tetris-context-validation-v5.md)
 - [V6 俄罗斯方块按键控制、LLM 修订与配对实验](docs/tetris-control-validation-v6.md)
 - [V7 俄罗斯方块视觉输入与配对实验](docs/tetris-vision-validation-v7.md)
+- [V8 俄罗斯方块条件落点后果与独立目标规划](docs/tetris-landing-validation-v8.md)
 - [宝可梦 poke-env 接入与真实实验](docs/pokemon-integration-v1.md)
 - [Showdown 原版精灵动画观战与真实验收](docs/pokemon-showdown-spectator-v1.md)
 - [Overcooked-AI 双人厨房接入与真实实验](docs/overcooked-integration-v1.md)

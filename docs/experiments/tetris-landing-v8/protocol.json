@@ -1,0 +1,445 @@
+{
+  "schema": "tetris-landing-experiment/v1",
+  "id": "tetris-landing-v8-20261018",
+  "created_at": "2026-10-18T03:32:12.690021+00:00",
+  "config": {
+    "max_steps": 80
+  },
+  "arm_order": [
+    "baseline",
+    "planning"
+  ],
+  "candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+  "brief_hash": "eacd2a92ed28e69d458bd6fe2436ab96f6e352651d1a2ea0d6f12214513c8643",
+  "planner_hash": "9daedc1c6f21b462d045a93ebc3bc2f9810c8429ff4e32262b04ee89ab5ad73a",
+  "code_hashes": {
+    "pyproject.toml": "6b5026b68ef64223acdf023ce7f44ec19c81ce23dfd216d76ea6b4ad33c184f7",
+    "scripts/audit_saved_run.py": "fd3eb8b32c6a2ac8cec84b81dbb360582995fa64e4753e315e319f507bdca61e",
+    "scripts/initialize_tetris_landing_planner.py": "3012eedf5ac63dda4b437af07eb19ae0b9b1f86a79653f522be8b90ddf52cc8e",
+    "scripts/report_tetris_control_experiment.py": "a32b339fadbc931fe0e19c8f1f352f31c1190bc4d69084c317f33eedd45e3137",
+    "scripts/report_tetris_landing_experiment.py": "a3df0d0e879cfb8a836e0026c625b8b98c8fbfae38a47d4908ceb17db6ff8a3f",
+    "scripts/report_tetris_vision_experiment.py": "0927661f506cad3388be12a9b4b8ee2953f7cab4ad5854c12c9e5945a8c7e4cc",
+    "scripts/run_feedback_experiment.py": "d48f8930c09119797e2d51bede736cdf94868c2c8004f5b85c4ac11f310f0f20",
+    "scripts/run_tetris_context_experiment.py": "f290f963bc7d8eca7dbecd9d16be13a394101d6416bf65447b273a215eebcd0d",
+    "scripts/run_tetris_control_experiment.py": "b9b06b4fbeb08dcae029adcb7db2ecfd6806e3e676ad0615de17279c3e3b7641",
+    "scripts/run_tetris_landing_experiment.py": "0dc569b7766900e87cf9504ccc789936c19914be129ec4e60e09048d2f5c5f2a",
+    "scripts/run_tetris_vision_experiment.py": "bc90ba9fdda7955fd5e3e9dbc8acbd8488cd499b321da957d787416748e0e363",
+    "src/game_harness/__init__.py": "d62ebde25ffdac07b9ac02027e29cc5abf01561dbb7493e419861365eb02461f",
+    "src/game_harness/__main__.py": "47c4457a8014127610118d15f2873cc230c395b6e06b2dafda542cc9cdf8bd62",
+    "src/game_harness/app.py": "0a1fa8e305900c56a1294740d872401fb185e049485bda0faf0ea3e51026c67c",
+    "src/game_harness/evolution.py": "b3511c8ec78d6c00c30133dd2524465e000c9613c79d0283878e1eb86172e6d1",
+    "src/game_harness/exporting.py": "9d1e33c182d63a74f0330b73439a907c4b79b74aeb99da795d6f1c8bdf8a7520",
+    "src/game_harness/feedback.py": "6065e24fd0c791989c6cfd2d9b0c4031803e9fc1df1cff9eaf071170296ef845",
+    "src/game_harness/games/__init__.py": "ffa65b86b9cbf64c6012eb9cbf59133d067142a5ea050a6c32e2b68835d25053",
+    "src/game_harness/games/arcade.py": "1926d5a1e1f8bdff2fe05c6d7dd1293468d0ec8ad39969494964772d407d8e33",
+    "src/game_harness/games/arcade_bridge.cjs": "e54a104324234f8c71d1b9e48601bb4ffb517f09daf13113ad443b523a940f41",
+    "src/game_harness/games/arcade_bridge.ts": "431f88acadd8e46b04d4f277dde7772c21e33843a008de5cd4243245088ba946",
+    "src/game_harness/games/army.py": "fc04e6ad550bea569dcb0030b67ba4eabdb3e16074d836b65579ff6633acd689",
+    "src/game_harness/games/base.py": "9e146477f54f6fab777b55d8f4a910c5aafdba75dd6d00d1e7ba60aa46319588",
+    "src/game_harness/games/board_bridge.cjs": "5404b9217544d9d354022195e60749a56dfc18a1abe3a7c9ac9ba28756ae5994",
+    "src/game_harness/games/board_bridge.ts": "8311864e65b86122471c1cb4001e39c02117f78dd0be7a882be3c98b5b0c36e3",
+    "src/game_harness/games/gomoku.py": "c70c19da162bb5eb29c38e80dea20b9ad387d269a48c72deaf791d6e08416086",
+    "src/game_harness/games/hok1v1.py": "258735de9363d37cdd97f0a98707c9ecd70e26620dabe6cb24d8688cb41d82fb",
+    "src/game_harness/games/node_bridge.py": "c2d756c6ca90f74adff315cd7227bd6aa7a7ef884f54ad56f5be2393a035820f",
+    "src/game_harness/games/overcooked.py": "83ce0f49d4a79ac2d40227610c7cfb11db7852b2ea59ee89f550b5c2673d31c7",
+    "src/game_harness/games/overcooked_worker.py": "2f265af787501f53331e909a32c4f5080ad19e73623e1fc1c1ef6cd707ad9d17",
+    "src/game_harness/games/platformer.py": "c41b12c1ae64595c968e34891cd1c906b1900c7e68df1e7d3e9e3bb301e0bc03",
+    "src/game_harness/games/pokemon.py": "6462356b6640ad8e0575ec88c6b9791f0e14491e684ee84b1e981046578a7a9c",
+    "src/game_harness/games/pokemon_bridge.cjs": "65bad42a4d83b1f813e62274e427905e56cdfe3b45467cc5b81c6073f9f0ac04",
+    "src/game_harness/games/snake.py": "c5cbb46fad32de652d8bc92f41ae678cb7a2a24ec16ee77fac8655e467593cf5",
+    "src/game_harness/games/tetris.py": "d7d50f8c3015c53a8af0b42004ce955c891a00e769644add49d5a6cd25c6d3d4",
+    "src/game_harness/games/vendor/LICENSE.xiangqi": "48095c80be59c5ab41f730d9fa5291b539495bc818be3d54e6ac9f602ebeaa9e",
+    "src/game_harness/games/vendor/arena-arcade/LICENSE": "6016eb567429fa2ed2aafe74fd740946e44be0d56e3ebe7d81b57e4bdde8cda1",
+    "src/game_harness/games/vendor/arena-arcade/SOURCE.json": "985268f80ac3476e1570c3974dc939ec06015d088bc3d01715c50bf13c384106",
+    "src/game_harness/games/vendor/arena-arcade/packages/core/src/arcade.ts": "0adf8e7f43961d81ac6972690ac54b6c333af74eb2411861111f352ea33395ff",
+    "src/game_harness/games/vendor/arena-arcade/packages/core/src/index.ts": "429dc0c0a61a56a8c7c89ce2bcf32816152960f635ec477daf138365b8a6b4eb",
+    "src/game_harness/games/vendor/arena-arcade/packages/games/src/arcade/common.ts": "887e8d7628c59d5ec026bab4bae4cb82525e2b60741d80532299a193e265c1fe",
+    "src/game_harness/games/vendor/arena-arcade/packages/games/src/arcade/platformer.ts": "adbfc375b136c36c507e3752f81552c9ffbc61b09720a8ddf3adf3116e1759ae",
+    "src/game_harness/games/vendor/arena-arcade/packages/games/src/arcade/tetris.ts": "90a139342b70513a199225347f83c5d9dc6dfb5d2870c077bc7b200f7a56b79b",
+    "src/game_harness/games/vendor/arena-board/LICENSE": "6016eb567429fa2ed2aafe74fd740946e44be0d56e3ebe7d81b57e4bdde8cda1",
+    "src/game_harness/games/vendor/arena-board/SOURCE.json": "ca178a4a0ea836f221ee8a27ebb2440eb85c0453d8bf01077b3798585f6990c3",
+    "src/game_harness/games/vendor/arena-board/army.ts": "ea8711cbe6280d85a09a80d8504f90da461527854c30a47b950edfa7b9ba48bb",
+    "src/game_harness/games/vendor/arena-board/common.ts": "721f69b90dae1fdb54664b2dd2d225b5b0f0d955231b036f9b708bac9e5ec946",
+    "src/game_harness/games/vendor/arena-board/gomoku.ts": "f3641d68f05ab81009618861a7cb319ed318ca91252132dc6683d770d7ae20a1",
+    "src/game_harness/games/vendor/xiangqi.cjs": "f2de592d3a81cf79cd36f0d09e6efbb4bdb357082c2d421bf76d2d8eb7c619fe",
+    "src/game_harness/games/xiangqi.py": "03343bb259f000134b890ba57737addf53f939a1fcae9abf21cf694ec775c6c6",
+    "src/game_harness/games/xiangqi_bridge.cjs": "21e71657c8d5243696b898dd9d60185ab64d8e7e2e3afbc984ee2f17b940f4ba",
+    "src/game_harness/initialization_contract.py": "aa6a639056a811f166a68c668014e038ad5730e037d9885aa4ced52c8abe3600",
+    "src/game_harness/providers.py": "e7efe9f4c27ad0e2242af84f281fd1e3f164ffc51d94043fe8743f0d1feb3ca2",
+    "src/game_harness/runtime.py": "ee9a97b8b3d4e413073e3b67debd930a8d4f5124474bdd812c48a08e7f19a54c",
+    "src/game_harness/scoring.py": "589028f8bb6e182c9048523216ff6dc260a9328de1f9d432253509c7adba0d6f",
+    "src/game_harness/service.py": "beb79036eb88df25bd1f3191b9b332e17e4c05e00a0a34b2e143403e595044de",
+    "src/game_harness/showdown_assets.py": "cda9fe7e84841a73d619b113d759d25db1957049e014033d88cce3b238998541",
+    "src/game_harness/snake.py": "2380db374c6759443823a0aa98d2c8c9132588e45dfaa165521e62e89bedda66",
+    "src/game_harness/spectator.py": "92c54322554658b8cde1e097961af6c0e7ea321d0c01060facbef024e2f7d5d1",
+    "src/game_harness/static/index.html": "10347c3d6579d4c5914691877cebaf06927f38a3ba9aabca4fdc14946eb89598",
+    "src/game_harness/static/showdown-frame.html": "f7eb696b5f940a0eda063c296ca064af24ce656472acb9850c94e45f77d48de8",
+    "src/game_harness/static/showdown-frame.js": "3cbdd8c95f81e54d0097ffcb46404a2a6bd250581e8540bf42fbb87e935fe9f5",
+    "src/game_harness/static/spectate.html": "353e8532ace9aec21e996e02d7c8dbe920063b143422e762eaf8b3e2eea35e5a",
+    "src/game_harness/static/spectate.js": "0f1cec3bea19dea3b015adcabeb56ccdd1631b3fa47d61fe8058765cbf24bf21",
+    "src/game_harness/store.py": "c09e78c22924ae7bfce534c90d610a93450353b584186d2ce16766332e461d92",
+    "src/game_harness/tetris_context.py": "f0784da98527c422ee95bf22cd68a0396c36597692976fa97f8bbf86860584f2",
+    "src/game_harness/tetris_control.py": "d2d2ae4e3abe464222750b9be183a7746f78243414be4b536b1715bf91e51383",
+    "src/game_harness/tetris_features.py": "9232ea144bd5b95e73686b9d4eb3850817425dcc5f35c8e4a13c531a88119bc8",
+    "src/game_harness/tetris_landing.py": "e77706c73524c2e21c5d2956228088dd0b5672c014c8d99bb0bace400329a817",
+    "src/game_harness/tetris_vision.py": "513f3fd4a71fcc6d8b2a3bd9896acf72d4b66529b032030af488382e87280c9e",
+    "src/game_harness/visibility.py": "d04f499c1ef4cbc2c38d114a50904b2ff414eba3b3693f9740260ed919514109",
+    "src/game_harness/vision_provider.py": "3d3932767a44229847d931ffa3b933fb3639f5194256764f28277a1abd708fd0",
+    "src/game_harness_lab.egg-info/PKG-INFO": "ebbfc73f224245a78e705b250e1ea69c0e6bf37bc2add15ac95f28ae1c12fe57",
+    "src/game_harness_lab.egg-info/SOURCES.txt": "108694bd54a042d42e7efad1865abe465769dcbf44f9de8e4dc81bf1e0ac9cb2",
+    "src/game_harness_lab.egg-info/dependency_links.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "src/game_harness_lab.egg-info/requires.txt": "57edcb8246ee96563e2e7e8d5a8ce763b5fa05c849788065fa9a04412f8a37fa",
+    "src/game_harness_lab.egg-info/top_level.txt": "1fdf19bee9ae8d436b0d2b4cfcd71768fa6e40c61b9894216872177f95f1f0cd"
+  },
+  "runtime_dependencies": {
+    "Pillow": "12.0.0",
+    "httpx": "0.28.1"
+  },
+  "seed": 2026101808,
+  "scenarios": {
+    "calibration": [
+      {
+        "id": "calibration-00",
+        "seed": 1492826339,
+        "order": [
+          "baseline",
+          "planning"
+        ]
+      },
+      {
+        "id": "calibration-01",
+        "seed": 2032485032,
+        "order": [
+          "planning",
+          "baseline"
+        ]
+      }
+    ],
+    "evaluation": [
+      {
+        "id": "evaluation-00",
+        "seed": 1921416371,
+        "order": [
+          "baseline",
+          "planning"
+        ]
+      },
+      {
+        "id": "evaluation-01",
+        "seed": 2131984239,
+        "order": [
+          "planning",
+          "baseline"
+        ]
+      },
+      {
+        "id": "evaluation-02",
+        "seed": 1138396099,
+        "order": [
+          "baseline",
+          "planning"
+        ]
+      },
+      {
+        "id": "evaluation-03",
+        "seed": 1955404617,
+        "order": [
+          "planning",
+          "baseline"
+        ]
+      },
+      {
+        "id": "evaluation-04",
+        "seed": 426372397,
+        "order": [
+          "baseline",
+          "planning"
+        ]
+      },
+      {
+        "id": "evaluation-05",
+        "seed": 1341939319,
+        "order": [
+          "planning",
+          "baseline"
+        ]
+      },
+      {
+        "id": "evaluation-06",
+        "seed": 1847563232,
+        "order": [
+          "baseline",
+          "planning"
+        ]
+      },
+      {
+        "id": "evaluation-07",
+        "seed": 636008749,
+        "order": [
+          "planning",
+          "baseline"
+        ]
+      },
+      {
+        "id": "evaluation-08",
+        "seed": 134419829,
+        "order": [
+          "baseline",
+          "planning"
+        ]
+      },
+      {
+        "id": "evaluation-09",
+        "seed": 1137254864,
+        "order": [
+          "planning",
+          "baseline"
+        ]
+      },
+      {
+        "id": "evaluation-10",
+        "seed": 1402630552,
+        "order": [
+          "baseline",
+          "planning"
+        ]
+      },
+      {
+        "id": "evaluation-11",
+        "seed": 211039554,
+        "order": [
+          "planning",
+          "baseline"
+        ]
+      }
+    ]
+  },
+  "excluded_environment_seeds": [
+    500,
+    501,
+    3943812,
+    26664212,
+    34243082,
+    48257816,
+    57369070,
+    57804622,
+    65139475,
+    78173806,
+    108328784,
+    120288893,
+    136944670,
+    185729939,
+    201387034,
+    203271312,
+    215167627,
+    216913128,
+    220469954,
+    248205064,
+    249776852,
+    261001089,
+    319041378,
+    323692425,
+    333022674,
+    351134669,
+    392405837,
+    394970432,
+    418372384,
+    424391286,
+    427637327,
+    431412461,
+    458949540,
+    464455112,
+    474176444,
+    475322852,
+    522726064,
+    588815975,
+    602352629,
+    606178100,
+    688614854,
+    707521810,
+    743877468,
+    762379051,
+    765219910,
+    799307376,
+    820156647,
+    863159039,
+    870746349,
+    894844201,
+    940280112,
+    982114003,
+    992162465,
+    1037274332,
+    1040469928,
+    1072718353,
+    1078736626,
+    1098623845,
+    1102289242,
+    1120054564,
+    1124250886,
+    1139277783,
+    1157982129,
+    1170414732,
+    1188414775,
+    1192064188,
+    1203324632,
+    1216956652,
+    1247889896,
+    1252843078,
+    1255590589,
+    1256368473,
+    1313539477,
+    1392425326,
+    1403019141,
+    1419051491,
+    1424806537,
+    1424958842,
+    1429765173,
+    1461638712,
+    1466555447,
+    1473739492,
+    1475065126,
+    1481657952,
+    1496370951,
+    1542170367,
+    1545064847,
+    1581199265,
+    1592759214,
+    1606535929,
+    1608691801,
+    1617938269,
+    1632495976,
+    1677071946,
+    1681598144,
+    1699062210,
+    1703263442,
+    1706391134,
+    1706491921,
+    1713495442,
+    1788753006,
+    1793377310,
+    1794773833,
+    1795619256,
+    1809322582,
+    1816024810,
+    1832809803,
+    1839907672,
+    1854399569,
+    1857640880,
+    1881237911,
+    1883537631,
+    1908365853,
+    1916029380,
+    1947233516,
+    1996862800,
+    2001256972,
+    2017229331,
+    2023560888,
+    2045083668,
+    2046456368,
+    2104110414
+  ],
+  "treatment": {
+    "baseline": "V6 structured board + goal memory + control facts + image",
+    "planning": "Same action policy, images and complete catalog IDs/order; independent LLM goal prompt plus forty conditional hard-drop outcome facts and symmetric goal-option descriptions",
+    "shared_model_visible_episode_metadata": true,
+    "all_arms_vision_enabled": true,
+    "image_source": "Current native observation only",
+    "landing_facts": "Public-board geometric projections, not native-key path reachability, ranking or recommendations",
+    "interpretation": "Planning package comparison; does not isolate the separate prompt and outcome-description effects"
+  },
+  "statistics": {
+    "bootstrap_seed": 74108,
+    "bootstrap_resamples": 10000,
+    "bootstrap_unit": "paired bag seed; both arms sampled together",
+    "confidence_level": 0.95,
+    "primary_comparisons": [
+      "planning-baseline"
+    ],
+    "primary_metric": "native line-clear points",
+    "secondary_metrics": [
+      "native cleared lines",
+      "any-line paired risk difference",
+      "TOP_OUT",
+      "latency"
+    ]
+  },
+  "screening_gate": {
+    "bootstrap_lower_greater_than": 0,
+    "positive_mean_gain": true,
+    "automatic_promotion": false
+  },
+  "budget": {
+    "calibration_episodes": 4,
+    "evaluation_episodes": 24,
+    "completed_episodes": 28,
+    "max_game_actions_per_episode": 80,
+    "max_calls_per_action": 2,
+    "decision_request_attempts_without_episode_retries_max": 4480,
+    "max_episode_attempts_per_trial": 2,
+    "decision_request_attempts_max": 8960,
+    "health_preflight_attempts_max": 2,
+    "coach_calls": 0,
+    "retry_definition": "Only infrastructure failures may receive one explicitly requested retry; completed games never redraw."
+  },
+  "constraints": {
+    "publish": false,
+    "registry_writes": false,
+    "automatic_export": false,
+    "gepa": false,
+    "in_game_coach": false,
+    "arm_action_policy_text_changes": false,
+    "goal_prompt_changed_in_planning_arm": true,
+    "scoring_early_stop": false,
+    "score_dependent_extra_trials": false,
+    "calibration_is_independent_test": false,
+    "evaluation_requires_calibration_complete_only": true,
+    "failed_attempts": "Stop; preserve error evidence; never score a failed episode as zero."
+  },
+  "limitations": [
+    "Same seed and model-visible metadata compare the frozen planning package; trajectories may diverge after choices.",
+    "Provider nondeterminism, checkpoint drift and extra visual token cost remain possible.",
+    "Calibration cannot select strategy or change seeds, sample count, scoring, input contract or stopping rules.",
+    "Twelve paired bags are a small screening sample; confidence interval containing zero cannot establish a clear improvement.",
+    "No promotion even when the descriptive screening interval is positive.",
+    "Fresh seed IDs do not guarantee all generated piece sequences are unique."
+  ],
+  "manifest_hash": "855709b9869071cccfa173bfaa03fdf91a8cba73174cde6ffd4bcb84674f1707",
+  "decision_model": "startlux-decision-27b-autothink",
+  "think_mode": "never",
+  "game_context": {
+    "game_id": "tetris",
+    "name": "俄罗斯方块",
+    "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+    "rules": "俄罗斯方块为Decision Arena的MIT规则实现，10×20可见格，上方两行生成区。\n7-bag，预览五块，每块hold一次。初始每48tick下一行，每10行加快3tick，最低6tick；\n接地30tick锁定，最多15次移动/旋转重置锁定计时。左右按住9tick后每3tick重复，软降每3tick一行。\nSRS顺/逆时针旋转，硬降只将当前横向位置与朝向下的方块落到底并锁定，不自动寻找落点。\n消1/2/3/4行得100/300/500/800乘消行前等级；等级=1+累计消行数整除10。\n没有软硬降分、T-spin或combo奖励。顶部锁块或生成受阻结束，引擎最多7200tick。\n观察包含完整当前棋盘（含两行生成区）、当前方块、五块可见预览、暂存、重力与锁定计时；隐藏随机状态不暴露。\n目标是在决策预算与物理时钟内最大化原生points。\n本框架采用可暂停的决策步进。模型等待期间推进0物理tick；一个决策仅选择一个原生按键候选。\n候选中的100/300/1000毫秒分别执行6/18/60个60Hz物理tick；noop:100松键后也推进6tick。\n若引擎在这段期间自然结束，则立即结束，不再推进剩余tick。每次输入替换整组按住的键，到期自动松键。\n跳跃、旋转、硬降、暂存只在新按下的边沿触发一次，持续按住不自动重复；每个完整动作结束后已自然松键，\n下一次同键候选会产生新的按下边沿。横移按原生加速度/重复规则运行，没有寻路、自动跳跃、落点选择或危险动作过滤。\nstep是Decision决策次数，tick是物理时钟。到max_steps记step_limit截断，保留原生points，不授予生存奖励。\n本项目评分只用原生points；不使用参考竞技场compare的存活或其他平局排序。",
+    "score_spec": {
+      "id": "arena-tetris-points-v1",
+      "min": 0,
+      "max": 16594560000,
+      "direction": "maximize",
+      "unit": "原生消行积分",
+      "minimum_mean_gain": 100,
+      "description": "只使用原生消行points；1/2/3/4行得100/300/500/800乘消行前等级。软硬降和存活不加分。",
+      "upper_bound_basis": "保守上界：7200tick×每tick最多一次锁块×800×最高等级2881；不是实际可达到的目标。"
+    },
+    "config": {
+      "max_steps": 80,
+      "clock": "paused_native_input_duration",
+      "tick_rate": 60
+    },
+    "opponent_policy": null,
+    "scenario_policy": "整数seed转字符串，驱动参考引擎的确定性7-bag；仅可见五块预览，没有rng或其余队列。",
+    "action_policy": "本框架采用可暂停的决策步进。模型等待期间推进0物理tick；一个决策仅选择一个原生按键候选。\n候选中的100/300/1000毫秒分别执行6/18/60个60Hz物理tick；noop:100松键后也推进6tick。\n若引擎在这段期间自然结束，则立即结束，不再推进剩余tick。每次输入替换整组按住的键，到期自动松键。\n跳跃、旋转、硬降、暂存只在新按下的边沿触发一次，持续按住不自动重复；每个完整动作结束后已自然松键，\n下一次同键候选会产生新的按下边沿。横移按原生加速度/重复规则运行，没有寻路、自动跳跃、落点选择或危险动作过滤。\nstep是Decision决策次数，tick是物理时钟。到max_steps记step_limit截断，保留原生points，不授予生存奖励。\n本项目评分只用原生points；不使用参考竞技场compare的存活或其他平局排序。",
+    "evaluation": {
+      "seed_modulus": 1,
+      "minimum_pairs": 4,
+      "seed_semantics": "seed controls deterministic seven-bag piece order"
+    },
+    "source": {
+      "upstream_repository": "https://github.com/dctongsheng/decison-arena.git",
+      "upstream_commit": "4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d",
+      "license": "MIT",
+      "source_snapshot_sha256": "caed8f2ba9665a5a51c00c103bd213f7e1c3cb4ceb7433bbfb4ca58558c487fe",
+      "bridge_sha256": "e54a104324234f8c71d1b9e48601bb4ffb517f09daf13113ad443b523a940f41"
+    }
+  }
+}

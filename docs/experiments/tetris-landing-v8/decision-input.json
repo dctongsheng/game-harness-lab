@@ -1,0 +1,2881 @@
+{
+  "selection_rule": "First calibration-00 planning goal call with any valid conditional line-clear projection; engineering illustration only, not formal evaluation",
+  "experiment": "tetris-landing-v8-20261018",
+  "step": 17,
+  "request": {
+    "request_id": "exp-b9ea0df62cf0ec85dca187bf:step:17:a116f1e5483b075c:goal",
+    "purpose": "goal",
+    "state": {
+      "game_id": "tetris",
+      "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+      "step": 17,
+      "max_steps": 80,
+      "score": 0,
+      "done": false,
+      "reason": null,
+      "truncated": false,
+      "policy_role": "candidate",
+      "tick": 126,
+      "metrics": {
+        "points": 0,
+        "lines": 0,
+        "survivedTicks": 126
+      },
+      "render": {
+        "gameId": "tetris",
+        "tick": 126,
+        "status": "playing",
+        "score": {
+          "points": 0,
+          "lines": 0,
+          "survivedTicks": 126
+        },
+        "width": 10,
+        "height": 20,
+        "currentButtons": [],
+        "cells": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          6,
+          6,
+          6,
+          4,
+          7,
+          7,
+          0,
+          0,
+          0,
+          0,
+          5,
+          5,
+          6,
+          4,
+          4,
+          7,
+          2,
+          2,
+          0,
+          0,
+          0,
+          5,
+          5,
+          0,
+          4,
+          7,
+          2,
+          2,
+          0,
+          0
+        ],
+        "active": {
+          "type": "I",
+          "cells": [
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            },
+            {
+              "x": 6,
+              "y": -1
+            }
+          ]
+        },
+        "next": [
+          "T",
+          "J",
+          "S",
+          "O",
+          "Z"
+        ],
+        "hold": null,
+        "pieceId": 6
+      },
+      "observation": {
+        "gameId": "tetris",
+        "status": "playing",
+        "width": 10,
+        "height": 20,
+        "hiddenRows": 2,
+        "tick": 126,
+        "tickRate": 60,
+        "ticksRemaining": 7074,
+        "secondsRemaining": 117.9,
+        "coordinates": "单位是格；x 为 0..9，向右增加；y 向下增加，-2、-1 是顶部隐藏生成行，0..19 是可见行。每行第 x 个字符对应该列。",
+        "board": {
+          "columns": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "rows": [
+            {
+              "y": -2,
+              "cells": ".........."
+            },
+            {
+              "y": -1,
+              "cells": ".........."
+            },
+            {
+              "y": 0,
+              "cells": ".........."
+            },
+            {
+              "y": 1,
+              "cells": ".........."
+            },
+            {
+              "y": 2,
+              "cells": ".........."
+            },
+            {
+              "y": 3,
+              "cells": ".........."
+            },
+            {
+              "y": 4,
+              "cells": ".........."
+            },
+            {
+              "y": 5,
+              "cells": ".........."
+            },
+            {
+              "y": 6,
+              "cells": ".........."
+            },
+            {
+              "y": 7,
+              "cells": ".........."
+            },
+            {
+              "y": 8,
+              "cells": ".........."
+            },
+            {
+              "y": 9,
+              "cells": ".........."
+            },
+            {
+              "y": 10,
+              "cells": ".........."
+            },
+            {
+              "y": 11,
+              "cells": ".........."
+            },
+            {
+              "y": 12,
+              "cells": ".........."
+            },
+            {
+              "y": 13,
+              "cells": ".........."
+            },
+            {
+              "y": 14,
+              "cells": ".........."
+            },
+            {
+              "y": 15,
+              "cells": ".........."
+            },
+            {
+              "y": 16,
+              "cells": ".........."
+            },
+            {
+              "y": 17,
+              "cells": "JJJSLL...."
+            },
+            {
+              "y": 18,
+              "cells": "ZZJSSLOO.."
+            },
+            {
+              "y": 19,
+              "cells": ".ZZ.SLOO.."
+            }
+          ],
+          "legend": {
+            ".": "空格",
+            "I": "已锁定 I 块",
+            "O": "已锁定 O 块",
+            "T": "已锁定 T 块",
+            "S": "已锁定 S 块",
+            "Z": "已锁定 Z 块",
+            "J": "已锁定 J 块",
+            "L": "已锁定 L 块"
+          },
+          "contents": "board 仅包含已锁定方块；当前下落方块单独记录在 active，未叠加进 board。没有预测落点。"
+        },
+        "active": {
+          "type": "I",
+          "rotation": 0,
+          "x": 3,
+          "y": -2,
+          "cells": [
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            },
+            {
+              "x": 6,
+              "y": -1
+            }
+          ],
+          "coordinateMeaning": "x、y 是旋转形状局部框的原点，不一定是占用格；cells 是此刻实际占用的绝对格坐标。rotation=0/1/2/3 表示生成朝向起顺时针旋转0/90/180/270度。"
+        },
+        "next": [
+          "T",
+          "J",
+          "S",
+          "O",
+          "Z"
+        ],
+        "nextOrder": "next[0] 是下一块，仅显示可见的五块预览",
+        "hold": null,
+        "holdAvailable": true,
+        "pieceId": 6,
+        "gravityEveryTicks": 48,
+        "fallTicks": 5,
+        "effectiveFallEveryTicks": 48,
+        "grounded": false,
+        "lockTicks": 0,
+        "lockLimitTicks": 30,
+        "lockResets": 0,
+        "maxLockResets": 15,
+        "horizontalDirection": 0,
+        "horizontalHeldTicks": 0,
+        "controls": {
+          "held": [],
+          "releaseTick": null,
+          "releaseInTicks": null,
+          "pendingEdges": [],
+          "semantics": "held 是当前按住的键；pendingEdges 是已收到但尚未在下一物理 tick 消费的新按下。新输入替换整组 held；到期只松键，不暂停游戏。已经按住的键再次提交不产生新的按下边沿。",
+          "edgeSemantics": "旋转、硬降、hold 只在新按下的下一物理 tick 尝试一次；持续按住不重复，尚未松开时重复提交同键也不会再触发。左右及软降按候选时长持续。noop 只松键，仍会自然下落。"
+        },
+        "score": {
+          "points": 0,
+          "lines": 0,
+          "survivedTicks": 126
+        }
+      },
+      "last_input": {
+        "action_id": "hard-drop:100",
+        "buttons": [
+          "hard-drop"
+        ],
+        "duration_ms": 100,
+        "requested_ticks": 6,
+        "simulated_ticks": 6
+      },
+      "simulation": {
+        "tick_rate": 60,
+        "wall_clock_advances_game": false,
+        "action_duration_semantics": "One selected native input advances exactly durationMs*60/1000 ticks unless the game naturally ends first. Waiting for a model advances zero ticks."
+      },
+      "episode_id": "exp-b9ea0df62cf0ec85dca187bf",
+      "observation_hash": "a116f1e5483b075cbdf2df50044586391e4d1e5fb83dbc52d449c7cdb6f8b01b",
+      "candidates": [
+        {
+          "id": "keep",
+          "label": "保持当前目标；当前无目标则继续无目标"
+        },
+        {
+          "id": "clear",
+          "label": "清空目标，本次不设新目标"
+        },
+        {
+          "id": "target:0:0",
+          "label": "目标最左占用列=0，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和4，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:0:1",
+          "label": "目标最左占用列=0，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:0:2",
+          "label": "目标最左占用列=0，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和4，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:0:3",
+          "label": "目标最左占用列=0，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:1:0",
+          "label": "目标最左占用列=1，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:1:1",
+          "label": "目标最左占用列=1，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:1:2",
+          "label": "目标最左占用列=1，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:1:3",
+          "label": "目标最左占用列=1，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:2:0",
+          "label": "目标最左占用列=2，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:2:1",
+          "label": "目标最左占用列=2，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:2:2",
+          "label": "目标最左占用列=2，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:2:3",
+          "label": "目标最左占用列=2，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:3:0",
+          "label": "目标最左占用列=3，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→3（净变化+1），最大列高4，总列高27，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:3:1",
+          "label": "目标最左占用列=3，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:3:2",
+          "label": "目标最左占用列=3，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→3（净变化+1），最大列高4，总列高27，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:3:3",
+          "label": "目标最左占用列=3，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:4:0",
+          "label": "目标最左占用列=4，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→4（净变化+2），最大列高4，总列高28，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:4:1",
+          "label": "目标最左占用列=4，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:4:2",
+          "label": "目标最左占用列=4，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→4（净变化+2），最大列高4，总列高28，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:4:3",
+          "label": "目标最左占用列=4，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:5:0",
+          "label": "目标最左占用列=5，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→7（净变化+5），最大列高4，总列高31，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:5:1",
+          "label": "目标最左占用列=5，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:5:2",
+          "label": "目标最左占用列=5，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→7（净变化+5），最大列高4，总列高31，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:5:3",
+          "label": "目标最左占用列=5，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:6:0",
+          "label": "目标最左占用列=6，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消1行，原生积分+100，空洞2→2（净变化+0），最大列高2，总列高16，相邻列高度差绝对值之和2，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:6:1",
+          "label": "目标最左占用列=6，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高6，总列高26，相邻列高度差绝对值之和9，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:6:2",
+          "label": "目标最左占用列=6，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消1行，原生积分+100，空洞2→2（净变化+0），最大列高2，总列高16，相邻列高度差绝对值之和2，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:6:3",
+          "label": "目标最左占用列=6，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高6，总列高26，相邻列高度差绝对值之和9，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:7:0",
+          "label": "目标最左占用列=7，目标朝向=0；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+        },
+        {
+          "id": "target:7:1",
+          "label": "目标最左占用列=7，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高6，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:7:2",
+          "label": "目标最左占用列=7，目标朝向=2；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+        },
+        {
+          "id": "target:7:3",
+          "label": "目标最左占用列=7，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高6，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:8:0",
+          "label": "目标最左占用列=8，目标朝向=0；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+        },
+        {
+          "id": "target:8:1",
+          "label": "目标最左占用列=8，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:8:2",
+          "label": "目标最左占用列=8，目标朝向=2；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+        },
+        {
+          "id": "target:8:3",
+          "label": "目标最左占用列=8，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:9:0",
+          "label": "目标最左占用列=9，目标朝向=0；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+        },
+        {
+          "id": "target:9:1",
+          "label": "目标最左占用列=9，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+        },
+        {
+          "id": "target:9:2",
+          "label": "目标最左占用列=9，目标朝向=2；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+        },
+        {
+          "id": "target:9:3",
+          "label": "目标最左占用列=9，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+        }
+      ],
+      "remaining_steps": 63,
+      "tetris_features": {
+        "schema_version": "tetris-visible-facts/v1",
+        "coordinates": {
+          "x_min": 0,
+          "x_max": 9,
+          "y_min": -2,
+          "y_max": 19,
+          "visible_y_min": 0,
+          "x_direction": "right",
+          "y_direction": "down"
+        },
+        "definitions": {
+          "board": "Locked cells only; active cells are excluded from columns, rows and holes.",
+          "height": "0 for an empty column; otherwise 20 - top_occupied_y, including spawn rows (maximum 22). Not occupied_count.",
+          "hole": "An empty cell with at least one locked cell above it in the same column, within y=-2..19. Does not imply that it is unreachable from the side.",
+          "adjacent_height_difference": "height of right column minus height of left column; signed, no score or ranking.",
+          "below_exposed_edges": "Cell immediately below each active cell with no active cell below it: empty, locked, or floor at y=20. Current contact only, no landing prediction.",
+          "rotation": "0/1/2/3 are the current spawn-relative clockwise quarter turns. Origin is the local shape frame, not its leftmost occupied cell."
+        },
+        "columns": [
+          {
+            "x": 0,
+            "top_occupied_y": 17,
+            "height": 3,
+            "occupied_count": 2,
+            "hole_ys": [
+              19
+            ],
+            "hole_count": 1
+          },
+          {
+            "x": 1,
+            "top_occupied_y": 17,
+            "height": 3,
+            "occupied_count": 3,
+            "hole_ys": [],
+            "hole_count": 0
+          },
+          {
+            "x": 2,
+            "top_occupied_y": 17,
+            "height": 3,
+            "occupied_count": 3,
+            "hole_ys": [],
+            "hole_count": 0
+          },
+          {
+            "x": 3,
+            "top_occupied_y": 17,
+            "height": 3,
+            "occupied_count": 2,
+            "hole_ys": [
+              19
+            ],
+            "hole_count": 1
+          },
+          {
+            "x": 4,
+            "top_occupied_y": 17,
+            "height": 3,
+            "occupied_count": 3,
+            "hole_ys": [],
+            "hole_count": 0
+          },
+          {
+            "x": 5,
+            "top_occupied_y": 17,
+            "height": 3,
+            "occupied_count": 3,
+            "hole_ys": [],
+            "hole_count": 0
+          },
+          {
+            "x": 6,
+            "top_occupied_y": 18,
+            "height": 2,
+            "occupied_count": 2,
+            "hole_ys": [],
+            "hole_count": 0
+          },
+          {
+            "x": 7,
+            "top_occupied_y": 18,
+            "height": 2,
+            "occupied_count": 2,
+            "hole_ys": [],
+            "hole_count": 0
+          },
+          {
+            "x": 8,
+            "top_occupied_y": null,
+            "height": 0,
+            "occupied_count": 0,
+            "hole_ys": [],
+            "hole_count": 0
+          },
+          {
+            "x": 9,
+            "top_occupied_y": null,
+            "height": 0,
+            "occupied_count": 0,
+            "hole_ys": [],
+            "hole_count": 0
+          }
+        ],
+        "rows": [
+          {
+            "y": -2,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": -1,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 0,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 1,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 2,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 3,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 4,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 5,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 6,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 7,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 8,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 9,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 10,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 11,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 12,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 13,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 14,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 15,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 16,
+            "occupied_count": 0,
+            "missing_columns": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 17,
+            "occupied_count": 6,
+            "missing_columns": [
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "y": 18,
+            "occupied_count": 8,
+            "missing_columns": [
+              8,
+              9
+            ]
+          },
+          {
+            "y": 19,
+            "occupied_count": 6,
+            "missing_columns": [
+              0,
+              3,
+              8,
+              9
+            ]
+          }
+        ],
+        "adjacent_height_differences": [
+          {
+            "left_x": 0,
+            "right_x": 1,
+            "right_minus_left": 0
+          },
+          {
+            "left_x": 1,
+            "right_x": 2,
+            "right_minus_left": 0
+          },
+          {
+            "left_x": 2,
+            "right_x": 3,
+            "right_minus_left": 0
+          },
+          {
+            "left_x": 3,
+            "right_x": 4,
+            "right_minus_left": 0
+          },
+          {
+            "left_x": 4,
+            "right_x": 5,
+            "right_minus_left": 0
+          },
+          {
+            "left_x": 5,
+            "right_x": 6,
+            "right_minus_left": -1
+          },
+          {
+            "left_x": 6,
+            "right_x": 7,
+            "right_minus_left": 0
+          },
+          {
+            "left_x": 7,
+            "right_x": 8,
+            "right_minus_left": -2
+          },
+          {
+            "left_x": 8,
+            "right_x": 9,
+            "right_minus_left": 0
+          }
+        ],
+        "total_locked_cells": 20,
+        "total_holes": 2,
+        "active": {
+          "piece_id": 6,
+          "type": "I",
+          "rotation": 0,
+          "origin": {
+            "x": 3,
+            "y": -2
+          },
+          "cells": [
+            {
+              "x": 3,
+              "y": -1
+            },
+            {
+              "x": 4,
+              "y": -1
+            },
+            {
+              "x": 5,
+              "y": -1
+            },
+            {
+              "x": 6,
+              "y": -1
+            }
+          ],
+          "bounds": {
+            "min_x": 3,
+            "max_x": 6,
+            "min_y": -1,
+            "max_y": -1
+          },
+          "grounded": false,
+          "below_exposed_edges": [
+            {
+              "x": 3,
+              "active_y": -1,
+              "below_y": 0,
+              "kind": "empty"
+            },
+            {
+              "x": 4,
+              "active_y": -1,
+              "below_y": 0,
+              "kind": "empty"
+            },
+            {
+              "x": 5,
+              "active_y": -1,
+              "below_y": 0,
+              "kind": "empty"
+            },
+            {
+              "x": 6,
+              "active_y": -1,
+              "below_y": 0,
+              "kind": "empty"
+            }
+          ]
+        }
+      },
+      "decision_goal_memory": {
+        "scope": {
+          "episode_id": "exp-b9ea0df62cf0ec85dca187bf",
+          "piece_id": 6,
+          "piece_type": "I",
+          "locked_board_hash": "8d7558a2497ba3632ac047e67f84e9a2882bc025b77c767dacb549e474121167"
+        },
+        "target": null,
+        "age_actions": null,
+        "recent_actions": []
+      },
+      "tetris_control_facts": {
+        "schema": "tetris-control-facts/v1",
+        "current": {
+          "leftmost_column": 3,
+          "rotation": 0,
+          "horizontal_direction": 0,
+          "horizontal_held_ticks": 0
+        },
+        "target_relation": {
+          "target": null,
+          "column_error": null,
+          "rotation_equal": null,
+          "at_target": null
+        },
+        "last_transition": null,
+        "recent_window": {
+          "max_actions": 4,
+          "confirmed_actions": 0,
+          "horizontal_commands": [],
+          "horizontal_command_reversals": 0
+        }
+      },
+      "tetris_landing_projections": {
+        "schema": "tetris-conditional-landings/v1",
+        "assumptions": {
+          "method": "conditional_vertical_hard_drop_from_assumed_pose",
+          "active_origin_y": -2,
+          "piece_type": "I",
+          "level_before": 1,
+          "pose": "Assume target rotation and leftmost occupied column can be attained instantly; retain current active frame origin y.",
+          "reachability": "not_proven: no timed-input, gravity, lock-delay, SRS-path or hold simulation",
+          "cells": "landing_cells are the four pre-clear locked cells, including exposed spawn rows -2 and -1",
+          "top_out": "Locked cells remain in spawn rows after lock and line clear only; next-piece spawn is not simulated, so false does not guarantee spawning succeeds.",
+          "board_metrics": "after line clear; heights include spawn rows; holes have a locked cell above in the same column",
+          "ordering": "all 40 original targets; column 0..9 then rotation 0..3; no ranking or filtering"
+        },
+        "before": {
+          "holes": 2,
+          "max_height": 3,
+          "total_height": 22,
+          "bumpiness": 3,
+          "column_heights": [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            2,
+            0,
+            0
+          ]
+        },
+        "candidates": [
+          {
+            "id": "target:0:0",
+            "leftmost_column": 0,
+            "rotation": 0,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 0,
+              "y": 15
+            },
+            "landing_cells": [
+              {
+                "x": 0,
+                "y": 16
+              },
+              {
+                "x": 1,
+                "y": 16
+              },
+              {
+                "x": 2,
+                "y": 16
+              },
+              {
+                "x": 3,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 4,
+            "top_out": false
+          },
+          {
+            "id": "target:0:1",
+            "leftmost_column": 0,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": -2,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 0,
+                "y": 13
+              },
+              {
+                "x": 0,
+                "y": 14
+              },
+              {
+                "x": 0,
+                "y": 15
+              },
+              {
+                "x": 0,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 7,
+            "top_out": false
+          },
+          {
+            "id": "target:0:2",
+            "leftmost_column": 0,
+            "rotation": 2,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 0,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 0,
+                "y": 16
+              },
+              {
+                "x": 1,
+                "y": 16
+              },
+              {
+                "x": 2,
+                "y": 16
+              },
+              {
+                "x": 3,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 4,
+            "top_out": false
+          },
+          {
+            "id": "target:0:3",
+            "leftmost_column": 0,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": -1,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 0,
+                "y": 13
+              },
+              {
+                "x": 0,
+                "y": 14
+              },
+              {
+                "x": 0,
+                "y": 15
+              },
+              {
+                "x": 0,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 7,
+            "top_out": false
+          },
+          {
+            "id": "target:1:0",
+            "leftmost_column": 1,
+            "rotation": 0,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 1,
+              "y": 15
+            },
+            "landing_cells": [
+              {
+                "x": 1,
+                "y": 16
+              },
+              {
+                "x": 2,
+                "y": 16
+              },
+              {
+                "x": 3,
+                "y": 16
+              },
+              {
+                "x": 4,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:1:1",
+            "leftmost_column": 1,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": -1,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 1,
+                "y": 13
+              },
+              {
+                "x": 1,
+                "y": 14
+              },
+              {
+                "x": 1,
+                "y": 15
+              },
+              {
+                "x": 1,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:1:2",
+            "leftmost_column": 1,
+            "rotation": 2,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 1,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 1,
+                "y": 16
+              },
+              {
+                "x": 2,
+                "y": 16
+              },
+              {
+                "x": 3,
+                "y": 16
+              },
+              {
+                "x": 4,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:1:3",
+            "leftmost_column": 1,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 0,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 1,
+                "y": 13
+              },
+              {
+                "x": 1,
+                "y": 14
+              },
+              {
+                "x": 1,
+                "y": 15
+              },
+              {
+                "x": 1,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:2:0",
+            "leftmost_column": 2,
+            "rotation": 0,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 2,
+              "y": 15
+            },
+            "landing_cells": [
+              {
+                "x": 2,
+                "y": 16
+              },
+              {
+                "x": 3,
+                "y": 16
+              },
+              {
+                "x": 4,
+                "y": 16
+              },
+              {
+                "x": 5,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:2:1",
+            "leftmost_column": 2,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 0,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 2,
+                "y": 13
+              },
+              {
+                "x": 2,
+                "y": 14
+              },
+              {
+                "x": 2,
+                "y": 15
+              },
+              {
+                "x": 2,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:2:2",
+            "leftmost_column": 2,
+            "rotation": 2,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 2,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 2,
+                "y": 16
+              },
+              {
+                "x": 3,
+                "y": 16
+              },
+              {
+                "x": 4,
+                "y": 16
+              },
+              {
+                "x": 5,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:2:3",
+            "leftmost_column": 2,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 1,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 2,
+                "y": 13
+              },
+              {
+                "x": 2,
+                "y": 14
+              },
+              {
+                "x": 2,
+                "y": 15
+              },
+              {
+                "x": 2,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:3:0",
+            "leftmost_column": 3,
+            "rotation": 0,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 3,
+              "y": 15
+            },
+            "landing_cells": [
+              {
+                "x": 3,
+                "y": 16
+              },
+              {
+                "x": 4,
+                "y": 16
+              },
+              {
+                "x": 5,
+                "y": 16
+              },
+              {
+                "x": 6,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 3,
+            "holes_delta": 1,
+            "max_height": 4,
+            "total_height": 27,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:3:1",
+            "leftmost_column": 3,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 1,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 3,
+                "y": 13
+              },
+              {
+                "x": 3,
+                "y": 14
+              },
+              {
+                "x": 3,
+                "y": 15
+              },
+              {
+                "x": 3,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:3:2",
+            "leftmost_column": 3,
+            "rotation": 2,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 3,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 3,
+                "y": 16
+              },
+              {
+                "x": 4,
+                "y": 16
+              },
+              {
+                "x": 5,
+                "y": 16
+              },
+              {
+                "x": 6,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 3,
+            "holes_delta": 1,
+            "max_height": 4,
+            "total_height": 27,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:3:3",
+            "leftmost_column": 3,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 2,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 3,
+                "y": 13
+              },
+              {
+                "x": 3,
+                "y": 14
+              },
+              {
+                "x": 3,
+                "y": 15
+              },
+              {
+                "x": 3,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:4:0",
+            "leftmost_column": 4,
+            "rotation": 0,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 4,
+              "y": 15
+            },
+            "landing_cells": [
+              {
+                "x": 4,
+                "y": 16
+              },
+              {
+                "x": 5,
+                "y": 16
+              },
+              {
+                "x": 6,
+                "y": 16
+              },
+              {
+                "x": 7,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 4,
+            "holes_delta": 2,
+            "max_height": 4,
+            "total_height": 28,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:4:1",
+            "leftmost_column": 4,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 2,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 4,
+                "y": 13
+              },
+              {
+                "x": 4,
+                "y": 14
+              },
+              {
+                "x": 4,
+                "y": 15
+              },
+              {
+                "x": 4,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:4:2",
+            "leftmost_column": 4,
+            "rotation": 2,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 4,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 4,
+                "y": 16
+              },
+              {
+                "x": 5,
+                "y": 16
+              },
+              {
+                "x": 6,
+                "y": 16
+              },
+              {
+                "x": 7,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 4,
+            "holes_delta": 2,
+            "max_height": 4,
+            "total_height": 28,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:4:3",
+            "leftmost_column": 4,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 3,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 4,
+                "y": 13
+              },
+              {
+                "x": 4,
+                "y": 14
+              },
+              {
+                "x": 4,
+                "y": 15
+              },
+              {
+                "x": 4,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:5:0",
+            "leftmost_column": 5,
+            "rotation": 0,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 5,
+              "y": 15
+            },
+            "landing_cells": [
+              {
+                "x": 5,
+                "y": 16
+              },
+              {
+                "x": 6,
+                "y": 16
+              },
+              {
+                "x": 7,
+                "y": 16
+              },
+              {
+                "x": 8,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 7,
+            "holes_delta": 5,
+            "max_height": 4,
+            "total_height": 31,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:5:1",
+            "leftmost_column": 5,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 3,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 5,
+                "y": 13
+              },
+              {
+                "x": 5,
+                "y": 14
+              },
+              {
+                "x": 5,
+                "y": 15
+              },
+              {
+                "x": 5,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:5:2",
+            "leftmost_column": 5,
+            "rotation": 2,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 5,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 5,
+                "y": 16
+              },
+              {
+                "x": 6,
+                "y": 16
+              },
+              {
+                "x": 7,
+                "y": 16
+              },
+              {
+                "x": 8,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 7,
+            "holes_delta": 5,
+            "max_height": 4,
+            "total_height": 31,
+            "bumpiness": 5,
+            "top_out": false
+          },
+          {
+            "id": "target:5:3",
+            "leftmost_column": 5,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 4,
+              "y": 13
+            },
+            "landing_cells": [
+              {
+                "x": 5,
+                "y": 13
+              },
+              {
+                "x": 5,
+                "y": 14
+              },
+              {
+                "x": 5,
+                "y": 15
+              },
+              {
+                "x": 5,
+                "y": 16
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 7,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:6:0",
+            "leftmost_column": 6,
+            "rotation": 0,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 6,
+              "y": 16
+            },
+            "landing_cells": [
+              {
+                "x": 6,
+                "y": 17
+              },
+              {
+                "x": 7,
+                "y": 17
+              },
+              {
+                "x": 8,
+                "y": 17
+              },
+              {
+                "x": 9,
+                "y": 17
+              }
+            ],
+            "lines_cleared": 1,
+            "points_delta": 100,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 2,
+            "total_height": 16,
+            "bumpiness": 2,
+            "top_out": false
+          },
+          {
+            "id": "target:6:1",
+            "leftmost_column": 6,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 4,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 6,
+                "y": 14
+              },
+              {
+                "x": 6,
+                "y": 15
+              },
+              {
+                "x": 6,
+                "y": 16
+              },
+              {
+                "x": 6,
+                "y": 17
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 6,
+            "total_height": 26,
+            "bumpiness": 9,
+            "top_out": false
+          },
+          {
+            "id": "target:6:2",
+            "leftmost_column": 6,
+            "rotation": 2,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 6,
+              "y": 15
+            },
+            "landing_cells": [
+              {
+                "x": 6,
+                "y": 17
+              },
+              {
+                "x": 7,
+                "y": 17
+              },
+              {
+                "x": 8,
+                "y": 17
+              },
+              {
+                "x": 9,
+                "y": 17
+              }
+            ],
+            "lines_cleared": 1,
+            "points_delta": 100,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 2,
+            "total_height": 16,
+            "bumpiness": 2,
+            "top_out": false
+          },
+          {
+            "id": "target:6:3",
+            "leftmost_column": 6,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 5,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 6,
+                "y": 14
+              },
+              {
+                "x": 6,
+                "y": 15
+              },
+              {
+                "x": 6,
+                "y": 16
+              },
+              {
+                "x": 6,
+                "y": 17
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 6,
+            "total_height": 26,
+            "bumpiness": 9,
+            "top_out": false
+          },
+          {
+            "id": "target:7:0",
+            "leftmost_column": 7,
+            "rotation": 0,
+            "pose_valid": false,
+            "invalid_reason": "outside_horizontal_bounds",
+            "native_reachability": "not_proven",
+            "landing_origin": null,
+            "landing_cells": null,
+            "lines_cleared": null,
+            "points_delta": null,
+            "holes_before": 2,
+            "holes_after": null,
+            "holes_delta": null,
+            "max_height": null,
+            "total_height": null,
+            "bumpiness": null,
+            "top_out": null
+          },
+          {
+            "id": "target:7:1",
+            "leftmost_column": 7,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 5,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 7,
+                "y": 14
+              },
+              {
+                "x": 7,
+                "y": 15
+              },
+              {
+                "x": 7,
+                "y": 16
+              },
+              {
+                "x": 7,
+                "y": 17
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 6,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:7:2",
+            "leftmost_column": 7,
+            "rotation": 2,
+            "pose_valid": false,
+            "invalid_reason": "outside_horizontal_bounds",
+            "native_reachability": "not_proven",
+            "landing_origin": null,
+            "landing_cells": null,
+            "lines_cleared": null,
+            "points_delta": null,
+            "holes_before": 2,
+            "holes_after": null,
+            "holes_delta": null,
+            "max_height": null,
+            "total_height": null,
+            "bumpiness": null,
+            "top_out": null
+          },
+          {
+            "id": "target:7:3",
+            "leftmost_column": 7,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 6,
+              "y": 14
+            },
+            "landing_cells": [
+              {
+                "x": 7,
+                "y": 14
+              },
+              {
+                "x": 7,
+                "y": 15
+              },
+              {
+                "x": 7,
+                "y": 16
+              },
+              {
+                "x": 7,
+                "y": 17
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 6,
+            "total_height": 26,
+            "bumpiness": 11,
+            "top_out": false
+          },
+          {
+            "id": "target:8:0",
+            "leftmost_column": 8,
+            "rotation": 0,
+            "pose_valid": false,
+            "invalid_reason": "outside_horizontal_bounds",
+            "native_reachability": "not_proven",
+            "landing_origin": null,
+            "landing_cells": null,
+            "lines_cleared": null,
+            "points_delta": null,
+            "holes_before": 2,
+            "holes_after": null,
+            "holes_delta": null,
+            "max_height": null,
+            "total_height": null,
+            "bumpiness": null,
+            "top_out": null
+          },
+          {
+            "id": "target:8:1",
+            "leftmost_column": 8,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 6,
+              "y": 16
+            },
+            "landing_cells": [
+              {
+                "x": 8,
+                "y": 16
+              },
+              {
+                "x": 8,
+                "y": 17
+              },
+              {
+                "x": 8,
+                "y": 18
+              },
+              {
+                "x": 8,
+                "y": 19
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 7,
+            "top_out": false
+          },
+          {
+            "id": "target:8:2",
+            "leftmost_column": 8,
+            "rotation": 2,
+            "pose_valid": false,
+            "invalid_reason": "outside_horizontal_bounds",
+            "native_reachability": "not_proven",
+            "landing_origin": null,
+            "landing_cells": null,
+            "lines_cleared": null,
+            "points_delta": null,
+            "holes_before": 2,
+            "holes_after": null,
+            "holes_delta": null,
+            "max_height": null,
+            "total_height": null,
+            "bumpiness": null,
+            "top_out": null
+          },
+          {
+            "id": "target:8:3",
+            "leftmost_column": 8,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 7,
+              "y": 16
+            },
+            "landing_cells": [
+              {
+                "x": 8,
+                "y": 16
+              },
+              {
+                "x": 8,
+                "y": 17
+              },
+              {
+                "x": 8,
+                "y": 18
+              },
+              {
+                "x": 8,
+                "y": 19
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 7,
+            "top_out": false
+          },
+          {
+            "id": "target:9:0",
+            "leftmost_column": 9,
+            "rotation": 0,
+            "pose_valid": false,
+            "invalid_reason": "outside_horizontal_bounds",
+            "native_reachability": "not_proven",
+            "landing_origin": null,
+            "landing_cells": null,
+            "lines_cleared": null,
+            "points_delta": null,
+            "holes_before": 2,
+            "holes_after": null,
+            "holes_delta": null,
+            "max_height": null,
+            "total_height": null,
+            "bumpiness": null,
+            "top_out": null
+          },
+          {
+            "id": "target:9:1",
+            "leftmost_column": 9,
+            "rotation": 1,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 7,
+              "y": 16
+            },
+            "landing_cells": [
+              {
+                "x": 9,
+                "y": 16
+              },
+              {
+                "x": 9,
+                "y": 17
+              },
+              {
+                "x": 9,
+                "y": 18
+              },
+              {
+                "x": 9,
+                "y": 19
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 7,
+            "top_out": false
+          },
+          {
+            "id": "target:9:2",
+            "leftmost_column": 9,
+            "rotation": 2,
+            "pose_valid": false,
+            "invalid_reason": "outside_horizontal_bounds",
+            "native_reachability": "not_proven",
+            "landing_origin": null,
+            "landing_cells": null,
+            "lines_cleared": null,
+            "points_delta": null,
+            "holes_before": 2,
+            "holes_after": null,
+            "holes_delta": null,
+            "max_height": null,
+            "total_height": null,
+            "bumpiness": null,
+            "top_out": null
+          },
+          {
+            "id": "target:9:3",
+            "leftmost_column": 9,
+            "rotation": 3,
+            "pose_valid": true,
+            "invalid_reason": null,
+            "native_reachability": "not_proven",
+            "landing_origin": {
+              "x": 8,
+              "y": 16
+            },
+            "landing_cells": [
+              {
+                "x": 9,
+                "y": 16
+              },
+              {
+                "x": 9,
+                "y": 17
+              },
+              {
+                "x": 9,
+                "y": 18
+              },
+              {
+                "x": 9,
+                "y": 19
+              }
+            ],
+            "lines_cleared": 0,
+            "points_delta": 0,
+            "holes_before": 2,
+            "holes_after": 2,
+            "holes_delta": 0,
+            "max_height": 4,
+            "total_height": 26,
+            "bumpiness": 7,
+            "top_out": false
+          }
+        ]
+      },
+      "selection_purpose": "update_goal_memory_only"
+    },
+    "instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。\n玩家接口合同（v3条件落点规划）：\n若输入有 tetris_features，它仅是当前可见棋盘的确定性结构事实；不是动作、落点评分或建议。没有该字段时读取原始 observation。\n若输入有 decision_goal_memory，它包含当前方块有效的 target、age_actions 和最近最多4个已选择并在后续步骤确认执行的原生动作及其前坐标。\ntarget.leftmost_column 表示目标朝向下实际占用格最左列（0..9），不是 active.x 局部框原点；target.rotation 是原生0..3朝向。\n目标由Decision自己选择；候选完整列举40种列与朝向组合，加keep/clear，不按棋盘过滤或优劣排序；额外条件落点投影与后果描述不改变候选ID和顺序，也不保证目标可达或安全。\n同一方块、类型与已锁定棋盘未变时目标会保留；新块（包括hold生成）、棋盘改变或新局使旧目标失效。移动、旋转、下落本身不会清目标。\n每个新有效期和同一有效期每4次游戏动作，Decision另外更新一次目标；clear后等到下一固定更新点，不立即重问。\n每个实际游戏按键依然必须由Decision从完整原生目录另选。达到目标不会自动硬降，无法达到也不会由程序改目标或代选。\nleft/right:100 不保证一格；原生横移计时器可能跨短动作保留，必须观察实际占用格与计时器。所有调用think_mode=never。\n\n可选控制事实合同：\ntetris_control_facts只描述当前公开状态、Decision已选目标与已经发生的状态变化，不包含动作建议、候选评分或未来落点。\ncurrent.leftmost_column是实际占用格最左列；horizontal_direction/horizontal_held_ticks是当前原生横移方向与重复计时，不是按键建议。\ntarget_relation.column_error=目标最左列-当前最左列；rotation_equal和at_target仅表示相等关系，无目标时这些关系为null。达到目标不触发自动动作。\nlast_transition仅在下一公开观察到达后记录同一方块、种类、锁定棋盘和局内上一动作的真实前后坐标、朝向与物理tick差；换作用域后为null。\ntarget_unchanged比较上一动作时的目标与本次目标；crossing_comparison_applicable仅在目标未变、朝向未变且上一动作为left/right时为true。\nstrictly_crossed_target_column仅在上述比较适用且前后列误差严格异号时为true，到达目标列不算越过。旋转或更换目标不能被解释为横移越界。\nrecent_window只含当前作用域最近最多4个已由后续观察确认的动作；horizontal_commands是其中left/right子序列，horizontal_command_reversals数相邻横移指令方向的变化，不是错误或优劣标签。\n\n可选目标后果合同：\ntetris_landing_projections 仅用当前公开 observation，完整保留 target:列:朝向 的40项目标，按列0..9、朝向0..3固定顺序。\n每项是假设当前块能立即到达指定朝向与最左占用列，且 active 的局部框原点 y 保持不变，再竖直硬降到碰撞前的位置。\npose_valid 只表示这一假设的起始姿态在棋盘内且不与已锁定格相撞；不等于能用真实按键到达。\ninvalid_reason 不为空时该假设不能投影，其后果字段为 null；程序仍不删除该目标。native_reachability 始终为 not_proven。\nlanding_cells 是假设硬降后、消行前的四格；lines_cleared、points_delta 与 top_out 按原生规则计算，包含两行生成区，积分按消行前等级。\ntop_out 仅表示锁定并消行后两行生成区仍有锁定格；未模拟下一块生成，因此 false 不是下一块可生成的保证。\nholes_after、holes_delta、max_height、total_height、bumpiness 均针对假设消行后的已锁定棋盘；holes_before 是当前已锁定棋盘空洞数。\n空洞是同列上方已有锁定格的空格，包含生成区；列高是20减去最高锁定格y，空列为0；bumpiness是相邻列高差绝对值之和。\n这不是动作评分、路径或推荐；未模拟到达目标所需的横移、SRS踢墙、按键时长、重力、锁定倒计时、hold或后续块。\n目标选择和每一次实际游戏按键仍须分别由Decision决定；程序不会代选、代执行，也不保证目标安全或可达。\n\n本次只更新目标记忆，不执行游戏按键。\n从完整目录选一项：keep保留已有目标（无目标时保持无目标）；clear主动清空；target选择当前块的目标最左占用列与朝向。\n结合当前可见棋盘、冻结策略、现有目标与近期动作，自行决定是否保留或更换目标。目录不会告诉你哪个目标最好或可达。\n目标只是你下一次选择游戏动作时的参考，不是移动指令；不要把active.x误当成最左占用列。\n",
+    "criteria": [
+      {
+        "id": "keep",
+        "label": "保持当前目标；当前无目标则继续无目标"
+      },
+      {
+        "id": "clear",
+        "label": "清空目标，本次不设新目标"
+      },
+      {
+        "id": "target:0:0",
+        "label": "目标最左占用列=0，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和4，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:0:1",
+        "label": "目标最左占用列=0，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:0:2",
+        "label": "目标最左占用列=0，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和4，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:0:3",
+        "label": "目标最左占用列=0，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:1:0",
+        "label": "目标最左占用列=1，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:1:1",
+        "label": "目标最左占用列=1，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:1:2",
+        "label": "目标最左占用列=1，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:1:3",
+        "label": "目标最左占用列=1，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:2:0",
+        "label": "目标最左占用列=2，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:2:1",
+        "label": "目标最左占用列=2，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:2:2",
+        "label": "目标最左占用列=2，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:2:3",
+        "label": "目标最左占用列=2，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:3:0",
+        "label": "目标最左占用列=3，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→3（净变化+1），最大列高4，总列高27，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:3:1",
+        "label": "目标最左占用列=3，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:3:2",
+        "label": "目标最左占用列=3，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→3（净变化+1），最大列高4，总列高27，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:3:3",
+        "label": "目标最左占用列=3，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:4:0",
+        "label": "目标最左占用列=4，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→4（净变化+2），最大列高4，总列高28，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:4:1",
+        "label": "目标最左占用列=4，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:4:2",
+        "label": "目标最左占用列=4，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→4（净变化+2），最大列高4，总列高28，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:4:3",
+        "label": "目标最左占用列=4，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:5:0",
+        "label": "目标最左占用列=5，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→7（净变化+5），最大列高4，总列高31，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:5:1",
+        "label": "目标最左占用列=5，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:5:2",
+        "label": "目标最左占用列=5，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→7（净变化+5），最大列高4，总列高31，相邻列高度差绝对值之和5，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:5:3",
+        "label": "目标最左占用列=5，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高7，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:6:0",
+        "label": "目标最左占用列=6，目标朝向=0；不保证可达或安全；假设先达到目标姿态再直落：消1行，原生积分+100，空洞2→2（净变化+0），最大列高2，总列高16，相邻列高度差绝对值之和2，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:6:1",
+        "label": "目标最左占用列=6，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高6，总列高26，相邻列高度差绝对值之和9，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:6:2",
+        "label": "目标最左占用列=6，目标朝向=2；不保证可达或安全；假设先达到目标姿态再直落：消1行，原生积分+100，空洞2→2（净变化+0），最大列高2，总列高16，相邻列高度差绝对值之和2，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:6:3",
+        "label": "目标最左占用列=6，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高6，总列高26，相邻列高度差绝对值之和9，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:7:0",
+        "label": "目标最左占用列=7，目标朝向=0；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+      },
+      {
+        "id": "target:7:1",
+        "label": "目标最左占用列=7，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高6，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:7:2",
+        "label": "目标最左占用列=7，目标朝向=2；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+      },
+      {
+        "id": "target:7:3",
+        "label": "目标最左占用列=7，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高6，总列高26，相邻列高度差绝对值之和11，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:8:0",
+        "label": "目标最左占用列=8，目标朝向=0；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+      },
+      {
+        "id": "target:8:1",
+        "label": "目标最左占用列=8，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:8:2",
+        "label": "目标最左占用列=8，目标朝向=2；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+      },
+      {
+        "id": "target:8:3",
+        "label": "目标最左占用列=8，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:9:0",
+        "label": "目标最左占用列=9，目标朝向=0；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+      },
+      {
+        "id": "target:9:1",
+        "label": "目标最左占用列=9，目标朝向=1；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+      },
+      {
+        "id": "target:9:2",
+        "label": "目标最左占用列=9，目标朝向=2；不保证可达或安全；假设起始姿态无效：outside_horizontal_bounds；后果未知；原生按键路径未验证"
+      },
+      {
+        "id": "target:9:3",
+        "label": "目标最左占用列=9，目标朝向=3；不保证可达或安全；假设先达到目标姿态再直落：消0行，原生积分+0，空洞2→2（净变化+0），最大列高4，总列高26，相邻列高度差绝对值之和7，锁定后隐藏行占用=否；原生按键路径未验证"
+      }
+    ],
+    "think_mode": "never",
+    "expected_model": "startlux-decision-27b-autothink"
+  },
+  "choice_id": "target:6:0",
+  "image_sha256": "bed72f42d4fb301ab0f103ce6c3dd8a3aa522bc13d91b8041308fc5b45917192",
+  "original_wire_json_sha256": "40ee23fab04109c60881a4bccbb524feb2ded67d6313448fba1b2004b11d63da",
+  "request_archive_sha256": "4d125d070a6fa5682a62fa3fa333f4a98b5996aecb6606d6ab74f6cb937e3017",
+  "think_mode": "never",
+  "think_used": false
+}
