@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/babalae/better-genshin-impact.git",
+  "commit": "7139092a7f13d5d8c117bc0a3825f0dac33002e8",
+  "upstream_base_commit": "b3f90e70494320639eeccc8c559612d02d2d9ef0",
+  "archive": "BetterGI-StartLux-source.zip",
+  "archive_sha256": "981e935034b1dfaba78dfdb7ef331be9aba5dbd8972fce4f43336e2b8fa74644",
+  "license": "GPL-3.0"
+}

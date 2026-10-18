@@ -2,7 +2,7 @@ name: Genshin agent foundation
 
 on:
   push:
-    branches: [feat/genshin-realtime-foundation]
+    branches: [feat/genshin-realtime-foundation, hhr-yuanshen]
   pull_request:
     paths:
       - src/game_harness/genshin/**

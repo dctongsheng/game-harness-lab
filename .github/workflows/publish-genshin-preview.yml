@@ -1,0 +1,36 @@
+name: Publish verified Genshin preview to hhr-yuanshen
+
+on:
+  push:
+    branches: [hhr-yuanshen]
+    paths:
+      - .github/workflows/publish-genshin-preview.yml
+      - scripts/publish_genshin_preview.py
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: publish-genshin-hhr-yuanshen
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hhr-yuanshen
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: StartLux-Genshin-Windows-preview
+          run-id: 39118291723
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/startlux-verified-preview
+      - name: Verify and publish installer through Git LFS
+        env:
+          STARTLUX_PREVIEW_ARTIFACT: ${{ runner.temp }}/startlux-verified-preview
+        run: python3 scripts/publish_genshin_preview.py

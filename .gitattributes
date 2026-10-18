@@ -5,3 +5,6 @@ domains/genshin_snapshot/harness/** -text
 
 integrations/auto_commission/upstream/** -text -whitespace
 integrations/auto_commission/agent-main.js -text
+windows/*.exe filter=lfs diff=lfs merge=lfs -text
+windows/BetterGI-StartLux-source.zip -text
+Try-Genshin.cmd text eol=crlf
