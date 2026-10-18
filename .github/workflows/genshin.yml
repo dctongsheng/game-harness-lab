@@ -15,6 +15,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: genshin-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows-bridge:
     runs-on: windows-latest

@@ -1,2 +1,4 @@
 # Patch context preserves upstream indentation and blank-line prefixes.
-integrations/bettergi/*.patch -whitespace
+integrations/bettergi/*.patch -text -whitespace
+# Hash-addressed task pack resources must retain their original bytes on Windows.
+domains/genshin_snapshot/harness/** -text

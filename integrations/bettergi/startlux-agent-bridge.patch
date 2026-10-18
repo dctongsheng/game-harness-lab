@@ -477,10 +477,10 @@ index e27f6e7f..e512631d 100644
  		<Version>0.66.2-alpha.2</Version>
 diff --git a/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs b/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs
 new file mode 100644
-index 00000000..298ff2eb
+index 00000000..2fe093d7
 --- /dev/null
 +++ b/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs
-@@ -0,0 +1,245 @@
+@@ -0,0 +1,248 @@
 +using System;
 +using System.Collections.Generic;
 +using System.Globalization;
@@ -646,6 +646,7 @@ index 00000000..298ff2eb
 +                if (CancellationContext.Instance.IsManualStop) ManualStop?.Invoke();
 +            });
 +            var token = linked.Token;
++            token.ThrowIfCancellationRequested();
 +            using var focusLease = CancellationTokenSource.CreateLinkedTokenSource(token);
 +            var focusMonitor = MonitorForegroundAsync(focusLease.Token);
 +            try
@@ -657,6 +658,7 @@ index 00000000..298ff2eb
 +                    if (!_resources.TryGetValue(resource, out var bytes)) throw new InvalidDataException("Route is outside the pinned task pack.");
 +                    var task = PathingTask.BuildFromJson(Encoding.UTF8.GetString(bytes));
 +                    var executor = new PathExecutor(token);
++                    token.ThrowIfCancellationRequested();
 +                    await executor.Pathing(task).ConfigureAwait(false);
 +                    token.ThrowIfCancellationRequested();
 +                    if (!executor.SuccessEnd) return new SkillOutcome("failed", "path_executor_did_not_complete", new JObject());
@@ -665,6 +667,7 @@ index 00000000..298ff2eb
 +                {
 +                    var text = arguments.Value<string>("text");
 +                    if (string.IsNullOrWhiteSpace(text) || text.Length > 128) throw new InvalidDataException("Invalid dialogue text.");
++                    token.ThrowIfCancellationRequested();
 +                    var result = await new ChooseTalkOptionTask().SingleSelectText(text, token, 3, true).ConfigureAwait(false);
 +                    if (result != TalkOptionRes.FoundAndClick) return new SkillOutcome("failed", "dialogue_option_not_selected", new JObject());
 +                }

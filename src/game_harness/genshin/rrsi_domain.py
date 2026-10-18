@@ -95,7 +95,7 @@ class GenshinSnapshotDomain(Domain):
                     for trial in range(k):
                         path = self._trial_path(runs_dir, job, task_id, trial)
                         if path.exists():
-                            previous = json.loads(path.read_text())
+                            previous = json.loads(path.read_text(encoding="utf-8"))
                             if (previous.get("suite_hash") != self.suite_hash
                                     or previous.get("pack_hash") != pack_hash
                                     or previous.get("case_hash") != canonical_hash(case.model_dump())):
@@ -132,7 +132,7 @@ class GenshinSnapshotDomain(Domain):
 
     def load_trial(self, runs_dir, job, task_id, trial):
         path = self._trial_path(runs_dir, job, task_id, trial)
-        return json.loads(path.read_text()) if path.exists() else None
+        return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
     def render_trace(self, rec, detail=False):
         # RRSI's proposer slices events; a snapshot has a single decision.
