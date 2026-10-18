@@ -1,5 +1,6 @@
 <Window x:Class="StartLux.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="StartLux 原神语音助手 · 开发预览" Width="760" Height="850" MinWidth="650" MinHeight="680" Background="#F5F6FA">
+ Title="StartLux 原神语音助手 · 开发预览" Width="760" Height="850" MinWidth="650" MinHeight="600"
+ MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height}" WindowStartupLocation="CenterScreen" Background="#F5F6FA">
  <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
   <TextBlock Text="用一句话，开始今天的委托" FontSize="26" FontWeight="SemiBold"/>
   <TextBlock Text="蒙德 · 中文游戏界面 · 四项真实委托 + 凯瑟琳每日奖励" Foreground="#52596B" Margin="0,10,0,22"/>
