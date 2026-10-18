@@ -159,6 +159,6 @@ class GenshinSnapshotDomain(Domain):
                 violations.append(f"changed_{key}")
         if candidate.missing:
             violations.append("missing_snapshot_trials")
-        if candidate.extra.get("unknown_cost_trials", 1):
+        if candidate.extra.get("unknown_cost_trials", 1) or candidate.C is None or incumbent.C is None:
             violations.append("unknown_policy_cost")
         return violations

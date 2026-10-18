@@ -487,6 +487,12 @@ def test_google_rrsi_evaluation_keeps_missing_trials_and_frozen_boundaries(tmp_p
     assert measured.n_expected == 2
     assert measured.extra["eligible_for_client_release"] is False
     assert "unknown_policy_cost" in domain.guards(measured, measured)
+    # Upstream aggregation excludes zero token counts from C. Zero telemetry
+    # must not bypass the cost gate when the aggregate remains unknown.
+    zero_cost = deepcopy(measured)
+    zero_cost.C = None
+    zero_cost.extra["unknown_cost_trials"] = 0
+    assert "unknown_policy_cost" in domain.guards(zero_cost, zero_cost)
     domain._trial_path(runs, "fixture-job", "evolve-1", 1).unlink()
     per_task, extra = domain.score(runs, "fixture-job", domain.evolve_ids(), 2)
     missing = aggregate("fixture-job", 2, per_task, extra)
