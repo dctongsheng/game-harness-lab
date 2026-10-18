@@ -57,6 +57,8 @@ flowchart LR
 
 0.5.0 新增俄罗斯方块的实验性上下文组件：可独立启用结构化棋盘事实，以及由 Decision 自己更新的每块目标与短期动作记忆。四组对照命令及真实结果见 [V5 实验文档](docs/tetris-context-validation-v5.md)。这些选项通过实验运行器显式启用，网页常规运行默认关闭。LLM 可参与上下文整理；本轮在对局前完成历史经验提取并冻结，以隔离两个实验因素。
 
+俄罗斯方块还可在实验运行器中附加当前棋盘 PNG：每次目标选择和按键均把图片送给 Decision，保留相同文字与完整动作目录。先安装可选依赖 `uv pip install --python .venv/bin/python '.[vision]'`。接入方式、配对对照及实际结果见 [V7 视觉输入验证](docs/tetris-vision-validation-v7.md)；网页常规模式不会自动启用实验配置。
+
 运行中的全部版本与轨迹位于本地 `data/`，不提交 Git。**通过配对验收的版本自动导出到：**
 
 ```text
@@ -88,6 +90,7 @@ harnesses/<游戏>/<版本>/
 - [V4 完整反馈与真实对照实验](docs/feedback-validation-v4.md)
 - [V5 俄罗斯方块结构事实与目标记忆](docs/tetris-context-validation-v5.md)
 - [V6 俄罗斯方块按键控制、LLM 修订与配对实验](docs/tetris-control-validation-v6.md)
+- [V7 俄罗斯方块视觉输入与配对实验](docs/tetris-vision-validation-v7.md)
 - [宝可梦 poke-env 接入与真实实验](docs/pokemon-integration-v1.md)
 - [Showdown 原版精灵动画观战与真实验收](docs/pokemon-showdown-spectator-v1.md)
 - [Overcooked-AI 双人厨房接入与真实实验](docs/overcooked-integration-v1.md)

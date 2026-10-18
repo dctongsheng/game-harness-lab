@@ -1,0 +1,1872 @@
+{
+  "schema": "tetris-vision-public-results/v1",
+  "experiment_id": "tetris-vision-v7-20261018",
+  "calibration": {
+    "status": "completed",
+    "phase": "calibration",
+    "per_seed": [
+      {
+        "id": "calibration-00",
+        "seed": 1832809803,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-46dc6f91095bb978d572853a",
+            "points": 0,
+            "lines": 0,
+            "steps": 76,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 29,
+            "control_diagnostics": {
+              "locked_pieces": 19,
+              "same_piece_horizontal_reversals": 3,
+              "horizontal_actions": 42,
+              "horizontal_reversal_opportunities": 33,
+              "strict_overshoots": 3,
+              "strict_overshoot_opportunities": 41,
+              "goal_already_reached_before_actions": 18
+            }
+          },
+          "vision": {
+            "episode_id": "exp-46dc6f91095bb978d572853a",
+            "points": 0,
+            "lines": 0,
+            "steps": 45,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 23,
+            "control_diagnostics": {
+              "locked_pieces": 23,
+              "same_piece_horizontal_reversals": 5,
+              "horizontal_actions": 22,
+              "horizontal_reversal_opportunities": 6,
+              "strict_overshoots": 5,
+              "strict_overshoot_opportunities": 22,
+              "goal_already_reached_before_actions": 23
+            }
+          }
+        }
+      },
+      {
+        "id": "calibration-01",
+        "seed": 1947233516,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-b1087469a21418e0f1d5868d",
+            "points": 0,
+            "lines": 0,
+            "steps": 14,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 12,
+            "control_diagnostics": {
+              "locked_pieces": 12,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 2,
+              "horizontal_reversal_opportunities": 1,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 2,
+              "goal_already_reached_before_actions": 12
+            }
+          },
+          "text": {
+            "episode_id": "exp-b1087469a21418e0f1d5868d",
+            "points": 0,
+            "lines": 0,
+            "steps": 68,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 28,
+            "control_diagnostics": {
+              "locked_pieces": 19,
+              "same_piece_horizontal_reversals": 1,
+              "horizontal_actions": 39,
+              "horizontal_reversal_opportunities": 32,
+              "strict_overshoots": 1,
+              "strict_overshoot_opportunities": 38,
+              "goal_already_reached_before_actions": 18
+            }
+          }
+        }
+      }
+    ],
+    "arms": {
+      "text": {
+        "episodes": 2,
+        "points": [
+          0,
+          0
+        ],
+        "mean_points": 0,
+        "lines": [
+          0,
+          0
+        ],
+        "total_lines": 0,
+        "mean_lines": 0,
+        "any_line_episodes": 0,
+        "any_line_rate": 0,
+        "top_out_episodes": 2,
+        "termination_reasons": {
+          "TOP_OUT": 2
+        },
+        "total_steps": 144,
+        "goal_calls": 57,
+        "locked_pieces": 38,
+        "same_piece_horizontal_reversals": 4,
+        "horizontal_actions": 81,
+        "horizontal_reversal_opportunities": 65,
+        "strict_overshoots": 4,
+        "strict_overshoot_opportunities": 79,
+        "goal_already_reached_before_actions": 36
+      },
+      "vision": {
+        "episodes": 2,
+        "points": [
+          0,
+          0
+        ],
+        "mean_points": 0,
+        "lines": [
+          0,
+          0
+        ],
+        "total_lines": 0,
+        "mean_lines": 0,
+        "any_line_episodes": 0,
+        "any_line_rate": 0,
+        "top_out_episodes": 2,
+        "termination_reasons": {
+          "TOP_OUT": 2
+        },
+        "total_steps": 59,
+        "goal_calls": 35,
+        "locked_pieces": 35,
+        "same_piece_horizontal_reversals": 5,
+        "horizontal_actions": 24,
+        "horizontal_reversal_opportunities": 7,
+        "strict_overshoots": 5,
+        "strict_overshoot_opportunities": 24,
+        "goal_already_reached_before_actions": 35
+      }
+    },
+    "comparisons": {
+      "vision-text": {
+        "pairs": [
+          {
+            "seed": 1832809803,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1947233516,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          }
+        ],
+        "pair_count": 2,
+        "unique_seed_count": 2,
+        "mean_gain": 0,
+        "min_gain": 0,
+        "positive_pairs": 0,
+        "negative_pairs": 0,
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ],
+        "bootstrap_resamples": 10000,
+        "bootstrap_seed": 74107,
+        "bootstrap_unit": "paired environment bag seed",
+        "small_sample_descriptive": true,
+        "screening_gate_pass": false,
+        "screening_gate_applicable": false
+      }
+    },
+    "any_line_comparison": {
+      "pairs": [
+        {
+          "seed": 1832809803,
+          "difference": 0
+        },
+        {
+          "seed": 1947233516,
+          "difference": 0
+        }
+      ],
+      "pair_count": 2,
+      "unique_seed_count": 2,
+      "mean_gain": 0,
+      "min_gain": 0,
+      "positive_pairs": 0,
+      "negative_pairs": 0,
+      "bootstrap_95": [
+        0.0,
+        0.0
+      ],
+      "bootstrap_resamples": 10000,
+      "bootstrap_seed": 74107,
+      "bootstrap_unit": "paired environment bag seed",
+      "small_sample_descriptive": true,
+      "interpretation": "Secondary exploratory proportion difference, not percentage points; no independent confirmation claim."
+    },
+    "candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+    "brief_hash": "eacd2a92ed28e69d458bd6fe2436ab96f6e352651d1a2ea0d6f12214513c8643",
+    "published": false,
+    "registry_writes": false,
+    "policy_changed_during_study": false,
+    "costs": {
+      "decision_started": 295,
+      "decision_completed": 295,
+      "decision_failed": 0,
+      "health_started": 1,
+      "health_completed": 1,
+      "health_failed": 0,
+      "by_arm": {
+        "text": {
+          "decision_started": 201,
+          "decision_completed": 201,
+          "decision_failed": 0
+        },
+        "vision": {
+          "decision_started": 94,
+          "decision_completed": 94,
+          "decision_failed": 0
+        }
+      },
+      "completed_episodes": 4,
+      "accepted_game_actions": 203,
+      "episode_attempts": 4,
+      "decision_started_without_response": 0,
+      "reported_usage": {
+        "input_tokens": 3980386.0,
+        "output_tokens": 0.0
+      },
+      "coach_calls": 0,
+      "currency_cost": "not available; no price assumed"
+    },
+    "evaluation_allowed": true,
+    "interpretation": "Engineering calibration only; no score threshold or policy selection."
+  },
+  "evaluation": {
+    "status": "completed",
+    "phase": "evaluation",
+    "per_seed": [
+      {
+        "id": "evaluation-00",
+        "seed": 1403019141,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-c81f17f7d757bb962e6570ba",
+            "points": 0,
+            "lines": 0,
+            "steps": 25,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 15,
+            "control_diagnostics": {
+              "locked_pieces": 15,
+              "same_piece_horizontal_reversals": 1,
+              "horizontal_actions": 10,
+              "horizontal_reversal_opportunities": 4,
+              "strict_overshoots": 1,
+              "strict_overshoot_opportunities": 10,
+              "goal_already_reached_before_actions": 15
+            }
+          },
+          "vision": {
+            "episode_id": "exp-c81f17f7d757bb962e6570ba",
+            "points": 0,
+            "lines": 0,
+            "steps": 16,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 13,
+            "control_diagnostics": {
+              "locked_pieces": 13,
+              "same_piece_horizontal_reversals": 1,
+              "horizontal_actions": 3,
+              "horizontal_reversal_opportunities": 1,
+              "strict_overshoots": 1,
+              "strict_overshoot_opportunities": 3,
+              "goal_already_reached_before_actions": 13
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-01",
+        "seed": 185729939,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-4aa260b8025c8d43b7262e05",
+            "points": 0,
+            "lines": 0,
+            "steps": 50,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 25,
+            "control_diagnostics": {
+              "locked_pieces": 25,
+              "same_piece_horizontal_reversals": 5,
+              "horizontal_actions": 25,
+              "horizontal_reversal_opportunities": 9,
+              "strict_overshoots": 5,
+              "strict_overshoot_opportunities": 25,
+              "goal_already_reached_before_actions": 25
+            }
+          },
+          "text": {
+            "episode_id": "exp-4aa260b8025c8d43b7262e05",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 30,
+            "control_diagnostics": {
+              "locked_pieces": 18,
+              "same_piece_horizontal_reversals": 2,
+              "horizontal_actions": 46,
+              "horizontal_reversal_opportunities": 36,
+              "strict_overshoots": 2,
+              "strict_overshoot_opportunities": 46,
+              "goal_already_reached_before_actions": 18
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-02",
+        "seed": 765219910,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-1c6179b0adbaac91bd8c6c26",
+            "points": 100,
+            "lines": 1,
+            "steps": 69,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 28,
+            "control_diagnostics": {
+              "locked_pieces": 20,
+              "same_piece_horizontal_reversals": 2,
+              "horizontal_actions": 38,
+              "horizontal_reversal_opportunities": 29,
+              "strict_overshoots": 2,
+              "strict_overshoot_opportunities": 37,
+              "goal_already_reached_before_actions": 19
+            }
+          },
+          "vision": {
+            "episode_id": "exp-1c6179b0adbaac91bd8c6c26",
+            "points": 100,
+            "lines": 1,
+            "steps": 41,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 22,
+            "control_diagnostics": {
+              "locked_pieces": 22,
+              "same_piece_horizontal_reversals": 4,
+              "horizontal_actions": 18,
+              "horizontal_reversal_opportunities": 5,
+              "strict_overshoots": 4,
+              "strict_overshoot_opportunities": 18,
+              "goal_already_reached_before_actions": 22
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-03",
+        "seed": 1216956652,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-164b9a03fd013d869b1f5d70",
+            "points": 0,
+            "lines": 0,
+            "steps": 60,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 29,
+            "control_diagnostics": {
+              "locked_pieces": 26,
+              "same_piece_horizontal_reversals": 4,
+              "horizontal_actions": 29,
+              "horizontal_reversal_opportunities": 12,
+              "strict_overshoots": 4,
+              "strict_overshoot_opportunities": 29,
+              "goal_already_reached_before_actions": 26
+            }
+          },
+          "text": {
+            "episode_id": "exp-164b9a03fd013d869b1f5d70",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 29,
+            "control_diagnostics": {
+              "locked_pieces": 15,
+              "same_piece_horizontal_reversals": 1,
+              "horizontal_actions": 47,
+              "horizontal_reversal_opportunities": 40,
+              "strict_overshoots": 1,
+              "strict_overshoot_opportunities": 47,
+              "goal_already_reached_before_actions": 14
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-04",
+        "seed": 1252843078,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-64d0c30210009aa81006b31a",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 27,
+            "control_diagnostics": {
+              "locked_pieces": 9,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 50,
+              "horizontal_reversal_opportunities": 48,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 50,
+              "goal_already_reached_before_actions": 9
+            }
+          },
+          "vision": {
+            "episode_id": "exp-64d0c30210009aa81006b31a",
+            "points": 0,
+            "lines": 0,
+            "steps": 17,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 14,
+            "control_diagnostics": {
+              "locked_pieces": 14,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 3,
+              "horizontal_reversal_opportunities": 1,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 3,
+              "goal_already_reached_before_actions": 14
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-05",
+        "seed": 1098623845,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-fefb46e4dbc6721d5a8b2a6c",
+            "points": 0,
+            "lines": 0,
+            "steps": 16,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 13,
+            "control_diagnostics": {
+              "locked_pieces": 13,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 3,
+              "horizontal_reversal_opportunities": 1,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 3,
+              "goal_already_reached_before_actions": 13
+            }
+          },
+          "text": {
+            "episode_id": "exp-fefb46e4dbc6721d5a8b2a6c",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 30,
+            "control_diagnostics": {
+              "locked_pieces": 17,
+              "same_piece_horizontal_reversals": 1,
+              "horizontal_actions": 44,
+              "horizontal_reversal_opportunities": 39,
+              "strict_overshoots": 1,
+              "strict_overshoot_opportunities": 44,
+              "goal_already_reached_before_actions": 16
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-06",
+        "seed": 458949540,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-3981a8165b8dae9bf8b84069",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 30,
+            "control_diagnostics": {
+              "locked_pieces": 18,
+              "same_piece_horizontal_reversals": 5,
+              "horizontal_actions": 48,
+              "horizontal_reversal_opportunities": 37,
+              "strict_overshoots": 5,
+              "strict_overshoot_opportunities": 48,
+              "goal_already_reached_before_actions": 18
+            }
+          },
+          "vision": {
+            "episode_id": "exp-3981a8165b8dae9bf8b84069",
+            "points": 0,
+            "lines": 0,
+            "steps": 26,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 16,
+            "control_diagnostics": {
+              "locked_pieces": 16,
+              "same_piece_horizontal_reversals": 1,
+              "horizontal_actions": 10,
+              "horizontal_reversal_opportunities": 3,
+              "strict_overshoots": 1,
+              "strict_overshoot_opportunities": 10,
+              "goal_already_reached_before_actions": 16
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-07",
+        "seed": 606178100,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-311d99131aa436c66b824487",
+            "points": 0,
+            "lines": 0,
+            "steps": 47,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 23,
+            "control_diagnostics": {
+              "locked_pieces": 21,
+              "same_piece_horizontal_reversals": 4,
+              "horizontal_actions": 23,
+              "horizontal_reversal_opportunities": 11,
+              "strict_overshoots": 4,
+              "strict_overshoot_opportunities": 23,
+              "goal_already_reached_before_actions": 20
+            }
+          },
+          "text": {
+            "episode_id": "exp-311d99131aa436c66b824487",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 31,
+            "control_diagnostics": {
+              "locked_pieces": 21,
+              "same_piece_horizontal_reversals": 2,
+              "horizontal_actions": 45,
+              "horizontal_reversal_opportunities": 34,
+              "strict_overshoots": 2,
+              "strict_overshoot_opportunities": 44,
+              "goal_already_reached_before_actions": 19
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-08",
+        "seed": 1419051491,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-e339f7b1ffa31988b2e6c833",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 28,
+            "control_diagnostics": {
+              "locked_pieces": 11,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 49,
+              "horizontal_reversal_opportunities": 46,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 49,
+              "goal_already_reached_before_actions": 10
+            }
+          },
+          "vision": {
+            "episode_id": "exp-e339f7b1ffa31988b2e6c833",
+            "points": 0,
+            "lines": 0,
+            "steps": 12,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 12,
+            "control_diagnostics": {
+              "locked_pieces": 12,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 0,
+              "horizontal_reversal_opportunities": 0,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 0,
+              "goal_already_reached_before_actions": 12
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-09",
+        "seed": 762379051,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-f0918b236f30b506ab13e5e4",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 31,
+            "control_diagnostics": {
+              "locked_pieces": 19,
+              "same_piece_horizontal_reversals": 4,
+              "horizontal_actions": 41,
+              "horizontal_reversal_opportunities": 29,
+              "strict_overshoots": 4,
+              "strict_overshoot_opportunities": 41,
+              "goal_already_reached_before_actions": 19
+            }
+          },
+          "text": {
+            "episode_id": "exp-f0918b236f30b506ab13e5e4",
+            "points": 0,
+            "lines": 0,
+            "steps": 77,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 31,
+            "control_diagnostics": {
+              "locked_pieces": 22,
+              "same_piece_horizontal_reversals": 5,
+              "horizontal_actions": 41,
+              "horizontal_reversal_opportunities": 29,
+              "strict_overshoots": 5,
+              "strict_overshoot_opportunities": 41,
+              "goal_already_reached_before_actions": 21
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-10",
+        "seed": 1203324632,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-79cbb8a7c7aa7f413e241a55",
+            "points": 0,
+            "lines": 0,
+            "steps": 44,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 22,
+            "control_diagnostics": {
+              "locked_pieces": 21,
+              "same_piece_horizontal_reversals": 3,
+              "horizontal_actions": 21,
+              "horizontal_reversal_opportunities": 10,
+              "strict_overshoots": 3,
+              "strict_overshoot_opportunities": 21,
+              "goal_already_reached_before_actions": 21
+            }
+          },
+          "vision": {
+            "episode_id": "exp-79cbb8a7c7aa7f413e241a55",
+            "points": 0,
+            "lines": 0,
+            "steps": 16,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 13,
+            "control_diagnostics": {
+              "locked_pieces": 13,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 3,
+              "horizontal_reversal_opportunities": 1,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 3,
+              "goal_already_reached_before_actions": 13
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-11",
+        "seed": 108328784,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-83a5ba8f8715a0c30902b9fa",
+            "points": 0,
+            "lines": 0,
+            "steps": 44,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 20,
+            "control_diagnostics": {
+              "locked_pieces": 19,
+              "same_piece_horizontal_reversals": 5,
+              "horizontal_actions": 23,
+              "horizontal_reversal_opportunities": 7,
+              "strict_overshoots": 5,
+              "strict_overshoot_opportunities": 23,
+              "goal_already_reached_before_actions": 19
+            }
+          },
+          "text": {
+            "episode_id": "exp-83a5ba8f8715a0c30902b9fa",
+            "points": 0,
+            "lines": 0,
+            "steps": 65,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 26,
+            "control_diagnostics": {
+              "locked_pieces": 18,
+              "same_piece_horizontal_reversals": 2,
+              "horizontal_actions": 36,
+              "horizontal_reversal_opportunities": 28,
+              "strict_overshoots": 2,
+              "strict_overshoot_opportunities": 36,
+              "goal_already_reached_before_actions": 18
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-12",
+        "seed": 48257816,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-e76418f0967b59eb13ff68f4",
+            "points": 0,
+            "lines": 0,
+            "steps": 34,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 18,
+            "control_diagnostics": {
+              "locked_pieces": 18,
+              "same_piece_horizontal_reversals": 2,
+              "horizontal_actions": 16,
+              "horizontal_reversal_opportunities": 8,
+              "strict_overshoots": 2,
+              "strict_overshoot_opportunities": 16,
+              "goal_already_reached_before_actions": 18
+            }
+          },
+          "vision": {
+            "episode_id": "exp-e76418f0967b59eb13ff68f4",
+            "points": 0,
+            "lines": 0,
+            "steps": 12,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 12,
+            "control_diagnostics": {
+              "locked_pieces": 12,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 0,
+              "horizontal_reversal_opportunities": 0,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 0,
+              "goal_already_reached_before_actions": 12
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-13",
+        "seed": 427637327,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-cb3e4be0b6e0d398cc5c49bf",
+            "points": 0,
+            "lines": 0,
+            "steps": 14,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 12,
+            "control_diagnostics": {
+              "locked_pieces": 12,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 2,
+              "horizontal_reversal_opportunities": 1,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 2,
+              "goal_already_reached_before_actions": 12
+            }
+          },
+          "text": {
+            "episode_id": "exp-cb3e4be0b6e0d398cc5c49bf",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 29,
+            "control_diagnostics": {
+              "locked_pieces": 15,
+              "same_piece_horizontal_reversals": 3,
+              "horizontal_actions": 46,
+              "horizontal_reversal_opportunities": 37,
+              "strict_overshoots": 3,
+              "strict_overshoot_opportunities": 46,
+              "goal_already_reached_before_actions": 14
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-14",
+        "seed": 863159039,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-93463875c645ff1a3fffdc98",
+            "points": 0,
+            "lines": 0,
+            "steps": 47,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 25,
+            "control_diagnostics": {
+              "locked_pieces": 22,
+              "same_piece_horizontal_reversals": 5,
+              "horizontal_actions": 22,
+              "horizontal_reversal_opportunities": 11,
+              "strict_overshoots": 5,
+              "strict_overshoot_opportunities": 22,
+              "goal_already_reached_before_actions": 22
+            }
+          },
+          "vision": {
+            "episode_id": "exp-93463875c645ff1a3fffdc98",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 24,
+            "control_diagnostics": {
+              "locked_pieces": 7,
+              "same_piece_horizontal_reversals": 1,
+              "horizontal_actions": 51,
+              "horizontal_reversal_opportunities": 45,
+              "strict_overshoots": 1,
+              "strict_overshoot_opportunities": 51,
+              "goal_already_reached_before_actions": 7
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-15",
+        "seed": 1996862800,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-3d12984f967ca507c6e8c665",
+            "points": 0,
+            "lines": 0,
+            "steps": 22,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 15,
+            "control_diagnostics": {
+              "locked_pieces": 15,
+              "same_piece_horizontal_reversals": 2,
+              "horizontal_actions": 7,
+              "horizontal_reversal_opportunities": 2,
+              "strict_overshoots": 2,
+              "strict_overshoot_opportunities": 7,
+              "goal_already_reached_before_actions": 15
+            }
+          },
+          "text": {
+            "episode_id": "exp-3d12984f967ca507c6e8c665",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 27,
+            "control_diagnostics": {
+              "locked_pieces": 12,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 49,
+              "horizontal_reversal_opportunities": 42,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 49,
+              "goal_already_reached_before_actions": 12
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-16",
+        "seed": 2046456368,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-e6e9938fbd3c2bea2da22e68",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 28,
+            "control_diagnostics": {
+              "locked_pieces": 17,
+              "same_piece_horizontal_reversals": 3,
+              "horizontal_actions": 48,
+              "horizontal_reversal_opportunities": 36,
+              "strict_overshoots": 3,
+              "strict_overshoot_opportunities": 48,
+              "goal_already_reached_before_actions": 17
+            }
+          },
+          "vision": {
+            "episode_id": "exp-e6e9938fbd3c2bea2da22e68",
+            "points": 0,
+            "lines": 0,
+            "steps": 70,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 33,
+            "control_diagnostics": {
+              "locked_pieces": 29,
+              "same_piece_horizontal_reversals": 6,
+              "horizontal_actions": 36,
+              "horizontal_reversal_opportunities": 17,
+              "strict_overshoots": 6,
+              "strict_overshoot_opportunities": 36,
+              "goal_already_reached_before_actions": 29
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-17",
+        "seed": 1473739492,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-352a76b1d93a630a3e79e20f",
+            "points": 0,
+            "lines": 0,
+            "steps": 11,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 11,
+            "control_diagnostics": {
+              "locked_pieces": 11,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 0,
+              "horizontal_reversal_opportunities": 0,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 0,
+              "goal_already_reached_before_actions": 11
+            }
+          },
+          "text": {
+            "episode_id": "exp-352a76b1d93a630a3e79e20f",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 26,
+            "control_diagnostics": {
+              "locked_pieces": 9,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 46,
+              "horizontal_reversal_opportunities": 44,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 46,
+              "goal_already_reached_before_actions": 9
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-18",
+        "seed": 1481657952,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-5d3ee1c65b297ab2d384814e",
+            "points": 100,
+            "lines": 1,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 28,
+            "control_diagnostics": {
+              "locked_pieces": 20,
+              "same_piece_horizontal_reversals": 3,
+              "horizontal_actions": 48,
+              "horizontal_reversal_opportunities": 34,
+              "strict_overshoots": 3,
+              "strict_overshoot_opportunities": 48,
+              "goal_already_reached_before_actions": 19
+            }
+          },
+          "vision": {
+            "episode_id": "exp-5d3ee1c65b297ab2d384814e",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 30,
+            "control_diagnostics": {
+              "locked_pieces": 20,
+              "same_piece_horizontal_reversals": 6,
+              "horizontal_actions": 43,
+              "horizontal_reversal_opportunities": 29,
+              "strict_overshoots": 6,
+              "strict_overshoot_opportunities": 43,
+              "goal_already_reached_before_actions": 19
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-19",
+        "seed": 1545064847,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-d8e2028f87ce92e8888fc473",
+            "points": 0,
+            "lines": 0,
+            "steps": 58,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 28,
+            "control_diagnostics": {
+              "locked_pieces": 27,
+              "same_piece_horizontal_reversals": 6,
+              "horizontal_actions": 30,
+              "horizontal_reversal_opportunities": 13,
+              "strict_overshoots": 6,
+              "strict_overshoot_opportunities": 30,
+              "goal_already_reached_before_actions": 27
+            }
+          },
+          "text": {
+            "episode_id": "exp-d8e2028f87ce92e8888fc473",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 26,
+            "control_diagnostics": {
+              "locked_pieces": 9,
+              "same_piece_horizontal_reversals": 2,
+              "horizontal_actions": 50,
+              "horizontal_reversal_opportunities": 45,
+              "strict_overshoots": 2,
+              "strict_overshoot_opportunities": 50,
+              "goal_already_reached_before_actions": 8
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-20",
+        "seed": 1424958842,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-8e63ec01932c82ab987bdf51",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 27,
+            "control_diagnostics": {
+              "locked_pieces": 13,
+              "same_piece_horizontal_reversals": 3,
+              "horizontal_actions": 50,
+              "horizontal_reversal_opportunities": 42,
+              "strict_overshoots": 3,
+              "strict_overshoot_opportunities": 50,
+              "goal_already_reached_before_actions": 13
+            }
+          },
+          "vision": {
+            "episode_id": "exp-8e63ec01932c82ab987bdf51",
+            "points": 0,
+            "lines": 0,
+            "steps": 17,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 12,
+            "control_diagnostics": {
+              "locked_pieces": 12,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 5,
+              "horizontal_reversal_opportunities": 2,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 5,
+              "goal_already_reached_before_actions": 12
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-21",
+        "seed": 1037274332,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-856b8d88b8532d1c9e3b7d22",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 27,
+            "control_diagnostics": {
+              "locked_pieces": 13,
+              "same_piece_horizontal_reversals": 3,
+              "horizontal_actions": 48,
+              "horizontal_reversal_opportunities": 38,
+              "strict_overshoots": 3,
+              "strict_overshoot_opportunities": 48,
+              "goal_already_reached_before_actions": 13
+            }
+          },
+          "text": {
+            "episode_id": "exp-856b8d88b8532d1c9e3b7d22",
+            "points": 300,
+            "lines": 2,
+            "steps": 67,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 33,
+            "control_diagnostics": {
+              "locked_pieces": 31,
+              "same_piece_horizontal_reversals": 6,
+              "horizontal_actions": 33,
+              "horizontal_reversal_opportunities": 14,
+              "strict_overshoots": 6,
+              "strict_overshoot_opportunities": 33,
+              "goal_already_reached_before_actions": 31
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-22",
+        "seed": 351134669,
+        "order": [
+          "text",
+          "vision"
+        ],
+        "arms": {
+          "text": {
+            "episode_id": "exp-2d234ec6bb2c23d18cb576eb",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 26,
+            "control_diagnostics": {
+              "locked_pieces": 9,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 51,
+              "horizontal_reversal_opportunities": 48,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 51,
+              "goal_already_reached_before_actions": 9
+            }
+          },
+          "vision": {
+            "episode_id": "exp-2d234ec6bb2c23d18cb576eb",
+            "points": 0,
+            "lines": 0,
+            "steps": 12,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 11,
+            "control_diagnostics": {
+              "locked_pieces": 11,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 1,
+              "horizontal_reversal_opportunities": 0,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 1,
+              "goal_already_reached_before_actions": 11
+            }
+          }
+        }
+      },
+      {
+        "id": "evaluation-23",
+        "seed": 220469954,
+        "order": [
+          "vision",
+          "text"
+        ],
+        "arms": {
+          "vision": {
+            "episode_id": "exp-52ee54c108ba77d04a423975",
+            "points": 0,
+            "lines": 0,
+            "steps": 16,
+            "termination_reason": "TOP_OUT",
+            "goal_calls": 13,
+            "control_diagnostics": {
+              "locked_pieces": 13,
+              "same_piece_horizontal_reversals": 0,
+              "horizontal_actions": 3,
+              "horizontal_reversal_opportunities": 1,
+              "strict_overshoots": 0,
+              "strict_overshoot_opportunities": 3,
+              "goal_already_reached_before_actions": 13
+            }
+          },
+          "text": {
+            "episode_id": "exp-52ee54c108ba77d04a423975",
+            "points": 0,
+            "lines": 0,
+            "steps": 80,
+            "termination_reason": "step_limit",
+            "goal_calls": 30,
+            "control_diagnostics": {
+              "locked_pieces": 18,
+              "same_piece_horizontal_reversals": 5,
+              "horizontal_actions": 47,
+              "horizontal_reversal_opportunities": 36,
+              "strict_overshoots": 5,
+              "strict_overshoot_opportunities": 47,
+              "goal_already_reached_before_actions": 18
+            }
+          }
+        }
+      }
+    ],
+    "arms": {
+      "text": {
+        "episodes": 24,
+        "points": [
+          0,
+          0,
+          100,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          100,
+          0,
+          0,
+          300,
+          0,
+          0
+        ],
+        "mean_points": 20.833333333333332,
+        "lines": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          2,
+          0,
+          0
+        ],
+        "total_lines": 4,
+        "mean_lines": 0.16666666666666666,
+        "any_line_episodes": 3,
+        "any_line_rate": 0.125,
+        "top_out_episodes": 9,
+        "termination_reasons": {
+          "TOP_OUT": 9,
+          "step_limit": 15
+        },
+        "total_steps": 1708,
+        "goal_calls": 650,
+        "locked_pieces": 398,
+        "same_piece_horizontal_reversals": 56,
+        "horizontal_actions": 981,
+        "horizontal_reversal_opportunities": 777,
+        "strict_overshoots": 56,
+        "strict_overshoot_opportunities": 979,
+        "goal_already_reached_before_actions": 388
+      },
+      "vision": {
+        "episodes": 24,
+        "points": [
+          0,
+          0,
+          100,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "mean_points": 4.166666666666667,
+        "lines": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "total_lines": 1,
+        "mean_lines": 0.041666666666666664,
+        "any_line_episodes": 1,
+        "any_line_rate": 0.041666666666666664,
+        "top_out_episodes": 20,
+        "termination_reasons": {
+          "TOP_OUT": 20,
+          "step_limit": 4
+        },
+        "total_steps": 897,
+        "goal_calls": 459,
+        "locked_pieces": 395,
+        "same_piece_horizontal_reversals": 52,
+        "horizontal_actions": 407,
+        "horizontal_reversal_opportunities": 228,
+        "strict_overshoots": 52,
+        "strict_overshoot_opportunities": 407,
+        "goal_already_reached_before_actions": 393
+      }
+    },
+    "comparisons": {
+      "vision-text": {
+        "pairs": [
+          {
+            "seed": 1403019141,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 185729939,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 765219910,
+            "text_points": 100,
+            "vision_points": 100,
+            "difference": 0
+          },
+          {
+            "seed": 1216956652,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1252843078,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1098623845,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 458949540,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 606178100,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1419051491,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 762379051,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1203324632,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 108328784,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 48257816,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 427637327,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 863159039,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1996862800,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 2046456368,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1473739492,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1481657952,
+            "text_points": 100,
+            "vision_points": 0,
+            "difference": -100
+          },
+          {
+            "seed": 1545064847,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1424958842,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 1037274332,
+            "text_points": 300,
+            "vision_points": 0,
+            "difference": -300
+          },
+          {
+            "seed": 351134669,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          },
+          {
+            "seed": 220469954,
+            "text_points": 0,
+            "vision_points": 0,
+            "difference": 0
+          }
+        ],
+        "pair_count": 24,
+        "unique_seed_count": 24,
+        "mean_gain": -16.666666666666668,
+        "min_gain": -300,
+        "positive_pairs": 0,
+        "negative_pairs": 2,
+        "bootstrap_95": [
+          -45.833333333333336,
+          0.0
+        ],
+        "bootstrap_resamples": 10000,
+        "bootstrap_seed": 74107,
+        "bootstrap_unit": "paired environment bag seed",
+        "small_sample_descriptive": true,
+        "screening_gate_pass": false
+      }
+    },
+    "any_line_comparison": {
+      "pairs": [
+        {
+          "seed": 1403019141,
+          "difference": 0
+        },
+        {
+          "seed": 185729939,
+          "difference": 0
+        },
+        {
+          "seed": 765219910,
+          "difference": 0
+        },
+        {
+          "seed": 1216956652,
+          "difference": 0
+        },
+        {
+          "seed": 1252843078,
+          "difference": 0
+        },
+        {
+          "seed": 1098623845,
+          "difference": 0
+        },
+        {
+          "seed": 458949540,
+          "difference": 0
+        },
+        {
+          "seed": 606178100,
+          "difference": 0
+        },
+        {
+          "seed": 1419051491,
+          "difference": 0
+        },
+        {
+          "seed": 762379051,
+          "difference": 0
+        },
+        {
+          "seed": 1203324632,
+          "difference": 0
+        },
+        {
+          "seed": 108328784,
+          "difference": 0
+        },
+        {
+          "seed": 48257816,
+          "difference": 0
+        },
+        {
+          "seed": 427637327,
+          "difference": 0
+        },
+        {
+          "seed": 863159039,
+          "difference": 0
+        },
+        {
+          "seed": 1996862800,
+          "difference": 0
+        },
+        {
+          "seed": 2046456368,
+          "difference": 0
+        },
+        {
+          "seed": 1473739492,
+          "difference": 0
+        },
+        {
+          "seed": 1481657952,
+          "difference": -1
+        },
+        {
+          "seed": 1545064847,
+          "difference": 0
+        },
+        {
+          "seed": 1424958842,
+          "difference": 0
+        },
+        {
+          "seed": 1037274332,
+          "difference": -1
+        },
+        {
+          "seed": 351134669,
+          "difference": 0
+        },
+        {
+          "seed": 220469954,
+          "difference": 0
+        }
+      ],
+      "pair_count": 24,
+      "unique_seed_count": 24,
+      "mean_gain": -0.08333333333333333,
+      "min_gain": -1,
+      "positive_pairs": 0,
+      "negative_pairs": 2,
+      "bootstrap_95": [
+        -0.20833333333333334,
+        0.0
+      ],
+      "bootstrap_resamples": 10000,
+      "bootstrap_seed": 74107,
+      "bootstrap_unit": "paired environment bag seed",
+      "small_sample_descriptive": true,
+      "interpretation": "Secondary exploratory proportion difference, not percentage points; no independent confirmation claim."
+    },
+    "candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+    "brief_hash": "eacd2a92ed28e69d458bd6fe2436ab96f6e352651d1a2ea0d6f12214513c8643",
+    "published": false,
+    "registry_writes": false,
+    "policy_changed_during_study": false,
+    "costs": {
+      "decision_started": 4009,
+      "decision_completed": 4009,
+      "decision_failed": 0,
+      "health_started": 1,
+      "health_completed": 1,
+      "health_failed": 0,
+      "by_arm": {
+        "text": {
+          "decision_started": 2559,
+          "decision_completed": 2559,
+          "decision_failed": 0
+        },
+        "vision": {
+          "decision_started": 1450,
+          "decision_completed": 1450,
+          "decision_failed": 0
+        }
+      },
+      "completed_episodes": 52,
+      "accepted_game_actions": 2808,
+      "episode_attempts": 52,
+      "decision_started_without_response": 0,
+      "reported_usage": {
+        "input_tokens": 53227116.0,
+        "output_tokens": 0.0
+      },
+      "coach_calls": 0,
+      "currency_cost": "not available; no price assumed"
+    },
+    "evaluation_allowed": false,
+    "interpretation": "Image-only paired ablation; positive mean alone does not establish a clear improvement."
+  },
+  "costs_by_phase": {
+    "calibration": {
+      "text": {
+        "decision_calls": 201,
+        "input_tokens": 2603328,
+        "output_tokens": 0,
+        "elapsed_ms": 108575.08,
+        "latency_by_purpose": {
+          "goal": {
+            "calls": 57,
+            "mean_ms": 792.5445614035087,
+            "median_ms": 789.0,
+            "total_ms": 45175.04
+          },
+          "game_action": {
+            "calls": 144,
+            "mean_ms": 440.27805555555557,
+            "median_ms": 443.6155,
+            "total_ms": 63400.04
+          }
+        }
+      },
+      "vision": {
+        "decision_calls": 94,
+        "input_tokens": 1377058,
+        "output_tokens": 0,
+        "elapsed_ms": 56603.892,
+        "latency_by_purpose": {
+          "goal": {
+            "calls": 35,
+            "mean_ms": 824.5801428571428,
+            "median_ms": 823.96,
+            "total_ms": 28860.305
+          },
+          "game_action": {
+            "calls": 59,
+            "mean_ms": 470.23028813559324,
+            "median_ms": 470.451,
+            "total_ms": 27743.587
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "text": {
+        "decision_calls": 2358,
+        "input_tokens": 30067092,
+        "output_tokens": 0,
+        "elapsed_ms": 1269043.965,
+        "latency_by_purpose": {
+          "goal": {
+            "calls": 650,
+            "mean_ms": 795.2127692307693,
+            "median_ms": 787.4565,
+            "total_ms": 516888.3
+          },
+          "game_action": {
+            "calls": 1708,
+            "mean_ms": 440.3721692037471,
+            "median_ms": 439.69899999999996,
+            "total_ms": 752155.665
+          }
+        }
+      },
+      "vision": {
+        "decision_calls": 1356,
+        "input_tokens": 19179638,
+        "output_tokens": 0,
+        "elapsed_ms": 804433.034,
+        "latency_by_purpose": {
+          "goal": {
+            "calls": 459,
+            "mean_ms": 826.5190174291939,
+            "median_ms": 821.247,
+            "total_ms": 379372.229
+          },
+          "game_action": {
+            "calls": 897,
+            "mean_ms": 473.86934782608694,
+            "median_ms": 471.594,
+            "total_ms": 425060.805
+          }
+        }
+      }
+    }
+  },
+  "costs_note": "Result.costs is cumulative including calibration; costs_by_phase separates engineering and formal games. Currency price unavailable. Fewer calls after TOP_OUT do not demonstrate efficiency."
+}

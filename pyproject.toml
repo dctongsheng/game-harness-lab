@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10"]
+vision = ["Pillow==12.0.0"]
 pokemon = ["poke-env @ git+https://github.com/hsahovic/poke-env.git@7ff6212e4e738efd46f1ea52035b37a8bba1e386"]
 
 [tool.setuptools.packages.find]

@@ -19,6 +19,12 @@ inside the distributed vendor directory.
 GEPA is pinned by source commit in `pyproject.toml`; its MIT notice and other
 dependencies' license notices remain in their installed distributions.
 
+## Pillow (external, optional)
+
+- Upstream: https://github.com/python-pillow/Pillow, optional package pinned to **12.0.0** (`vision` extra).
+- Installed distribution declares **MIT-CMU**; its license notices remain in the installed package.
+- The Tetris experimental renderer draws original geometric cells and labels from public observations using Pillow's bundled default font. It does not bundle commercial game graphics or download screenshot assets.
+
 ## Decision Arena board and arcade rules
 
 - Source repository: https://github.com/dctongsheng/decison-arena

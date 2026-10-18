@@ -1,0 +1,63 @@
+{
+  "synthetic_not_gameplay": true,
+  "cases": [
+    {
+      "test": "synthetic_image_position_only",
+      "index": 0,
+      "expected": "left",
+      "choice": "left",
+      "correct": true,
+      "elapsed_ms": 80.18,
+      "usage": {
+        "input_tokens": 295,
+        "output_tokens": 0
+      },
+      "thinking_off": true,
+      "image_sha256": "025dd5a563a396c2bc389ace52f233fbe6ca1eba2e5d6d6cbbef329dae77b76e"
+    },
+    {
+      "test": "synthetic_image_position_only",
+      "index": 1,
+      "expected": "right",
+      "choice": "right",
+      "correct": true,
+      "elapsed_ms": 60.95,
+      "usage": {
+        "input_tokens": 295,
+        "output_tokens": 0
+      },
+      "thinking_off": true,
+      "image_sha256": "a40f9009e531ada96835e0ffc9037a9795e3e1acba074fbcad5b5c3e2a707b6a"
+    },
+    {
+      "test": "synthetic_image_position_only",
+      "index": 2,
+      "expected": "right",
+      "choice": "right",
+      "correct": true,
+      "elapsed_ms": 33.3,
+      "usage": {
+        "input_tokens": 295,
+        "output_tokens": 0
+      },
+      "thinking_off": true,
+      "image_sha256": "a40f9009e531ada96835e0ffc9037a9795e3e1acba074fbcad5b5c3e2a707b6a"
+    },
+    {
+      "test": "synthetic_image_position_only",
+      "index": 3,
+      "expected": "left",
+      "choice": "left",
+      "correct": true,
+      "elapsed_ms": 31.74,
+      "usage": {
+        "input_tokens": 295,
+        "output_tokens": 0
+      },
+      "thinking_off": true,
+      "image_sha256": "025dd5a563a396c2bc389ace52f233fbe6ca1eba2e5d6d6cbbef329dae77b76e"
+    }
+  ],
+  "correct": 4,
+  "calls": 4
+}

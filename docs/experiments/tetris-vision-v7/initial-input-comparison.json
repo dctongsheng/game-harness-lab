@@ -1,0 +1,215 @@
+{
+  "schema": "tetris-vision-initial-input-comparison/v1",
+  "pairs": [
+    {
+      "phase": "calibration",
+      "trial": "calibration-00",
+      "seed": 1832809803,
+      "text_payload_hash": "0d1396cffef33804d2595fd53dfc10b2e5447ac3f3bbf0e205d1162bf0fd9cca",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "calibration",
+      "trial": "calibration-01",
+      "seed": 1947233516,
+      "text_payload_hash": "bd2b83848af091a88e64c82a3e2e213e582fc9d8d09fda6765b5101572826ab5",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-00",
+      "seed": 1403019141,
+      "text_payload_hash": "062aa8bb4b669ae7fa0d556874deb6888aaeacbac625f4a685a5899973470195",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-01",
+      "seed": 185729939,
+      "text_payload_hash": "4c0236350cee15d2a3109bbe0dbae3191c96d5ad3f536224c1f1472b211ecab7",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-02",
+      "seed": 765219910,
+      "text_payload_hash": "2baeb39ef64ac7def262cfd03e500f896acbdb176fa4802ef8ee04184539a98c",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-03",
+      "seed": 1216956652,
+      "text_payload_hash": "c25478700232af14c4e4c86397a53efd23485d47a4c9b5e3c04bde2c73a49e33",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-04",
+      "seed": 1252843078,
+      "text_payload_hash": "d1967d39e18bfaa62811824ae0856fcc8342880702ed67996292da8bc9ba75f8",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-05",
+      "seed": 1098623845,
+      "text_payload_hash": "cd6c41f99ef7bdbe77fb96b77b6f5a4ec8f5ad78be07e4312222a86274ac7d8d",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-06",
+      "seed": 458949540,
+      "text_payload_hash": "6d25889541d2b60c06c34949739d30a5eb788acf30de5e3680feedd74183ad6f",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-07",
+      "seed": 606178100,
+      "text_payload_hash": "5eb862a2bd004c0cb9ca9f4bc0198b5cb22d6d6359edb88f5633d2bb1af7a7aa",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-08",
+      "seed": 1419051491,
+      "text_payload_hash": "2e72eb093047068f7ea5bc52ac0d89e0c79e6d33b15f4d7b2abf2f753fc1b902",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-09",
+      "seed": 762379051,
+      "text_payload_hash": "8dd987af5ed371bdcfca7657b244123b20032644c95643c61654919bb9b06f8f",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-10",
+      "seed": 1203324632,
+      "text_payload_hash": "64173842c2f3a35cdfa0196c66eeedfefa942bd65dc5978dd8b6c77401576c28",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-11",
+      "seed": 108328784,
+      "text_payload_hash": "5840dc4ee9cbe64e74fbb55671a1d2db1ce983c3052b177029f07bc88c2d25c5",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-12",
+      "seed": 48257816,
+      "text_payload_hash": "f73b31134deb492faa3a2e672fb16817aed3a89f2caeea0c4ed873fc8d9f8f9d",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-13",
+      "seed": 427637327,
+      "text_payload_hash": "802ba05366f8118bc82b1a444aeba80fc56ec53fd873fe55eb774c7f21a52681",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-14",
+      "seed": 863159039,
+      "text_payload_hash": "cc5ecc3d51a51068fa61fbf2119003eb4414e14f66a74463dd5d3870eb7d48df",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-15",
+      "seed": 1996862800,
+      "text_payload_hash": "2c54958eb16fe111c521e65f845feaa870fca739cef92187499f270f6f33e169",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-16",
+      "seed": 2046456368,
+      "text_payload_hash": "7993932b8af7c9fbc59bc6d2922f470d62778ab48548614a460ebbbab0b18ce9",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-17",
+      "seed": 1473739492,
+      "text_payload_hash": "8e75f39ebb3d9e6b9dd3e69f5663b846245d8aa20dd0795a47b1ced7e91b4cb5",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-18",
+      "seed": 1481657952,
+      "text_payload_hash": "dd044ed00f60acc923bd28ab2aee1d4e115ff02e849f0f19fb769a22ebd97eca",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-19",
+      "seed": 1545064847,
+      "text_payload_hash": "085c5799bd4df9c16d385404df18cfdd5adeb8e9bce297895441b44818b7c4b4",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-20",
+      "seed": 1424958842,
+      "text_payload_hash": "1095d3d5848d59dd2ccb93e343bf661adb95a91d7eb37d35cb4ae1049ad5a75b",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-21",
+      "seed": 1037274332,
+      "text_payload_hash": "c6de7492e624c83cec5ccf6213a008e4337d7b3b2285a372a3eb6c659c8e30ea",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-22",
+      "seed": 351134669,
+      "text_payload_hash": "950547462baa8c86a91efba4eef707c3486fb518c44a2b0ad4623c45ced73cf9",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    },
+    {
+      "phase": "evaluation",
+      "trial": "evaluation-23",
+      "seed": 220469954,
+      "text_payload_hash": "b78cce123ff6a42d24d2a56f7c50a5b6c53a6f6bd27d19879087ba02088b4257",
+      "initial_goal_text_inputs_exactly_equal": true,
+      "only_images_added": true
+    }
+  ],
+  "verified_pairs": 26,
+  "limit": "Later inputs correctly diverge when the model picks different goals/actions."
+}

@@ -1,0 +1,318 @@
+{
+  "schema": "tetris-vision-experiment/v1",
+  "id": "tetris-vision-v7-20261018",
+  "created_at": "2026-10-18T00:55:33.475784+00:00",
+  "config": {
+    "max_steps": 80
+  },
+  "candidate_hash": "42555378eeb85d35cee7f2f94527061887fe1736fab46bd6fed626878bdaa4a4",
+  "brief_hash": "eacd2a92ed28e69d458bd6fe2436ab96f6e352651d1a2ea0d6f12214513c8643",
+  "parent_hash": "6cab9ee6cb22aeca9c6dbd07432ff23b0c18d846b981659c553689ec27408230",
+  "arm_order": [
+    "text",
+    "vision"
+  ],
+  "scenarios": {
+    "calibration": [
+      {
+        "id": "calibration-00",
+        "seed": 1832809803,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "calibration-01",
+        "seed": 1947233516,
+        "order": [
+          "vision",
+          "text"
+        ]
+      }
+    ],
+    "evaluation": [
+      {
+        "id": "evaluation-00",
+        "seed": 1403019141,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-01",
+        "seed": 185729939,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-02",
+        "seed": 765219910,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-03",
+        "seed": 1216956652,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-04",
+        "seed": 1252843078,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-05",
+        "seed": 1098623845,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-06",
+        "seed": 458949540,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-07",
+        "seed": 606178100,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-08",
+        "seed": 1419051491,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-09",
+        "seed": 762379051,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-10",
+        "seed": 1203324632,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-11",
+        "seed": 108328784,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-12",
+        "seed": 48257816,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-13",
+        "seed": 427637327,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-14",
+        "seed": 863159039,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-15",
+        "seed": 1996862800,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-16",
+        "seed": 2046456368,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-17",
+        "seed": 1473739492,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-18",
+        "seed": 1481657952,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-19",
+        "seed": 1545064847,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-20",
+        "seed": 1424958842,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-21",
+        "seed": 1037274332,
+        "order": [
+          "vision",
+          "text"
+        ]
+      },
+      {
+        "id": "evaluation-22",
+        "seed": 351134669,
+        "order": [
+          "text",
+          "vision"
+        ]
+      },
+      {
+        "id": "evaluation-23",
+        "seed": 220469954,
+        "order": [
+          "vision",
+          "text"
+        ]
+      }
+    ]
+  },
+  "seed": 2026101807,
+  "treatment": {
+    "text": "Existing structured board + Decision goal memory + V6 control facts",
+    "vision": "Exact same text/context/catalog/strategy plus current board image on every goal and action request",
+    "shared_model_visible_episode_metadata": true,
+    "image_source": "Current native observation only; no policy recommendation or future-state simulation",
+    "image_archive": "Deduplicated original PNG bytes by SHA256; every request and receipt bound to image hash"
+  },
+  "statistics": {
+    "bootstrap_seed": 74107,
+    "bootstrap_resamples": 10000,
+    "bootstrap_unit": "paired bag seed; both arms sampled together",
+    "confidence_level": 0.95,
+    "primary_comparisons": [
+      "vision-text"
+    ],
+    "primary_metric": "native line-clear points",
+    "secondary_metrics": [
+      "native cleared lines",
+      "any-line paired risk difference",
+      "TOP_OUT",
+      "latency"
+    ]
+  },
+  "screening_gate": {
+    "bootstrap_lower_greater_than": 0,
+    "positive_mean_gain": true,
+    "automatic_promotion": false
+  },
+  "budget": {
+    "calibration_episodes": 4,
+    "evaluation_episodes": 48,
+    "completed_episodes": 52,
+    "max_game_actions_per_episode": 80,
+    "max_calls_per_action": 2,
+    "decision_request_attempts_without_episode_retries_max": 8320,
+    "max_episode_attempts_per_trial": 2,
+    "decision_request_attempts_max": 16640,
+    "health_preflight_attempts_max": 2,
+    "coach_calls": 0,
+    "retry_definition": "Only infrastructure failures may receive one explicitly requested retry; completed games never redraw."
+  },
+  "constraints": {
+    "publish": false,
+    "registry_writes": false,
+    "automatic_export": false,
+    "gepa": false,
+    "in_game_coach": false,
+    "arm_policy_text_changes": false,
+    "scoring_early_stop": false,
+    "score_dependent_extra_trials": false,
+    "calibration_is_independent_test": false,
+    "evaluation_requires_calibration_complete_only": true,
+    "failed_attempts": "Stop; preserve error evidence; never score a failed episode as zero."
+  },
+  "limitations": [
+    "Same seed and same model-visible metadata isolate the added image; trajectories may diverge after choices.",
+    "Provider nondeterminism, checkpoint drift and extra visual token cost remain possible.",
+    "Calibration cannot select strategy or change seeds, sample count, scoring, input contract or stopping rules.",
+    "Twenty-four paired bags are a small screening sample; confidence interval containing zero cannot establish a clear improvement.",
+    "No promotion even when the descriptive screening interval is positive.",
+    "Fresh seed IDs do not guarantee all generated piece sequences are unique."
+  ],
+  "runtime_dependencies": {
+    "Pillow": "12.0.0",
+    "httpx": "0.28.1"
+  },
+  "source_manifest_sha256": "ca39fb6d77df44d097ea44f9a4ab9d3f08518e8db104e2d4b2b8cc86946b4c9c",
+  "decision_model": "startlux-decision-27b-autothink",
+  "think_mode": "never",
+  "source_hashes": {
+    "pyproject.toml": "6b5026b68ef64223acdf023ce7f44ec19c81ce23dfd216d76ea6b4ad33c184f7",
+    "scripts/audit_saved_run.py": "fd3eb8b32c6a2ac8cec84b81dbb360582995fa64e4753e315e319f507bdca61e",
+    "scripts/report_tetris_control_experiment.py": "a32b339fadbc931fe0e19c8f1f352f31c1190bc4d69084c317f33eedd45e3137",
+    "scripts/report_tetris_vision_experiment.py": "0927661f506cad3388be12a9b4b8ee2953f7cab4ad5854c12c9e5945a8c7e4cc",
+    "scripts/run_feedback_experiment.py": "d48f8930c09119797e2d51bede736cdf94868c2c8004f5b85c4ac11f310f0f20",
+    "scripts/run_tetris_context_experiment.py": "f290f963bc7d8eca7dbecd9d16be13a394101d6416bf65447b273a215eebcd0d",
+    "scripts/run_tetris_control_experiment.py": "b9b06b4fbeb08dcae029adcb7db2ecfd6806e3e676ad0615de17279c3e3b7641",
+    "scripts/run_tetris_vision_experiment.py": "bc90ba9fdda7955fd5e3e9dbc8acbd8488cd499b321da957d787416748e0e363",
+    "src/game_harness/providers.py": "e7efe9f4c27ad0e2242af84f281fd1e3f164ffc51d94043fe8743f0d1feb3ca2",
+    "src/game_harness/runtime.py": "ee9a97b8b3d4e413073e3b67debd930a8d4f5124474bdd812c48a08e7f19a54c",
+    "src/game_harness/tetris_context.py": "25683a67db4a9e80e0ec476a034aef496fbf69e85b92729da3e5c42872288756",
+    "src/game_harness/tetris_control.py": "d2d2ae4e3abe464222750b9be183a7746f78243414be4b536b1715bf91e51383",
+    "src/game_harness/tetris_features.py": "9232ea144bd5b95e73686b9d4eb3850817425dcc5f35c8e4a13c531a88119bc8",
+    "src/game_harness/tetris_vision.py": "513f3fd4a71fcc6d8b2a3bd9896acf72d4b66529b032030af488382e87280c9e",
+    "src/game_harness/vision_provider.py": "3d3932767a44229847d931ffa3b933fb3639f5194256764f28277a1abd708fd0"
+  },
+  "reusable_harness": "research-harness.json",
+  "excluded_seed_count": 96
+}

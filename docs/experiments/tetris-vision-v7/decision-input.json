@@ -1,0 +1,14 @@
+{
+  "purpose": "Real calibration request image, not a score-selected evaluation example",
+  "source_trial": "calibration-00",
+  "arm": "vision",
+  "step": 10,
+  "request_id": "exp-46dc6f91095bb978d572853a:step:10:4b1711aa7d798d52",
+  "image_sha256": "cee4139c099263dcd60940dac443474bcf21e30ac4494546e672ee821938120f",
+  "source_observation_hash": "ade1e054557821fd083567f674aa533850f85ee8788d76553a450d70d751805e",
+  "width": 448,
+  "height": 768,
+  "think_mode": "never",
+  "think_used": false,
+  "reasoning_tokens": 0
+}
