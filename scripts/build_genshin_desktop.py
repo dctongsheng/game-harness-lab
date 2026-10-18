@@ -93,6 +93,9 @@ def main():
     clean_base = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=args.bettergi, text=True).strip()
     base_zip = sources / "bettergi-base.zip"
     subprocess.run(["git", "archive", "--format=zip", "--output", str(base_zip), clean_base], cwd=args.bettergi, check=True)
+    lab_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    subprocess.run(["git", "archive", "--format=zip", "--output", str(sources / "game-harness-lab.zip"), lab_commit],
+                   cwd=ROOT, check=True)
     shutil.copytree(ROOT / "integrations/bettergi", sources / "bettergi-integration")
     shutil.copyfile(args.bettergi / "LICENSE", sources / "BetterGI-LICENSE")
     shutil.copytree(ROOT / "desktop", sources / "desktop", ignore=shutil.ignore_patterns("bin", "obj"))
@@ -141,6 +144,7 @@ def main():
     hashes = {path.relative_to(target).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
               for path in sorted(target.rglob("*")) if path.is_file()}
     (target / "build-manifest.json").write_text(json.dumps({"release_status": "development", "live_game_verified": False,
+        "lab_commit": lab_commit, "bettergi_base_commit": clean_base,
         "asr_model_url": VOICE_URL, "asr_model_sha256": VOICE_SHA256, "files": hashes}, indent=2), encoding="utf-8")
 
 
