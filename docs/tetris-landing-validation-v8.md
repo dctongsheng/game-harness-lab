@@ -6,6 +6,8 @@
 
 ## 本地实时体验
 
+想直观看前后差异，可运行 `.venv/bin/python -m game_harness.tetris_comparison --port 18769`，打开 <http://127.0.0.1:18769/>。同一模型、相同种子与预算的两块棋盘并排运行，点击一次即可开始；操作与证据说明见 [实时对照页](tetris-comparison-experience-v8.md)。
+
 运行 `.venv/bin/python -m game_harness.tetris_experience --port 18768`，打开 <http://127.0.0.1:18768/>。点击“开始 Decision 对局”即可看冻结 V8 Harness 实时操作，支持暂停、继续、停止和换种子重开。默认 80 次动作；增加上限属于新的体验条件，不属于上表的正式对照结果。
 
 体验页每次目标和按键请求都使用当前棋盘图片，显式关闭思考。模型等待时游戏暂停；画面按每个已执行动作更新。数据、完整请求、回执和 PNG 独立保存到 `data/experiences/tetris-v8/`，不写生产版本、不运行局后 GEPA，也不修改冻结实验的证据。普通实验台仍在原端口运行。
