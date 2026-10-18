@@ -5,6 +5,11 @@ $install = Start-Process $installer -ArgumentList @('/VERYSILENT', '/SUPPRESSMSG
 if ($install.ExitCode -ne 0) { throw "Installer exited $($install.ExitCode)" }
 $runtime = & "$destination/agent/genshin-agent.exe" self-test | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0 -or $runtime.status -ne 'runtime_ready') { throw 'Frozen runtime failed' }
+$voiceResult = Join-Path $env:RUNNER_TEMP 'startlux-voice-native.json'
+$voiceTest = Start-Process "$destination/StartLux.Genshin.exe" -ArgumentList @('--self-test-voice', "`"$voiceResult`"") -PassThru -Wait
+if ($voiceTest.ExitCode -ne 0 -or -not (Test-Path $voiceResult)) { throw 'Bundled Chinese model failed to load' }
+$voice = Get-Content $voiceResult | ConvertFrom-Json
+if (-not $voice.model_loaded -or -not $voice.native_decoder_verified) { throw 'Chinese decoder verification failed' }
 # Run the actual WPF program, with its bundled .NET runtime, from an installed path with spaces.
 $app = Start-Process "$destination/StartLux.Genshin.exe" -PassThru
 try {
@@ -50,4 +55,4 @@ $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
 Set-Content -Path "$installer.sha256" -Value "$hash  $([IO.Path]::GetFileName($installer))" -Encoding ascii
 @{ installer_sha256 = $hash; installation_verified = $true; frozen_runtime_verified = $true;
    desktop_controls_verified = $true; uninstall_verified = $true; microphone_verified = $false;
-   genshin_live_verified = $false; asr_accuracy_verified = $false } | ConvertTo-Json | Set-Content dist/installer/verification.json -Encoding utf8
+   genshin_live_verified = $false; asr_accuracy_verified = $false; chinese_decoder_verified = $true } | ConvertTo-Json | Set-Content dist/installer/verification.json -Encoding utf8

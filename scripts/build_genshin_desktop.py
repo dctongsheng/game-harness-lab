@@ -1,5 +1,6 @@
 """Build a self-contained Windows preview, preserving corresponding GPL source."""
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import importlib.metadata
 import json
@@ -13,6 +14,35 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 VOICE_URL = "https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip"
 VOICE_SHA256 = "3af8b0e7e0f835ae9d414ce5df580237a3cfb08d586c9fbbb0f7ff29ad5b14ba"
+VOICE_BYTES = 43898754
+
+
+def fetch_voice_archive(destination):
+    # Official host supports HTTP ranges. Bound concurrency and total bytes so
+    # a throttled connection does not dominate the complete Windows build.
+    block = 1024 * 1024
+
+    def fetch_part(index):
+        start, end = index * block, min(VOICE_BYTES - 1, (index + 1) * block - 1)
+        request = urllib.request.Request(VOICE_URL, headers={"Range": f"bytes={start}-{end}"})
+        with urllib.request.urlopen(request, timeout=120) as response:
+            if response.status != 206 or response.headers.get("Content-Range") != f"bytes {start}-{end}/{VOICE_BYTES}":
+                raise ValueError("ASR server returned an unexpected range")
+            data = response.read(end - start + 2)
+        if len(data) != end - start + 1:
+            raise ValueError("ASR archive range has the wrong size")
+        return data
+
+    temporary = destination.with_suffix(".partial")
+    try:
+        with ThreadPoolExecutor(max_workers=12) as pool, temporary.open("wb") as output:
+            for part in pool.map(fetch_part, range((VOICE_BYTES + block - 1) // block)):
+                output.write(part)
+        if hashlib.sha256(temporary.read_bytes()).hexdigest() != VOICE_SHA256:
+            raise ValueError("ASR download hash mismatch")
+        temporary.replace(destination)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def main():
@@ -45,7 +75,7 @@ def main():
     shutil.copyfile(ROOT / "integrations/auto_commission/agent-main.js", target / "task-source/agent-main.js")
     archive = args.voice_archive or ROOT / "dist/vosk-model-small-cn-0.22.zip"
     if not archive.exists():
-        urllib.request.urlretrieve(VOICE_URL, archive)
+        fetch_voice_archive(archive)
     if hashlib.sha256(archive.read_bytes()).hexdigest() != VOICE_SHA256:
         raise ValueError("Chinese ASR model archive hash mismatch")
     with zipfile.ZipFile(archive) as voice:

@@ -477,10 +477,10 @@ index e27f6e7f..e512631d 100644
  		<Version>0.66.2-alpha.2</Version>
 diff --git a/BetterGenshinImpact/Service/Agent/AgentDailyJournal.cs b/BetterGenshinImpact/Service/Agent/AgentDailyJournal.cs
 new file mode 100644
-index 00000000..e2585a97
+index 00000000..6e42a270
 --- /dev/null
 +++ b/BetterGenshinImpact/Service/Agent/AgentDailyJournal.cs
-@@ -0,0 +1,193 @@
+@@ -0,0 +1,243 @@
 +using System;
 +using System.Collections.Generic;
 +using System.IO;
@@ -497,6 +497,8 @@ index 00000000..e2585a97
 +using Microsoft.ClearScript.V8;
 +using Newtonsoft.Json.Linq;
 +using OpenCvSharp;
++using BetterGenshinImpact.GameTask.AutoPathing;
++using BetterGenshinImpact.GameTask.AutoPathing.Model;
 +
 +namespace BetterGenshinImpact.Service.Agent;
 +
@@ -512,6 +514,7 @@ index 00000000..e2585a97
 +    private JObject? _reward;
 +    private bool _needsScan = true;
 +    private long _frame;
++    private int? _pendingVerification;
 +
 +    internal AgentDailyJournal(Dictionary<string, byte[]> resources) => _resources = resources;
 +
@@ -576,6 +579,12 @@ index 00000000..e2585a97
 +                if (_evidence.TryGetValue(row.Value<int>("id"), out var evidence))
 +                    evidence["quest_id"] = $"{row["id"]}:{row["name"]}";
 +            _needsScan = false;
++            if (_pendingVerification is int slot)
++            {
++                if (!_evidence.TryGetValue(slot, out var completed) || !completed.Value<bool>("completed"))
++                    throw new InvalidDataException("Selected commission did not become complete in the journal; no automatic retry.");
++                _pendingVerification = null;
++            }
 +        }
 +    }
 +
@@ -622,6 +631,7 @@ index 00000000..e2585a97
 +                    throw new InvalidOperationException("Commission is not available for execution.");
 +                quest = (JObject)_rows.Single(r => r.Value<int>("id") == slot).DeepClone();
 +                _needsScan = true;
++                _pendingVerification = slot;
 +            }
 +            else if (skill == "daily.claim")
 +            {
@@ -636,9 +646,16 @@ index 00000000..e2585a97
 +            // Reuse navigation only; upstream DoOnce also claims expeditions.
 +            await new GoToAdventurersGuildTask().GoToAdventurersGuild("蒙德", ct);
 +            var talk = new ChooseTalkOptionTask();
-+            if (await talk.SingleSelectText("每日委托", ct, 5, true) != TalkOptionRes.FoundAndClick)
++            var selection = await talk.SingleSelectText("每日委托", ct, 5, true);
++            if (selection is not (TalkOptionRes.FoundAndClick or TalkOptionRes.FoundButNotOrange))
 +                throw new InvalidOperationException("Daily reward dialogue option was not selected.");
 +            await Task.Delay(800, ct);
++            if (selection == TalkOptionRes.FoundAndClick)
++            {
++                using var confirmation = TaskControl.CaptureToRectArea();
++                BetterGenshinImpact.GameTask.Common.BgiVision.Bv.ClickBlackConfirmButton(confirmation);
++                await Task.Delay(300, ct);
++            }
 +            await talk.SelectLastOptionUntilEnd(ct, null, 3);
 +            await new ReturnMainUiTask().Start(ct);
 +        }
@@ -657,21 +674,54 @@ index 00000000..e2585a97
 +            }
 +            using var engine = new V8ScriptEngine(V8ScriptEngineFlags.UseCaseInsensitiveMemberBinding | V8ScriptEngineFlags.EnableTaskPromiseConversion);
 +            EngineExtend.InitHost(engine, directory);
++            // The standard JS wrapper catches path failures. Use a strict executor
++            // and retain its failure independently of upstream catch/continue code.
++            var routes = new AgentPinnedRoutes(_resources, ct);
++            engine.AddHostObject("pathingScript", routes);
 +            engine.AddHostObject("agentJournal", this);
 +            engine.AddHostObject("settings", new PropertyBag
 +            {
 +                ["operation"] = skill == "daily.scan" ? "scan" : skill == "daily.claim" ? "reward-check" : "execute",
-+                ["questJson"] = quest?.ToString(Newtonsoft.Json.Formatting.None) ?? "{}"
++                ["questJson"] = quest?.ToString(Newtonsoft.Json.Formatting.None) ?? "{}",
++                ["team"] = "", ["elementTeam"] = "", ["prepare"] = true,
++                ["skipRecognition"] = false, ["skipCommissions"] = ""
 +            });
 +            using var interrupt = ct.Register(() => { CancellationContext.Instance.Cts.Cancel(); engine.Interrupt(); });
 +            ct.ThrowIfCancellationRequested();
 +            if (engine.Evaluate(Encoding.UTF8.GetString(_resources["agent-main.js"])) is Task task) await task;
 +            ct.ThrowIfCancellationRequested();
++            if (routes.Failed) throw new InvalidOperationException("A pinned commission route failed.");
 +        }
 +        finally
 +        {
 +            try { Directory.Delete(directory, true); } catch (IOException) { }
 +        }
++    }
++}
++
++public sealed class AgentPinnedRoutes
++{
++    private readonly Dictionary<string, byte[]> _resources;
++    private readonly CancellationToken _token;
++    internal bool Failed { get; private set; }
++    internal AgentPinnedRoutes(Dictionary<string, byte[]> resources, CancellationToken token)
++    { _resources = resources; _token = token; }
++
++    public async Task RunFile(string path)
++    {
++        try
++        {
++            _token.ThrowIfCancellationRequested();
++            var name = "autocommission/" + path.Replace('\\', '/');
++            if (!_resources.TryGetValue(name, out var bytes))
++                throw new InvalidDataException("Route is outside the pinned source pack.");
++            var route = PathingTask.BuildFromJson(Encoding.UTF8.GetString(bytes));
++            var executor = new PathExecutor(_token);
++            await executor.Pathing(route);
++            _token.ThrowIfCancellationRequested();
++            if (!executor.SuccessEnd) throw new InvalidOperationException("Route did not complete.");
++        }
++        catch { Failed = true; throw; }
 +    }
 +}
 diff --git a/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs b/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs

@@ -1,9 +1,9 @@
 {
   "upstream": "https://github.com/babalae/better-genshin-impact.git",
   "base_commit": "b3f90e70494320639eeccc8c559612d02d2d9ef0",
-  "local_development_commit": "ae9d47aa51d584b0500d710a003fc848551b4b81",
+  "local_development_commit": "7139092a7f13d5d8c117bc0a3825f0dac33002e8",
   "patch_file": "startlux-agent-bridge.patch",
-  "patch_sha256": "25af4aeca170bb3b2a30663662ce2df50aed32fa1223f59e5ce2aa4e87c6d239",
+  "patch_sha256": "27b3659ede86110707e727850d90f997dd3d1bdf9a27ff559e0d10fefd20942e",
   "license": "GPL-3.0",
   "status": "development",
   "protocol_version": 1
