@@ -14,6 +14,7 @@ from game_harness.genshin.contracts import (AccountScope, ActionOption, ActionRe
 from game_harness.genshin.daily import (CommissionEvidence, RewardEvidence, VisualEvidence,
                                       verify_daily)
 from game_harness.genshin.decision import StartLuxRealtimeProvider
+from game_harness.genshin.desktop import prepare_daily_pack, report_from_observation
 from game_harness.genshin.runner import AuditLog, RealtimeRunner
 from game_harness.genshin.taskpack import TaskPack, build_taskpack, export_taskpack, portable_resource_path
 from game_harness.providers import ProviderError, Settings
@@ -316,6 +317,54 @@ def test_encounter_credit_does_not_prove_commissions_or_primogems():
     assert report.commission_completed_count == 0
     assert report.daily_reward_claimed is None
     assert report.observed_primogems_delta is None
+
+
+def test_desktop_daily_catalog_requires_each_scan_and_four_completed_commissions(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "agent-main.js").write_text("// development fixture")
+    pack = prepare_daily_pack(source, tmp_path / "pack", "explicit-startlux-deployment")
+    facts = {"region": "Mondstadt", "account_verified": True, "foreground": True,
+             "daily_needs_scan": True, "daily_all_complete": False, "daily_reward_claimed": False}
+    assert [item.id for item in pack.candidates(observation(facts=facts))] == ["scan"]
+    facts.update(daily_needs_scan=False, daily_slot_2_pending=True)
+    assert [item.id for item in pack.candidates(observation(facts=facts))] == ["quest-2"]
+    facts.update(daily_slot_2_pending=False, daily_all_complete=True)
+    assert [item.id for item in pack.candidates(observation(facts=facts))] == ["claim"]
+    facts["daily_reward_claimed"] = True
+    assert pack.candidates(observation(facts=facts)) == []
+    with pytest.raises(ValueError, match="deployment"):
+        prepare_daily_pack(source, tmp_path / "bad", "fixture-model")
+
+
+def test_vendored_commission_routes_and_recognition_assets_match_pinned_source():
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1] / "integrations/auto_commission"
+    source = json.loads((root / "source.json").read_text(encoding="utf-8"))
+    files = source["files"]
+    assert "assets/邪恶的扩张/望风山地-1.json" in files
+    assert "Data/RecognitionObject/Completed.png" in files
+    for name, expected in files.items():
+        assert hashlib.sha256((root / "upstream" / name).read_bytes()).hexdigest() == expected
+
+
+def test_desktop_report_requires_journal_screenshots_and_independent_reward():
+    image = "data:image/png;base64," + base64.b64encode(b"\x89PNG\r\n\x1a\nfixture").decode()
+    sha = hashlib.sha256(base64.b64decode(image.split(",")[1])).hexdigest()
+    ids = [f"{i}:fixture-quest" for i in range(1, 5)]
+    items = [CommissionEvidence(quest_id=quest, completed=True,
+             evidence=evidence("commission_journal", screenshot_sha256=sha)).model_dump(mode="json") for quest in ids]
+    data = {"expected_quest_ids": ids, "commissions": items, "reward": None}
+    state = observation(facts={"daily_evidence": data}, images=[image])
+    assert report_from_observation(state)["status"] == "commissions_complete"
+    data["reward"] = RewardEvidence(claimed=True, evidence=evidence("daily_reward_ui", screenshot_sha256=sha)).model_dump(mode="json")
+    report = report_from_observation(observation(facts={"daily_evidence": data}, images=[image]))
+    assert report["status"] == "complete"
+    assert report["observed_primogems_delta"] is None
+    with pytest.raises(ValueError, match="missing its screenshot"):
+        report_from_observation(observation(facts={"daily_evidence": data}))
+    data["commissions"][0]["completed"] = False
+    assert report_from_observation(observation(facts={"daily_evidence": data}, images=[image]))["status"] == "incomplete"
 
 
 def test_commission_and_reward_verification_have_independent_evidence():

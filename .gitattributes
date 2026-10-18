@@ -2,3 +2,6 @@
 integrations/bettergi/*.patch -text -whitespace
 # Hash-addressed task pack resources must retain their original bytes on Windows.
 domains/genshin_snapshot/harness/** -text
+
+integrations/auto_commission/upstream/** -text -whitespace
+integrations/auto_commission/agent-main.js -text

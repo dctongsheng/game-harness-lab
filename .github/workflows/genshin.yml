@@ -8,6 +8,10 @@ on:
       - src/game_harness/genshin/**
       - tests/test_genshin.py
       - integrations/bettergi/**
+      - integrations/auto_commission/**
+      - desktop/**
+      - scripts/build_genshin_desktop.py
+      - requirements-desktop.lock
       - scripts/setup_genshin_bridge.py
       - .github/workflows/genshin.yml
   workflow_dispatch:
@@ -22,7 +26,7 @@ concurrency:
 jobs:
   windows-bridge:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -48,3 +52,25 @@ jobs:
           python -m pytest tests/test_genshin.py -q
       - name: Compile BetterGI application
         run: dotnet build "$env:RUNNER_TEMP/bettergi/BetterGenshinImpact/BetterGenshinImpact.csproj" --nologo -v quiet
+      - name: Verify voice intent contracts
+        run: dotnet test desktop/StartLux.Desktop.Tests/StartLux.Desktop.Tests.csproj --nologo -v minimal
+      - name: Build self-contained desktop payload
+        run: |
+          python -m pip install -r requirements-desktop.lock
+          python scripts/build_genshin_desktop.py --bettergi "$env:RUNNER_TEMP/bettergi"
+      - name: Package Windows installer
+        run: |
+          & "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe" "/DPayload=$env:GITHUB_WORKSPACE/dist/genshin-desktop" desktop/installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual installation and desktop startup
+        run: ./scripts/test_genshin_installer.ps1
+      - name: Upload private preview installer and desktop evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: StartLux-Genshin-Windows-preview
+          path: |
+            dist/installer/*.exe
+            dist/installer/*.sha256
+            dist/installer/*.png
+            dist/installer/verification.json
+          retention-days: 14

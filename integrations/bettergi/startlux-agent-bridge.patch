@@ -475,12 +475,211 @@ index e27f6e7f..e512631d 100644
  	<PropertyGroup>
  		<AssemblyName>BetterGI</AssemblyName>
  		<Version>0.66.2-alpha.2</Version>
+diff --git a/BetterGenshinImpact/Service/Agent/AgentDailyJournal.cs b/BetterGenshinImpact/Service/Agent/AgentDailyJournal.cs
+new file mode 100644
+index 00000000..e2585a97
+--- /dev/null
++++ b/BetterGenshinImpact/Service/Agent/AgentDailyJournal.cs
+@@ -0,0 +1,193 @@
++using System;
++using System.Collections.Generic;
++using System.IO;
++using System.Linq;
++using System.Security.Cryptography;
++using System.Text;
++using System.Threading;
++using System.Threading.Tasks;
++using BetterGenshinImpact.Core.Script;
++using BetterGenshinImpact.GameTask.Common;
++using BetterGenshinImpact.GameTask.Common.Job;
++using BetterGenshinImpact.Core.Recognition.OCR;
++using Microsoft.ClearScript;
++using Microsoft.ClearScript.V8;
++using Newtonsoft.Json.Linq;
++using OpenCvSharp;
++
++namespace BetterGenshinImpact.Service.Agent;
++
++/// <summary>Per-session journal evidence. A route return never marks a quest done.</summary>
++public sealed class AgentDailyJournal
++{
++    private readonly object _gate = new();
++    private readonly Dictionary<string, byte[]> _resources;
++    private JObject? _scope;
++    private JArray _rows = new();
++    private readonly Dictionary<int, JObject> _evidence = new();
++    private readonly Dictionary<string, string> _images = new();
++    private JObject? _reward;
++    private bool _needsScan = true;
++    private long _frame;
++
++    internal AgentDailyJournal(Dictionary<string, byte[]> resources) => _resources = resources;
++
++    internal (JObject Facts, string[] Images) Snapshot()
++    {
++        lock (_gate)
++        {
++            var valid = _rows.Count == 4 && _evidence.Count == 4;
++            var complete = valid && _evidence.Values.All(e => e.Value<bool>("completed"));
++            var facts = new JObject
++            {
++                ["daily_needs_scan"] = _needsScan, ["daily_all_complete"] = complete,
++                ["daily_reward_claimed"] = _reward?.Value<bool>("claimed") == true,
++                ["daily_evidence"] = new JObject
++                {
++                    ["expected_quest_ids"] = new JArray(_rows.Select(r => $"{r["id"]}:{r["name"]}")),
++                    ["commissions"] = new JArray(_evidence.Values.Select(e => e.DeepClone())),
++                    ["reward"] = _reward?.DeepClone()
++                }
++            };
++            for (var slot = 1; slot <= 4; slot++)
++            {
++                var row = _rows.FirstOrDefault(r => r.Value<int>("id") == slot);
++                facts[$"daily_slot_{slot}_pending"] = !_needsScan && valid && row != null
++                    && _evidence.TryGetValue(slot, out var evidence) && !evidence.Value<bool>("completed")
++                    && row.Value<bool>("supported") && row.Value<string>("country") == "蒙德"
++                    && row.Value<string>("type") is "fight" or "talk"
++                    && !string.IsNullOrWhiteSpace(row.Value<string>("location"))
++                    && row.Value<string>("location") is not ("未知地点" or "识别失败" or "已完成");
++            }
++            return (facts, _images.Values.ToArray());
++        }
++    }
++
++    // Called synchronously from the trusted JS adapter while the row is visible.
++    public void Record(int slot, string status, Mat journalFrame)
++    {
++        if (slot is < 1 or > 4 || status is not ("completed" or "uncompleted")) return;
++        lock (_gate)
++        {
++            _evidence[slot] = new JObject
++            {
++                ["completed"] = status == "completed",
++                ["evidence"] = VisualEvidence("commission_journal", journalFrame)
++            };
++        }
++    }
++
++    public void SetRows(string json)
++    {
++        var rows = JArray.Parse(json);
++        lock (_gate)
++        {
++            if (rows.Count != 4 || rows.Select(r => r.Value<int>("id")).Order().SequenceEqual(new[] { 1, 2, 3, 4 }) == false
++                || rows.Any(r => string.IsNullOrWhiteSpace(r.Value<string>("name"))))
++                throw new InvalidDataException("All four journal rows must be recognized.");
++            if (_rows.Count != 0 && !rows.OrderBy(r => r.Value<int>("id")).Select(r => r.Value<string>("name"))
++                    .SequenceEqual(_rows.OrderBy(r => r.Value<int>("id")).Select(r => r.Value<string>("name"))))
++                throw new InvalidDataException("Journal identities changed; manual review is required.");
++            _rows = rows;
++            foreach (var row in rows)
++                if (_evidence.TryGetValue(row.Value<int>("id"), out var evidence))
++                    evidence["quest_id"] = $"{row["id"]}:{row["name"]}";
++            _needsScan = false;
++        }
++    }
++
++    public void RecordReward()
++    {
++        using var capture = TaskControl.CaptureToRectArea();
++        var text = OcrFactory.Paddle.Ocr(capture.SrcMat);
++        // Do not accept a random occurrence of 'claimed' outside the handbook.
++        if (!text.Contains("每日委托奖励", StringComparison.Ordinal)
++            || !text.Contains("今日奖励已领取", StringComparison.Ordinal))
++            throw new InvalidDataException("Daily reward claim could not be verified in the handbook.");
++        lock (_gate)
++            _reward = new JObject { ["claimed"] = true, ["primogems"] = null,
++                ["evidence"] = VisualEvidence("daily_reward_ui", capture.SrcMat) };
++    }
++
++    private JObject VisualEvidence(string source, Mat image)
++    {
++        Cv2.ImEncode(".png", image, out var bytes);
++        var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
++        _images[hash] = "data:image/png;base64," + Convert.ToBase64String(bytes);
++        return new JObject { ["scope"] = _scope!.DeepClone(), ["frame_id"] = ++_frame,
++            ["screenshot_sha256"] = hash, ["source"] = source };
++    }
++
++    internal async Task ExecuteAsync(string skill, JObject arguments, JObject scope, CancellationToken ct)
++    {
++        JObject? quest = null;
++        lock (_gate)
++        {
++            if (_scope != null && !JToken.DeepEquals(_scope, scope))
++                throw new InvalidOperationException("Daily account or game day changed.");
++            _scope = (JObject)scope.DeepClone();
++            if (skill == "daily.scan")
++            {
++                _needsScan = true;
++                _evidence.Clear(); _images.Clear();
++                if (_reward != null) _reward = null;
++            }
++            else if (skill == "daily.execute")
++            {
++                var slot = arguments.Value<int>("slot");
++                if (Snapshot().Facts.Value<bool>($"daily_slot_{slot}_pending") != true)
++                    throw new InvalidOperationException("Commission is not available for execution.");
++                quest = (JObject)_rows.Single(r => r.Value<int>("id") == slot).DeepClone();
++                _needsScan = true;
++            }
++            else if (skill == "daily.claim")
++            {
++                if (Snapshot().Facts.Value<bool>("daily_all_complete") != true || _needsScan)
++                    throw new InvalidOperationException("Four completed commissions are required before claiming.");
++            }
++            else throw new InvalidDataException("Unsupported daily operation.");
++        }
++
++        if (skill == "daily.claim")
++        {
++            // Reuse navigation only; upstream DoOnce also claims expeditions.
++            await new GoToAdventurersGuildTask().GoToAdventurersGuild("蒙德", ct);
++            var talk = new ChooseTalkOptionTask();
++            if (await talk.SingleSelectText("每日委托", ct, 5, true) != TalkOptionRes.FoundAndClick)
++                throw new InvalidOperationException("Daily reward dialogue option was not selected.");
++            await Task.Delay(800, ct);
++            await talk.SelectLastOptionUntilEnd(ct, null, 3);
++            await new ReturnMainUiTask().Start(ct);
++        }
++
++        // Every operation starts from pinned bytes in a new working directory.
++        // Upstream's writable Data files are never reused as trusted game state.
++        var directory = Path.Combine(Path.GetTempPath(), "StartLux", Guid.NewGuid().ToString("N"));
++        Directory.CreateDirectory(directory);
++        try
++        {
++            foreach (var (name, bytes) in _resources.Where(p => p.Key.StartsWith("autocommission/", StringComparison.Ordinal)))
++            {
++                var target = Path.Combine(directory, name[15..]);
++                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
++                await File.WriteAllBytesAsync(target, bytes, ct);
++            }
++            using var engine = new V8ScriptEngine(V8ScriptEngineFlags.UseCaseInsensitiveMemberBinding | V8ScriptEngineFlags.EnableTaskPromiseConversion);
++            EngineExtend.InitHost(engine, directory);
++            engine.AddHostObject("agentJournal", this);
++            engine.AddHostObject("settings", new PropertyBag
++            {
++                ["operation"] = skill == "daily.scan" ? "scan" : skill == "daily.claim" ? "reward-check" : "execute",
++                ["questJson"] = quest?.ToString(Newtonsoft.Json.Formatting.None) ?? "{}"
++            });
++            using var interrupt = ct.Register(() => { CancellationContext.Instance.Cts.Cancel(); engine.Interrupt(); });
++            ct.ThrowIfCancellationRequested();
++            if (engine.Evaluate(Encoding.UTF8.GetString(_resources["agent-main.js"])) is Task task) await task;
++            ct.ThrowIfCancellationRequested();
++        }
++        finally
++        {
++            try { Directory.Delete(directory, true); } catch (IOException) { }
++        }
++    }
++}
 diff --git a/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs b/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs
 new file mode 100644
-index 00000000..2fe093d7
+index 00000000..b8b13c7c
 --- /dev/null
 +++ b/BetterGenshinImpact/Service/Agent/BetterGiAgentBackend.cs
-@@ -0,0 +1,248 @@
+@@ -0,0 +1,267 @@
 +using System;
 +using System.Collections.Generic;
 +using System.Globalization;
@@ -514,6 +713,7 @@ index 00000000..2fe093d7
 +    private readonly Dictionary<string, byte[]> _resources = new(StringComparer.Ordinal);
 +    private readonly SemaphoreSlim _captureGate = new(1, 1);
 +    private int _ownsTask;
++    private readonly AgentDailyJournal _daily;
 +    internal JArray Options { get; }
 +    internal JObject Metadata { get; }
 +    internal event Action? ManualStop;
@@ -563,11 +763,12 @@ index 00000000..2fe093d7
 +                throw new InvalidDataException("Agent task pack resource hash mismatch.");
 +            _resources.Add(name, bytes);
 +        }
++        _daily = new AgentDailyJournal(_resources);
 +        Options = JArray.Parse(Encoding.UTF8.GetString(_resources["actions.json"]));
 +        foreach (var option in Options.Cast<JObject>())
 +        {
 +            var skill = option.Value<string>("skill");
-+            if (skill is not ("observe.capture" or "path.run" or "dialogue.select"))
++            if (skill is not ("observe.capture" or "path.run" or "dialogue.select" or "daily.scan" or "daily.execute" or "daily.claim"))
 +                throw new InvalidDataException("Agent task pack references an unsupported native skill.");
 +            if (skill != "observe.capture" && (option["preconditions"]?["account_verified"]?.Type != JTokenType.Boolean
 +                || option["preconditions"]?.Value<bool>("account_verified") != true
@@ -584,6 +785,13 @@ index 00000000..2fe093d7
 +
 +    public async Task<GameObservation> CaptureAsync(CancellationToken cancellationToken)
 +    {
++        if (!TaskContext.Instance().IsInitialized)
++        {
++            var runtime = App.GetService<BetterGenshinImpact.GameTask.Runtime.GameRuntimeService>()
++                ?? throw new InvalidOperationException("Game runtime service is unavailable.");
++            if (!await runtime.StartAsync(cancellationToken).ConfigureAwait(false))
++                throw new InvalidOperationException("Could not initialize the game capture service.");
++        }
 +        await _captureGate.WaitAsync(cancellationToken).ConfigureAwait(false);
 +        try
 +        {
@@ -613,9 +821,11 @@ index 00000000..2fe093d7
 +                    ["foreground"] = SystemControl.IsGenshinImpactActiveByProcess(),
 +                    ["region"] = _binding.Value<string>("region"), ["region_source"] = "configured_task_region"
 +                };
++                var daily = _daily.Snapshot();
++                facts.Merge(daily.Facts);
 +                Cv2.ImEncode(".png", region.SrcMat, out var png);
 +                cancellationToken.ThrowIfCancellationRequested();
-+                return new GameObservation(scope, facts, ["data:image/png;base64," + Convert.ToBase64String(png)]);
++                return new GameObservation(scope, facts, new[] { "data:image/png;base64," + Convert.ToBase64String(png) }.Concat(daily.Images).Distinct().ToArray());
 +            }, cancellationToken).ConfigureAwait(false);
 +        }
 +        finally { _captureGate.Release(); }
@@ -652,6 +862,14 @@ index 00000000..2fe093d7
 +            try
 +            {
 +                var arguments = option["arguments"] as JObject ?? new JObject();
++                if ((option.Value<string>("skill") ?? "").StartsWith("daily.", StringComparison.Ordinal))
++                {
++                    var current = await CaptureAsync(token).ConfigureAwait(false);
++                    await _daily.ExecuteAsync(option.Value<string>("skill")!, arguments, current.Scope, token).ConfigureAwait(false);
++                    var afterDaily = await CaptureAsync(token).ConfigureAwait(false);
++                    return new SkillOutcome("succeeded", "daily_operation_finished_requires_journal_evidence",
++                        new JObject { ["after_facts"] = afterDaily.Facts });
++                }
 +                if (option.Value<string>("skill") == "path.run")
 +                {
 +                    var resource = arguments.Value<string>("route") ?? "";

@@ -16,3 +16,10 @@ htmlcov/
 build/
 dist/
 harnesses/**/.export-*/
+
+**/bin/
+**/obj/
+*.spec
+
+!integrations/auto_commission/upstream/Data/
+!integrations/auto_commission/upstream/Data/**

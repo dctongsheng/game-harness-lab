@@ -32,6 +32,23 @@ dependencies' license notices remain in their installed distributions.
   modified BetterGI source and distributed derived application remain subject
   to GPL-3.0. No proprietary Genshin game client or game artwork is bundled.
 
+## Windows Genshin desktop preview
+
+- AutoCommission: https://github.com/LX666-666/AutoCommission, GPL-3.0,
+  pinned `f9b5a49942b613c545e9bea3bed4d015424844d1`. Unmodified runtime source,
+  original author metadata and license are retained in `integrations/auto_commission/upstream/`.
+  Our separate GPL-3.0-or-later adapter executes one selected commission at a time,
+  then re-reads the game journal; it does not trust upstream's execution success flag.
+- Vosk API 0.3.38 and Chinese ASR `vosk-model-small-cn-0.22`: Apache-2.0.
+  The installer downloads the official archive only during build and checks SHA-256
+  `3af8b0e7e0f835ae9d414ce5df580237a3cfb08d586c9fbbb0f7ff29ad5b14ba`.
+  See https://alphacephei.com/vosk/models and `desktop/THIRD_PARTY_NOTICES.txt`.
+- The derived Windows desktop UI, native integration and Genshin runtime are
+  supplied under GPL-3.0-or-later. The preview installer includes corresponding
+  BetterGI base source, integration patch, agent/UI source and build dependency pins.
+  Python dependencies' licenses are copied from installed wheels into `licenses/`.
+  The existing unrelated Lab game adapters keep their original licensing.
+
 ## Pillow (external, optional)
 
 - Upstream: https://github.com/python-pillow/Pillow, optional package pinned to **12.0.0** (`vision` extra).

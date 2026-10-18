@@ -14,7 +14,6 @@ from typing import Callable
 import httpx
 from dotenv import load_dotenv
 
-from .initialization_contract import build_initialization_contract, initialization_context
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -227,6 +226,8 @@ class CoachProvider:
         if not isinstance(context, dict) or not isinstance(context.get("rules"), str):
             raise ProviderError("初始化必须提供游戏适配器的固定规则")
         try:
+            from .initialization_contract import build_initialization_contract, initialization_context
+
             context = initialization_context(context)
             contract = build_initialization_contract(context, self.settings.decision_model)
             context_text = json.dumps(context, ensure_ascii=False, allow_nan=False)
