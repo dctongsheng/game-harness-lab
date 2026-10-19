@@ -10,7 +10,7 @@ import tempfile
 
 from pydantic import Field, field_validator
 
-from .contracts import ActionOption, Contract, Observation, catalog_hash
+from .contracts import ActionOption, Contract, Observation, catalog_hash, canonical_hash
 
 
 def portable_resource_path(name: str) -> PurePosixPath:
@@ -59,6 +59,12 @@ class TaskPack:
         self.manifest = manifest
         self.options = options
         self.instructions = instructions
+
+    @property
+    def policy_base_hash(self):
+        frozen = self.manifest.model_dump()
+        frozen["files"].pop("instructions.txt")
+        return canonical_hash(frozen)
 
     @classmethod
     def load(cls, directory: Path | str):
@@ -128,7 +134,7 @@ def export_taskpack(source: Path | str, destination: Path | str) -> TaskPack:
 def build_taskpack(source: Path | str, destination: Path | str) -> TaskPack:
     """Authoring step: recompute resource hashes, then validate the built bundle.
 
-    Runtime loading always verifies hashes. RRSI candidates use this build step
+    Runtime loading always verifies hashes. Optimizer candidates use this build step
     so an LLM need not calculate SHA-256 strings when editing policy text.
     """
     source, destination = Path(source).absolute(), Path(destination).absolute()

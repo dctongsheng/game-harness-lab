@@ -19,12 +19,12 @@ inside the distributed vendor directory.
 GEPA is pinned by source commit in `pyproject.toml`; its MIT notice and other
 dependencies' license notices remain in their installed distributions.
 
-## Google RRSI and BetterGI agent integration (external, optional)
+## Google Harness² and BetterGI integration
 
-- Google RRSI: https://github.com/google-research/rrsi, Apache-2.0, pinned to
-  `be50316e1db05914068a973f322770ef08ed7ba1` in the optional `rrsi` extra. Upstream
-  notices remain in the installed distribution. The Genshin snapshot Domain
-  calls the upstream evaluation and search interfaces; it does not train model weights.
+- Google Harness²: https://github.com/google-research/harness2, Apache-2.0, pinned to
+  `1cfe254e8d25b15f37048c3730134686abe60335` in `platform`'s optional optimizer dependency.
+  The platform calls upstream recursion, selection and library code; a small adapter registers
+  the StartLux prompt surface. The optimizer is not bundled in the Windows client.
 - BetterGI: https://github.com/babalae/better-genshin-impact, GPL-3.0, base commit
   `b3f90e70494320639eeccc8c559612d02d2d9ef0`. `integrations/bettergi/` contains the
   provenance and development patch. `scripts/setup_genshin_bridge.py` applies it

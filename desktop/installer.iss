@@ -4,12 +4,12 @@
 [Setup]
 AppId={{8516418F-AC32-4329-A383-793572104BC1}
 AppName=StartLux 原神语音助手
-AppVersion=0.2.0-preview
+AppVersion=0.3.0-preview
 AppPublisher=StartLux
 DefaultDirName={localappdata}\Programs\StartLuxGenshin
 DefaultGroupName=StartLux
 OutputDir=..\dist\installer
-OutputBaseFilename=StartLux-Genshin-0.2.0-preview-win-x64
+OutputBaseFilename=StartLux-Genshin-0.3.0-preview-win-x64
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.22621

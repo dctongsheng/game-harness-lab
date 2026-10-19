@@ -7,11 +7,11 @@ import time
 
 import httpx
 
-from ..providers import DecisionProvider, ProviderError
+from .settings import DecisionSettings, ProviderError
 from .contracts import DecisionReceipt, canonical_hash, catalog_hash
 
 
-class StartLuxRealtimeProvider(DecisionProvider):
+class StartLuxDecision:
     """An explicit model deployment is required; no leaderboard/alias fallback."""
     def __init__(self, settings, client=None, *, none_threshold=0.2):
         if not settings.decision_model.strip():
@@ -19,7 +19,18 @@ class StartLuxRealtimeProvider(DecisionProvider):
         if none_threshold is not None and (type(none_threshold) not in (int, float)
                                             or not 0 <= none_threshold <= 1):
             raise ValueError("none_threshold must be a probability or None")
-        super().__init__(settings, client=client)
+        self.settings = settings
+        self._headers = {}
+        if settings.decision_api_key_file:
+            from pathlib import Path
+            try:
+                key = Path(settings.decision_api_key_file).expanduser().read_text().strip()
+            except (OSError, UnicodeError):
+                raise ProviderError("Cannot read Decision credential file") from None
+            if not key or any(c.isspace() for c in key):
+                raise ProviderError("Invalid Decision credential")
+            self._headers["Authorization"] = "Bearer " + key
+        self.client = client or httpx.Client(timeout=settings.decision_timeout, trust_env=False)
         self.none_threshold = none_threshold
 
     def decide(self, observation, instructions, options, request_id):
@@ -80,3 +91,6 @@ class StartLuxRealtimeProvider(DecisionProvider):
                                    payload_hash=canonical_hash(payload), raw_response=data)
         except (KeyError, TypeError, ValueError, AttributeError):
             raise ProviderError("Invalid Decision response or model identity; no action selected") from None
+
+    def close(self):
+        self.client.close()

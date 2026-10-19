@@ -5,6 +5,7 @@ $install = Start-Process $installer -ArgumentList @('/VERYSILENT', '/SUPPRESSMSG
 if ($install.ExitCode -ne 0) { throw "Installer exited $($install.ExitCode)" }
 $runtime = & "$destination/agent/genshin-agent.exe" self-test | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0 -or $runtime.status -ne 'runtime_ready') { throw 'Frozen runtime failed' }
+if ($runtime.platform_version -ne '0.3.0') { throw 'Installer did not use the new platform runtime' }
 $voiceResult = Join-Path $env:RUNNER_TEMP 'startlux-voice-native.json'
 $voiceTest = Start-Process "$destination/StartLux.Genshin.exe" -ArgumentList @('--self-test-voice', "`"$voiceResult`"") -PassThru -Wait
 if ($voiceTest.ExitCode -ne 0 -or -not (Test-Path $voiceResult)) { throw 'Bundled Chinese model failed to load' }
@@ -54,5 +55,6 @@ if ($uninstall.ExitCode -ne 0 -or (Test-Path "$destination/StartLux.Genshin.exe"
 $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
 Set-Content -Path "$installer.sha256" -Value "$hash  $([IO.Path]::GetFileName($installer))" -Encoding ascii
 @{ installer_sha256 = $hash; installation_verified = $true; frozen_runtime_verified = $true;
+   source_commit = $env:GITHUB_SHA; platform_version = $runtime.platform_version;
    desktop_controls_verified = $true; uninstall_verified = $true; microphone_verified = $false;
    genshin_live_verified = $false; asr_accuracy_verified = $false; chinese_decoder_verified = $true } | ConvertTo-Json | Set-Content dist/installer/verification.json -Encoding utf8

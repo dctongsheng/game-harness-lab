@@ -1,4 +1,4 @@
-from game_harness.genshin.desktop import main, emit
+from startlux.scenarios.genshin.desktop import main, emit
 
 if __name__ == "__main__":
     try:

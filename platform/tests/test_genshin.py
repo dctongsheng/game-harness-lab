@@ -9,15 +9,15 @@ import struct
 import httpx
 import pytest
 
-from game_harness.genshin.contracts import (AccountScope, ActionOption, ActionResult,
+from startlux.scenarios.genshin.contracts import (AccountScope, ActionOption, ActionResult,
                                           DecisionReceipt, Observation, catalog_hash)
-from game_harness.genshin.daily import (CommissionEvidence, RewardEvidence, VisualEvidence,
+from startlux.scenarios.genshin.daily import (CommissionEvidence, RewardEvidence, VisualEvidence,
                                       verify_daily)
-from game_harness.genshin.decision import StartLuxRealtimeProvider
-from game_harness.genshin.desktop import prepare_daily_pack, report_from_observation, wait_for_game_ready
-from game_harness.genshin.runner import AuditLog, RealtimeRunner
-from game_harness.genshin.taskpack import TaskPack, build_taskpack, export_taskpack, portable_resource_path
-from game_harness.providers import ProviderError, Settings
+from startlux.scenarios.genshin.decision import StartLuxRealtimeProvider
+from startlux.scenarios.genshin.desktop import prepare_daily_pack, report_from_observation, wait_for_game_ready
+from startlux.scenarios.genshin.runner import AuditLog, RealtimeRunner
+from startlux.scenarios.genshin.taskpack import TaskPack, build_taskpack, export_taskpack, portable_resource_path
+from startlux.core.settings import ProviderError, DecisionSettings as Settings
 
 
 MODEL = "fixture-startlux-pinned"
@@ -236,8 +236,7 @@ def test_account_switch_between_actions_stops_episode():
 
 
 def provider_settings():
-    return Settings("https://fixture.invalid/v1/decisions", MODEL, 3.0,
-                    "https://fixture.invalid/v1", "fixture-coach", "", 3.0)
+    return Settings("https://fixture.invalid/v1/decisions", MODEL, 3.0)
 
 
 def decision_response(**answer_updates):
@@ -339,7 +338,7 @@ def test_desktop_daily_catalog_requires_each_scan_and_four_completed_commissions
 
 def test_vendored_commission_routes_and_recognition_assets_match_pinned_source():
     from pathlib import Path
-    root = Path(__file__).resolve().parents[1] / "integrations/auto_commission"
+    root = Path(__file__).resolve().parents[2] / "integrations/auto_commission"
     source = json.loads((root / "source.json").read_text(encoding="utf-8"))
     files = source["files"]
     assert "assets/邪恶的扩张/望风山地-1.json" in files
@@ -353,7 +352,7 @@ def test_desktop_waits_for_world_and_never_arms_a_different_account(monkeypatch)
     ready = observation(facts={"account_verified": True, "foreground": True, "scene": "world"})
     states = iter([observation(facts={"scene": "loading"}), ready])
     session.observe = lambda: next(states)
-    monkeypatch.setattr("game_harness.genshin.desktop.time.sleep", lambda seconds: None)
+    monkeypatch.setattr("startlux.scenarios.genshin.desktop.time.sleep", lambda seconds: None)
     wait_for_game_ready(session, SCOPE.account_id)
     assert session.starts == []
     session.observe = lambda: ready
@@ -497,7 +496,7 @@ def test_external_takeover_cancels_active_control_without_another_decision():
 
 
 def test_snapshot_grading_hides_labels_and_checks_skill_semantics(tmp_path):
-    from game_harness.genshin.snapshot import ExpectedAction, SnapshotCase, evaluate_snapshot_case
+    from startlux.scenarios.genshin.snapshot import ExpectedAction, SnapshotCase, evaluate_snapshot_case
 
     make_pack(tmp_path / "pack")
     pack = TaskPack.load(tmp_path / "pack")
@@ -521,58 +520,9 @@ def test_snapshot_grading_hides_labels_and_checks_skill_semantics(tmp_path):
     assert evaluate_snapshot_case(pack, case, FixtureProvider(), "snapshot-2")["reward"] == 0.0
 
 
-def test_google_rrsi_evaluation_keeps_missing_trials_and_frozen_boundaries(tmp_path):
-    pytest.importorskip("rrsi.evaluate")
-    from rrsi.evaluate import aggregate, evaluate
-    from game_harness.genshin.rrsi_domain import GenshinSnapshotDomain
-    from game_harness.genshin.snapshot import ExpectedAction, SnapshotCase, SnapshotSuite
-
-    root = tmp_path / "repo"
-    harness = root / "domains" / "genshin_snapshot" / "harness"
-    harness.parent.mkdir(parents=True)
-    make_pack(harness)
-    expected = ExpectedAction(id="talk", skill="dialogue", skill_version="1", arguments=OPTION.arguments)
-    suite = SnapshotSuite(evidence_origin="synthetic", cases=[
-        SnapshotCase(id="evolve-1", split="evolve", observation=observation(), acceptable_actions=[expected]),
-        SnapshotCase(id="heldout-1", split="heldout", observation=observation(), acceptable_actions=[expected])])
-
-    class Provider(FixtureProvider):
-        def close(self):
-            pass
-
-    domain = GenshinSnapshotDomain(root, suite, lambda model: Provider())
-    assert domain.evolve_ids() == ["evolve-1"]
-    assert domain.heldout_ids() == ["heldout-1"]
-    runs = tmp_path / "runs"
-    measured = evaluate(domain, root, runs, "fixture-job", domain.evolve_ids(), 2)
-    assert measured.S == 1.0
-    assert measured.n_expected == 2
-    assert measured.extra["eligible_for_client_release"] is False
-    assert "unknown_policy_cost" in domain.guards(measured, measured)
-    # Upstream aggregation excludes zero token counts from C. Zero telemetry
-    # must not bypass the cost gate when the aggregate remains unknown.
-    zero_cost = deepcopy(measured)
-    zero_cost.C = None
-    zero_cost.extra["unknown_cost_trials"] = 0
-    assert "unknown_policy_cost" in domain.guards(zero_cost, zero_cost)
-    domain._trial_path(runs, "fixture-job", "evolve-1", 1).unlink()
-    per_task, extra = domain.score(runs, "fixture-job", domain.evolve_ids(), 2)
-    missing = aggregate("fixture-job", 2, per_task, extra)
-    assert missing.S == 0.5
-    assert missing.missing == 1
-    assert "missing_snapshot_trials" in domain.guards(measured, missing)
-    # A changed model is rejected before any policy call, even if hashes rebuild.
-    manifest_path = harness / "manifest.json"
-    manifest = json.loads(manifest_path.read_text())
-    manifest["decision_model"] = "another-model"
-    manifest_path.write_text(json.dumps(manifest))
-    ok, detail = domain.smoke(root, runs, "smoke", domain.smoke_ids())
-    assert ok is False
-    assert detail["error"] == "invalid_candidate_pack"
-
 
 def test_pipe_requests_bind_responses_and_use_an_independent_stop_channel():
-    from game_harness.genshin.windows_pipe import WindowsPipeSession
+    from startlux.scenarios.genshin.windows_pipe import WindowsPipeSession
 
     connections = []
 
@@ -607,7 +557,7 @@ def test_pipe_requests_bind_responses_and_use_an_independent_stop_channel():
 
 @pytest.mark.parametrize("defect", ["wrong_request", "wrong_version", "oversized", "rejected"])
 def test_invalid_pipe_responses_are_not_accepted(defect):
-    from game_harness.genshin.windows_pipe import MAX_PAYLOAD_BYTES, WindowsPipeSession
+    from startlux.scenarios.genshin.windows_pipe import MAX_PAYLOAD_BYTES, WindowsPipeSession
 
     class Pipe:
         def __init__(self, name, timeout):
@@ -647,7 +597,7 @@ def test_python_runner_controls_the_dotnet_fixture_host_over_real_ipc():
     import subprocess
     import sys
     import uuid
-    from game_harness.genshin.windows_pipe import WindowsPipeSession
+    from startlux.scenarios.genshin.windows_pipe import WindowsPipeSession
 
     dll = os.environ.get("GENSHIN_BRIDGE_FIXTURE_DLL")
     if not dll:

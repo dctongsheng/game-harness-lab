@@ -1,4 +1,4 @@
-StartLux Genshin desktop preview 0.2.0
+StartLux Genshin desktop preview 0.3.0
 
 BetterGI and AutoCommission: GPL-3.0. Their original branding, source and licenses
 are retained under sources/ and task-source/. The exact BetterGI base archive and
@@ -25,4 +25,4 @@ PyInstaller: GPL-2.0-or-later with bootloader exception
 https://pyinstaller.org/en/stable/license.html
 
 The full licenses retained by installed Python distributions are in licenses/.
-The frozen agent contains no cloud RRSI optimizer or teacher model credentials.
+The frozen agent contains no cloud Harness² optimizer or teacher model credentials.

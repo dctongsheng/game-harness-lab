@@ -27,9 +27,14 @@ class SnapshotCase(Contract):
     observation: Observation
     acceptable_actions: list[ExpectedAction]
     expect_abstention: bool = False
+    label_available: bool = True
 
     @model_validator(mode="after")
     def validate_expectation(self):
+        if not self.label_available:
+            if self.acceptable_actions or self.expect_abstention:
+                raise ValueError("unlabelled cases cannot contain expected answers")
+            return self
         if self.expect_abstention == bool(self.acceptable_actions):
             raise ValueError("a case must expect either listed actions or abstention")
         return self
@@ -80,7 +85,7 @@ def evaluate_snapshot_case(pack, case: SnapshotCase, provider, request_id: str) 
         counts = [usage.get("input_tokens"), usage.get("output_tokens")]
         if all(type(value) is int and value >= 0 for value in counts):
             record["policy_tokens"] = sum(counts)
-        record["reward"] = float(correct)
+        record["reward"] = float(correct) if case.label_available else None
     except Exception as error:
         record.update(missing=True, error_type=type(error).__name__)
     return record

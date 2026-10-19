@@ -18,15 +18,15 @@ class Contract(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True, allow_inf_nan=False)
 
 
-class AccountScope(Contract):
-    account_id: str = Field(min_length=1, max_length=128)
-    server_id: str = Field(min_length=1, max_length=64)
-    game_day: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+class ExecutionScope(Contract):
+    namespace: str = Field(min_length=1, max_length=128)
+    subject_id: str = Field(min_length=1, max_length=128)
+    revision: str = Field(min_length=1, max_length=128)
 
 
 class Observation(Contract):
     session_id: str = Field(min_length=1, max_length=128)
-    scope: AccountScope
+    scope: ExecutionScope
     frame_id: int = Field(ge=0)
     control_generation: int = Field(ge=0)
     facts: dict[str, JsonValue]
@@ -100,7 +100,7 @@ class ActionCommand(Contract):
     command_id: str
     request_id: str
     session_id: str
-    scope: AccountScope
+    scope: ExecutionScope
     control_generation: int = Field(ge=0)
     source_frame_id: int = Field(ge=0)
     basis_hash: str

@@ -66,8 +66,8 @@ def main():
                     "-c", "Release", "-r", "win-x64", "--self-contained", "true", "-o", str(target / "bettergi"),
                     "--nologo", "-v", "quiet"], check=True)
     subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir", "--name", "genshin-agent",
-                    "--paths", str(ROOT / "src"), "--exclude-module", "game_harness.initialization_contract",
-                    "--exclude-module", "game_harness.games", "--exclude-module", "rrsi", "--exclude-module", "gepa",
+                    "--paths", str(ROOT / "platform/src"), "--exclude-module", "startlux.optimization",
+                    "--exclude-module", "harness2", "--exclude-module", "startlux.testing",
                     "--distpath", str(ROOT / "dist" / "frozen-agent"),
                     str(ROOT / "scripts/genshin_desktop_entry.py")], cwd=ROOT, check=True)
     shutil.copytree(ROOT / "dist/frozen-agent/genshin-agent", target / "agent")
@@ -99,9 +99,8 @@ def main():
     shutil.copytree(ROOT / "integrations/bettergi", sources / "bettergi-integration")
     shutil.copyfile(args.bettergi / "LICENSE", sources / "BetterGI-LICENSE")
     shutil.copytree(ROOT / "desktop", sources / "desktop", ignore=shutil.ignore_patterns("bin", "obj"))
-    shutil.copytree(ROOT / "src/game_harness/genshin", sources / "agent/game_harness/genshin", ignore=shutil.ignore_patterns("__pycache__"))
-    for name in ["__init__.py", "providers.py"]:
-        shutil.copyfile(ROOT / "src/game_harness" / name, sources / "agent/game_harness" / name)
+    shutil.copytree(ROOT / "platform", sources / "platform", ignore=shutil.ignore_patterns(
+        "__pycache__", ".venv", ".pytest_cache", "*.egg-info"))
     shutil.copyfile(ROOT / "scripts/genshin_desktop_entry.py", sources / "agent/entry.py")
     shutil.copyfile(ROOT / "requirements-desktop.lock", sources / "agent/requirements.lock")
     shutil.copyfile(ROOT / "scripts/build_genshin_desktop.py", sources / "build_genshin_desktop.py")

@@ -51,11 +51,12 @@ class AuditLog:
         return value
 
 
-class RealtimeRunner:
+class ExecutionEngine:
     def __init__(self, session: RealtimeSession, provider: RealtimeDecisionProvider,
-                 instructions: str, *, model: str, audit=None, clock=time.monotonic):
+                 instructions: str, *, model: str, audit=None, clock=time.monotonic, command_type=ActionCommand):
         if not model.strip() or not instructions.strip():
             raise ValueError("a pinned model and instructions are required")
+        self.command_type = command_type
         self.session = session
         self.provider = provider
         self.instructions = instructions
@@ -142,7 +143,7 @@ class RealtimeRunner:
             current = self.session.observe()
             current_options = self.session.candidates(current.model_copy(deep=True))
             current_selected = next((option for option in current_options if option.id == selected.id), None)
-            command = ActionCommand(command_id=uuid.uuid4().hex, request_id=request_id,
+            command = self.command_type(command_id=uuid.uuid4().hex, request_id=request_id,
                                     session_id=observation.session_id, scope=observation.scope,
                                     control_generation=observation.control_generation,
                                     source_frame_id=observation.frame_id,

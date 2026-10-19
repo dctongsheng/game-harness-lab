@@ -1,4 +1,4 @@
-"""Lean bundled Windows runtime; no RRSI/GEPA imports or teacher credentials."""
+"""Lean Windows runtime; optimization runs in a separate environment."""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +12,10 @@ import threading
 import time
 import uuid
 
-from ..providers import Settings
+from ...core.settings import DecisionSettings as Settings
+from ...core.releases import PolicyStore
+from ...core.scenario import PolicyBundle, GUARDRAILS
+from ...core.contracts import canonical_hash
 from .contracts import AccountScope
 from .daily import CommissionEvidence, RewardEvidence, verify_daily
 from .decision import StartLuxRealtimeProvider
@@ -56,13 +59,39 @@ def prepare_daily_pack(source: Path, destination: Path, model: str) -> TaskPack:
     for name, raw in content.items():
         (destination / name).write_bytes(raw)
         files[name] = hashlib.sha256(raw).hexdigest()
-    manifest = {"schema_version": 2, "id": "startlux.mondstadt.daily", "version": "0.2.0", "game_id": "genshin",
+    manifest = {"schema_version": 2, "id": "startlux.mondstadt.daily", "version": "0.3.0", "game_id": "genshin",
                 "environment": "windows", "release_status": "development", "decision_model": model,
                 "regions": ["Mondstadt"], "files": files,
                 "attributions": ["AutoCommission LX666-666 and contributors, GPL-3.0, f9b5a49942b613c545e9bea3bed4d015424844d1",
                                  "BetterGI babalae and contributors, GPL-3.0; StartLux daily adapter"]}
     (destination / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return TaskPack.load(destination)
+
+
+def load_run_policy(pack: TaskPack, home: Path):
+    """Freeze an explicitly installed trial pack or a previously validated release."""
+    base = PolicyBundle(scenario="genshin.daily", model=pack.manifest.decision_model,
+        base_hash=pack.policy_base_hash, files={"instructions.md": pack.instructions,
+            "memory.md": "", "tool_guidance.md": "", "guardrails.md": GUARDRAILS})
+    trial_path = home / "trial-pack"
+    if trial_path.exists():
+        trial = TaskPack.load(trial_path)
+        if trial.policy_base_hash != pack.policy_base_hash:
+            raise ValueError("trial pack changed frozen model, actions or execution resources")
+        instructions, identity, source = trial.instructions, canonical_hash(trial.manifest.model_dump()), "development_trial"
+    else:
+        active = PolicyStore(home / "policies").active(base)
+        instructions = active.instructions if active else pack.instructions
+        identity = active.identity if active else base.identity
+        source = "validated_release" if active else "bundled_base"
+    if instructions != pack.instructions:
+        raw = instructions.encode("utf-8")
+        (pack.root / "instructions.txt").write_bytes(raw)
+        manifest = pack.manifest.model_dump()
+        manifest["files"]["instructions.txt"] = hashlib.sha256(raw).hexdigest()
+        (pack.root / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
+        pack = TaskPack.load(pack.root)
+    return pack, {"type": "policy_loaded", "policy_hash": identity, "source": source}
 
 
 def report_from_observation(observation):
@@ -131,7 +160,8 @@ def main():
     if args.operation == "self-test":
         # Imports and DTO validation in the actual frozen executable.
         AccountScope(account_id="123456789", server_id="cn", game_day="2026-01-01")
-        emit({"status": "runtime_ready", "platform": sys.platform})
+        from ... import __version__
+        emit({"status": "runtime_ready", "platform": sys.platform, "platform_version": __version__})
         return
     if args.operation == "stop":
         for attempt in range(3):
@@ -156,8 +186,9 @@ def main():
     home = args.config.resolve().parent
     run = home / "runs" / (time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8])
     run.mkdir(parents=True)
-    assets = Path(sys.executable).parent.parent / "task-source" if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[3] / "integrations" / "desktop" / "task-source"
+    assets = Path(sys.executable).parent.parent / "task-source" if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[5] / "dist" / "genshin-task-source"
     pack = prepare_daily_pack(assets, run / "pack", config["model_id"])
+    pack, policy_event = load_run_policy(pack, home)
     host_config = {"binding": {"account_id": config["uid"], "server_id": config["server_id"],
                     "server_utc_offset_minutes": config["server_utc_offset_minutes"], "region": "Mondstadt"},
                    "pack_directory": str(pack.root)}
@@ -186,6 +217,7 @@ def main():
     key = ""
     audit = AuditLog(run / "trace.jsonl")
     controller = RealtimeRunner(session, provider, pack.instructions, model=pack.manifest.decision_model, audit=audit)
+    audit(policy_event)
     heartbeat = ExecutionHeartbeat(controller)
     heartbeat.thread.start()
     termination = "error"
