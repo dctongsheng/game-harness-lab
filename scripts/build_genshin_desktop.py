@@ -94,7 +94,10 @@ def main():
     base_zip = sources / "bettergi-base.zip"
     subprocess.run(["git", "archive", "--format=zip", "--output", str(base_zip), clean_base], cwd=args.bettergi, check=True)
     lab_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    subprocess.run(["git", "archive", "--format=zip", "--output", str(sources / "game-harness-lab.zip"), lab_commit],
+    # Source distributions must not recursively embed previously published
+    # installers. Git archive can expand LFS objects through its checkout filters.
+    subprocess.run(["git", "archive", "--format=zip", "--output", str(sources / "game-harness-lab.zip"), lab_commit,
+                    "--", ".", ":(exclude)windows/*.exe", ":(exclude)windows/*.zip"],
                    cwd=ROOT, check=True)
     shutil.copytree(ROOT / "integrations/bettergi", sources / "bettergi-integration")
     shutil.copyfile(args.bettergi / "LICENSE", sources / "BetterGI-LICENSE")
