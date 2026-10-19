@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import json
 from pathlib import Path
 
-from .scenario import PolicyBundle, measure_pair
+from .scenario import PolicyBundle, Trial, measure_pair
 from .storage import atomic_json
 from .contracts import canonical_hash
 
@@ -26,13 +26,24 @@ class PolicyStore:
         if not pointer.exists():
             return None
         record = json.loads(pointer.read_text(encoding="utf-8"))
-        identity = record["policy_hash"]
+        return self.verified_policy(base, record["policy_hash"], record.get("evidence_hash"))
+
+    def verified_policy(self, base, identity, evidence_hash):
         if not isinstance(identity, str) or len(identity) != 64 or any(c not in "0123456789abcdef" for c in identity):
             raise ValueError("invalid active policy hash")
         policy = PolicyBundle.model_validate_json((self.root / "versions" / (identity + ".json")).read_bytes())
         if policy.identity != identity or (policy.scenario, policy.model, policy.base_hash) != (
                 base.scenario, base.model, base.base_hash):
             raise ValueError("active policy does not match this scenario, model and base resources")
+        evidence = json.loads((self.root / "evidence" / (identity + ".json")).read_text(encoding="utf-8"))
+        if canonical_hash(evidence) != evidence_hash:
+            raise ValueError("policy release evidence is corrupt")
+        before = [Trial.model_validate(r) for r in evidence["baseline"]]
+        after = [Trial.model_validate(r) for r in evidence["candidate"]]
+        if (any(r.policy_hash != base.identity for r in before) or
+                any(r.policy_hash != identity for r in after) or
+                not measure_pair(before, after)["eligible_for_client_release"]):
+            raise ValueError("policy release evidence is invalid")
         return policy
 
     def promote(self, base, candidate, baseline_trials, candidate_trials, *, expected_active=None):
@@ -54,6 +65,9 @@ class PolicyStore:
             atomic_json(self.root / "evidence" / (candidate.identity + ".json"), evidence)
             pointer = {"policy_hash": candidate.identity, "previous": expected_active,
                        "evidence_hash": canonical_hash(evidence)}
+            if active is not None:
+                previous = json.loads((self.root / "active.json").read_text(encoding="utf-8"))
+                pointer["previous_evidence_hash"] = previous["evidence_hash"]
             atomic_json(self.root / "active.json", pointer)
             return pointer
 
@@ -67,8 +81,7 @@ class PolicyStore:
             if previous is None:
                 (self.root / "active.json").unlink()
             else:
-                policy = PolicyBundle.model_validate_json((self.root / "versions" / (previous + ".json")).read_bytes())
-                if policy.identity != previous:
-                    raise ValueError("previous policy is corrupt")
-                atomic_json(self.root / "active.json", {"policy_hash": previous, "previous": None})
+                self.verified_policy(base, previous, pointer.get("previous_evidence_hash"))
+                atomic_json(self.root / "active.json", {"policy_hash": previous, "previous": None,
+                            "evidence_hash": pointer["previous_evidence_hash"]})
             return {"policy_hash": previous, "rolled_back": expected_active}

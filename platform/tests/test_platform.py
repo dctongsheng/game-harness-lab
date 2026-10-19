@@ -118,6 +118,8 @@ def test_snapshot_improvement_is_not_live_release_and_regressions_remain_visible
     assert gate["eligible_for_client_release"] is False
     gate = measure_pair([trial(success=True)], [trial(success=False)])
     assert "task_regression" in gate["reasons"]
+    with pytest.raises(ValueError, match="unique"):
+        measure_pair([trial(), trial()], [trial(success=True), trial(success=True)])
 
 
 def test_http_improver_edits_policy_without_executing_code_or_leaking_credentials(tmp_path):
@@ -182,11 +184,30 @@ def test_policy_promotion_binding_compare_and_set_and_rollback(tmp_path):
     pointer = store.promote(base, candidate, [before], [after])
     assert pointer["policy_hash"] == candidate.identity
     assert store.active(base) == candidate
+    evidence_file = tmp_path / "evidence" / (candidate.identity + ".json")
+    evidence_text = evidence_file.read_text()
+    evidence_file.write_text(evidence_text.replace('"success": true', '"success": false'))
+    with pytest.raises(ValueError, match="corrupt"):
+        store.active(base)
+    evidence_file.write_text(evidence_text)
     with pytest.raises(ValueError, match="active policy changed"):
         store.promote(base, candidate, [before], [after])
     with pytest.raises(ValueError, match="another policy"):
         store.promote(base, candidate, [before], [after.model_copy(update={"policy_hash": "other"})],
                       expected_active=candidate.identity)
+    newer = candidate_policy(base, {**base.files, "memory.md": "Include all signed entries."})
+    store.promote(base, newer, [before], [after.model_copy(update={"policy_hash": newer.identity})],
+                  expected_active=candidate.identity)
+    pointer_file = tmp_path / "active.json"
+    valid_pointer = pointer_file.read_text()
+    corrupt_pointer = json.loads(valid_pointer)
+    corrupt_pointer["previous"] = "../escape"
+    pointer_file.write_text(json.dumps(corrupt_pointer))
+    with pytest.raises(ValueError, match="invalid active policy hash"):
+        store.rollback(base, expected_active=newer.identity)
+    pointer_file.write_text(valid_pointer)
+    store.rollback(base, expected_active=newer.identity)
+    assert store.active(base) == candidate
     store.rollback(base, expected_active=candidate.identity)
     assert store.active(base) is None
     with pytest.raises(ValueError, match="verified execution"):

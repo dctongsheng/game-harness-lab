@@ -77,6 +77,8 @@ def measure_pair(baseline: list[Trial], candidate: list[Trial]) -> dict:
     """An independent regression gate. Snapshot passes remain research candidates."""
     if not baseline or [r.task_id for r in baseline] != [r.task_id for r in candidate]:
         raise ValueError("baseline and candidate require the same nonempty task list")
+    if len({r.task_id for r in baseline}) != len(baseline):
+        raise ValueError("evaluation task IDs must be unique")
     reasons = []
     if any(a.measurement != b.measurement or a.evidence_origin != b.evidence_origin
            for a, b in zip(baseline, candidate)):

@@ -3,6 +3,19 @@ name: Genshin agent foundation
 on:
   push:
     branches: [feat/genshin-realtime-foundation, hhr-yuanshen]
+    paths:
+      - platform/**
+      - integrations/bettergi/**
+      - integrations/auto_commission/**
+      - desktop/**
+      - scripts/build_genshin_desktop.py
+      - scripts/genshin_desktop_entry.py
+      - scripts/test_genshin_installer.ps1
+      - scripts/setup_genshin_bridge.py
+      - requirements-genshin.lock
+      - requirements-desktop.lock
+      - .gitattributes
+      - .github/workflows/genshin.yml
   pull_request:
     paths:
       - platform/**
