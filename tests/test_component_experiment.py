@@ -217,3 +217,53 @@ def test_real_gepa_calls_are_not_cross_arm_cached_and_no_entry_is_explicit(prepa
         assert all(search['experience_hashes'] == [] for search in result['searches'].values())
         count = len(seen)
         assert run.run_develop() == result and len(seen) == count
+
+
+def test_native_sources_and_licenses_are_frozen_and_drift_is_rejected(prepared, tmp_path, monkeypatch):
+    path, m = prepared
+    # Exercise the actual hash collector in an isolated miniature source tree;
+    # the running production checkout and its native rules remain untouched.
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('native_freeze_fixture', ROOT / 'scripts/run_component_experiment.py')
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    files = {'pyproject.toml': '[project]\nname="fixture"', 'src/runner.py': '# wrapper',
+             'src/games/arcade_bridge.cjs': '// native rules', 'src/games/arcade_bridge.ts': '// wrapper source',
+             'src/games/vendor/SOURCE.json': '{"version": 1}', 'src/games/vendor/LICENSE': 'Fixture license',
+             'src/games/vendor/LICENSE.txt': 'Fixture license text', 'src/cache.pyc': 'ignore compiled cache'}
+    source_root = tmp_path / 'source'
+    for relative, text in files.items():
+        destination = source_root / relative; destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(text)
+    module.ROOT = source_root
+    hashes = module.code_hashes()
+    assert set(hashes) == set(files) - {'src/cache.pyc'}
+    m['code_hashes'] = hashes
+    (path / 'manifest.json').write_text(json.dumps(m))
+    (path / 'manifest.sha256.json').write_text(json.dumps({'sha256': runner.digest(m)}))
+    monkeypatch.setattr(runner, 'code_hashes', module.code_hashes)
+    with experiment(path):
+        pass
+    (source_root / 'src/games/arcade_bridge.cjs').write_text('// changed scoring')
+    with pytest.raises(runner.ExperimentError, match='Source changed'):
+        experiment(path)
+    assert not (path / 'calls.jsonl').exists()
+
+
+def test_node_version_drift_rejected_before_health_or_episode(prepared, monkeypatch):
+    path, m = prepared
+    assert m['runtime_dependencies']['node'].startswith('v')
+    from types import SimpleNamespace
+    monkeypatch.setattr(runner.subprocess, 'run', lambda *args, **kwargs: SimpleNamespace(stdout='v999.0.0\n'))
+    with pytest.raises(runner.ExperimentError, match='runtime dependencies changed'):
+        experiment(path)
+    assert not (path / 'calls.jsonl').exists()
+
+
+def test_current_adapter_context_checked_before_any_call(prepared, monkeypatch):
+    path, m = prepared
+    from types import SimpleNamespace
+    changed = deepcopy(m['game_context']); changed['source']['bridge_sha256'] = '0' * 64
+    monkeypatch.setattr(runner, 'get_game', lambda game: SimpleNamespace(context=lambda config: changed))
+    with pytest.raises(runner.ExperimentError, match='Native game context changed'):
+        experiment(path)
+    assert not (path / 'calls.jsonl').exists()

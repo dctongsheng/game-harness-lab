@@ -161,3 +161,109 @@ def test_native_terminal_rules_still_apply_to_experience(tmp_path):
     context = {"evaluation": {"require_native_terminal": True}, "score_spec": {"win": 100, "loss": 0, "draw": 50}}
     with pytest.raises(ValueError, match="原生"):
         record(ExperienceLibrary(tmp_path), game_context=context)
+
+
+def wide_tetris_pairs():
+    """Native-shaped 22-row observations, independent of local experiment data."""
+    from game_harness.components import upgrade_tetris_candidate
+    scope = ExperienceScope("tetris", "fixture-tetris-v1", "tetris-components-v1", SCOPE.model)
+    parent = upgrade_tetris_candidate(BASE, "Compare complete conditional landing outcomes")
+    candidate = {**parent, "goal_instructions": "Check holes before committing to a column"}
+    observation = {
+        "width": 10, "height": 20, "hiddenRows": 2, "tickRate": 60,
+        "coordinates": "x increases right; y=-2..19 increases downward; board contains locked cells only.",
+        "board": {"rows": [{"y": y, "cells": ".........." if y < 15 else "TTT.TTTTTT"}
+                            for y in range(-2, 20)]},
+        "active": {"type": "O", "rotation": 0, "x": 3, "y": -2,
+                   "cells": [{"x": 4, "y": -2}, {"x": 5, "y": -2}, {"x": 4, "y": -1}, {"x": 5, "y": -1}]},
+        "next": ["J", "S", "L", "I", "T"], "hold": None, "holdAvailable": True, "pieceId": 1,
+        "gravityEveryTicks": 48, "fallTicks": 0, "effectiveFallEveryTicks": 48,
+        "grounded": False, "lockTicks": 0, "lockLimitTicks": 30, "lockResets": 0,
+        "maxLockResets": 15, "horizontalDirection": 0, "horizontalHeldTicks": 0, "ticksRemaining": 7200,
+    }
+    actions = ["left:100", "left:300", "left:1000", "right:100", "right:300", "right:1000",
+               "rotate-cw:100", "rotate-ccw:100", "hard-drop:100", "hold:100",
+               "soft-drop:100", "soft-drop:300", "soft-drop:1000", "noop:100"]
+    context = {"game_id": scope.game_id, "rules_version": scope.rules_version}
+    samples = []
+    for seed in (10, 11):
+        pair = {}
+        for side, program, score in (("parent", parent, 900), ("candidate", candidate, 200)):
+            trace = []
+            for index in range(6):
+                before = {"step": index, "tick": 6 * index, "score": 0, "done": False, "reason": None,
+                          "observation": deepcopy(observation), "metrics": {"lines": 0, "pieces": 1, "ticks": 6 * index}}
+                after = deepcopy(before)
+                after.update(step=index + 1, tick=6 * (index + 1))
+                after["observation"]["fallTicks"] = 6 * (index + 1)
+                trace.append({"before": before, "after": after, "action": actions[index],
+                              "criteria": [{"id": action, "label": action} for action in actions],
+                              "policy_role": "candidate",
+                              "receipt": {"model": scope.model, "think_mode": "never"}})
+            pair[side] = {"episode_id": f"wide-{side}-{seed}", **scope.as_dict(), "purpose": "search_train",
+                          "seed": seed, "score": score, "steps": len(trace), "trace": trace,
+                          "termination_reason": "STEP_LIMIT", "infra_error": None,
+                          "config": {"max_steps": 80}, "game_context": context,
+                          "final_state": {"done": True, "score": score}, "policy_hashes": {"candidate": digest(program)}}
+        samples.append(pair)
+    return scope, parent, candidate, samples
+
+
+def test_tetris_extraction_prompt_keeps_actual_actions_in_every_paired_feedback(tmp_path):
+    from game_harness.feedback import complete_episode
+    from game_harness.experience import MAX_EXTRACTION_EPISODE_CHARS
+    scope, parent, candidate, samples = wide_tetris_pairs()
+    # Reproduce the previous bug: metadata fits, but no whole native action does.
+    for pair in samples:
+        for ep in pair.values():
+            old = complete_episode(ep, {"episode_id": ep["episode_id"], "score": ep["score"]}, ep["game_context"], 3000)
+            assert old["trace_sample"] == []
+    coach = Coach({"cue": "Lateral reversals", "lesson": "Check previous movement before repeating a reversal",
+                   "limitations": ["Synthetic test evidence; no capability claim"]})
+    entry = ExperienceLibrary(tmp_path).record_from_pairs(scope=scope, parent=parent, candidate=candidate,
+                                                           pairs=samples, coach=coach)
+    assert entry["outcome"] == "regressed"
+    assert len(coach.calls) == 1
+    payload = json.loads(coach.calls[0][0][1]["content"])
+    sent = payload["training_feedback"]
+    assert len(sent) == 4 and [row["side"] for row in sent] == ["parent", "candidate", "parent", "candidate"]
+    assert MAX_EXTRACTION_EPISODE_CHARS == 12000
+    for row in sent:
+        feedback = row["feedback"]
+        assert feedback["trace_sample"] and not feedback["trace_sampling"]["empty_event_evidence"]
+        assert len(json.dumps(feedback, ensure_ascii=False)) <= 12000
+        source = next(ep for pair in samples for ep in pair.values() if ep["episode_id"] == feedback["episode_id"])
+        for event in feedback["trace_sample"]:
+            assert event["action"] == source["trace"][event["trace_index"]]["action"]
+            assert event["before"]["board_first_y"] == -2
+            assert len(event["before"]["board_rows"]) == 22
+            assert len(event["after"]["board_rows"]) == 22
+    # A larger extraction context never silently relaxes retrieval limits.
+    assert len(freeze_experiences([entry])) == 1
+    with pytest.raises(ValueError, match="three"):
+        freeze_experiences([entry] * 4)
+
+
+@pytest.mark.parametrize("missing_side", ["parent", "candidate"])
+def test_any_pair_side_without_whole_action_feedback_is_no_entry_before_coach(tmp_path, missing_side):
+    scope, parent, candidate, samples = wide_tetris_pairs()
+    # One side has valid receipts/scores but an event too wide for the 12k cap.
+    for row in samples[1][missing_side]["trace"]:
+        for frame in ("before", "after"):
+            row[frame]["observation"]["active"]["cells"] = [{"x": 4, "y": 0}] * 2000
+    coach = Coach({"cue": "Would be invented", "lesson": "Do not call with score-only evidence", "limitations": []})
+    library = ExperienceLibrary(tmp_path)
+    assert library.record_from_pairs(scope=scope, parent=parent, candidate=candidate,
+                                     pairs=samples, coach=coach) is None
+    assert coach.calls == []
+    assert library.snapshot_sequence() == 0
+
+
+def test_lowered_extraction_budget_fails_closed_instead_of_score_only_lesson(tmp_path, monkeypatch):
+    scope, parent, candidate, samples = wide_tetris_pairs()
+    monkeypatch.setattr("game_harness.experience.MAX_EXTRACTION_EPISODE_CHARS", 3000)
+    coach = Coach({"cue": "Wrong inference", "lesson": "Scores alone are insufficient", "limitations": []})
+    library = ExperienceLibrary(tmp_path)
+    assert library.record_from_pairs(scope=scope, parent=parent, candidate=candidate,
+                                     pairs=samples, coach=coach) is None
+    assert not coach.calls and library.snapshot_sequence() == 0

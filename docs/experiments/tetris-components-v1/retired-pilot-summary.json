@@ -1,0 +1,70 @@
+{
+  "experiment_id": "components-tetris-v1-20261019",
+  "manifest_hash": "4a5071400552c6370ffbdcd55a65d01cef905c458a3e237e79e31200a71c2f4f",
+  "retirement": {
+    "status": "retired_before_study_search_or_heldout",
+    "at": "2026-10-19T06:18:48.372235+00:00",
+    "reason": "Experience extraction budget 3000 removed all behavior trace samples. Fix the evidence channel before evaluating the experience treatment. Not retired based on evaluation or promotion performance.",
+    "completed_study_searches": [],
+    "evaluation_started": false,
+    "promotion_started": false,
+    "replacement_experiment": "components-tetris-v2-20261019",
+    "old_evidence_retained": true
+  },
+  "status": "incomplete",
+  "audit": {
+    "completed_episodes_replayed": 7,
+    "verified_action_and_goal_calls": 765,
+    "archived_requests": 855,
+    "archived_receipts": 854,
+    "unique_images": 557,
+    "training_only_experience_verified": true,
+    "full_transport_and_native_replay": true
+  },
+  "costs": {
+    "events": {
+      "health_started": 1,
+      "health_completed": 1,
+      "decision_started": 855,
+      "decision_completed": 854,
+      "coach_started": 2,
+      "coach_completed": 2
+    },
+    "by_stage": {
+      "bootstrap-trigger": {
+        "decision_started": 109,
+        "decision_completed": 109
+      },
+      "bootstrap": {
+        "decision_started": 656,
+        "decision_completed": 656
+      },
+      "shared-trigger": {
+        "decision_started": 90,
+        "decision_completed": 89
+      }
+    },
+    "completed_episodes": 7,
+    "episode_attempts": 8,
+    "accepted_actions": 560,
+    "reported_usage": {
+      "decision_input_tokens": 22642048.0,
+      "decision_output_tokens": 0.0,
+      "coach_completion_tokens": 2408.0,
+      "coach_prompt_tokens": 17330.0,
+      "coach_total_tokens": 19738.0
+    },
+    "currency_cost": "not calculated; no assumed pricing",
+    "bootstrap_costs": "bootstrap-trigger and bootstrap Decision stages plus bootstrap coach and experience_extraction coach calls"
+  },
+  "incomplete_attempts": [
+    {
+      "stage": "shared-trigger",
+      "trial": "train-0",
+      "attempt": "attempt-01",
+      "status": "unfinished"
+    }
+  ],
+  "evaluation_completed": false,
+  "promotion_completed": false
+}

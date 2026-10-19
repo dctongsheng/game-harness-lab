@@ -23,6 +23,7 @@ ALLOWED_PURPOSES = frozenset({"search_train", "experience_probe"})
 MAX_PAIRS = 16
 MAX_ENTRIES = 3
 MAX_RETRIEVAL_CHARS = 8_000
+MAX_EXTRACTION_EPISODE_CHARS = 12_000
 
 
 def digest(value: Any) -> str:
@@ -299,9 +300,17 @@ class ExperienceLibrary:
             for pair in pairs[:2]:
                 for side in ("parent", "candidate"):
                     ep = pair[side]
-                    trace_samples.append({"side": side, "feedback": complete_episode(
+                    feedback = complete_episode(
                         ep, {"episode_id": ep["episode_id"], "score": ep["score"]},
-                        game_context or ep.get("game_context", {}), 3000)})
+                        game_context or ep.get("game_context", {}), MAX_EXTRACTION_EPISODE_CHARS)
+                    # A valid scored episode can still lose every whole event
+                    # to the prompt budget. Numeric deltas alone do not explain
+                    # behavior: do not ask the coach to invent a lesson from them.
+                    if not any(isinstance(event, dict)
+                               and isinstance(event.get("action"), str) and event["action"].strip()
+                               for event in feedback.get("trace_sample", [])):
+                        return None
+                    trace_samples.append({"side": side, "feedback": feedback})
             messages = [
                 {"role": "system", "content": (
                     "你从已完成的训练/探针配对对局提炼一条有条件的Harness改进建议。"

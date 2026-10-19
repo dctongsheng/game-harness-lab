@@ -17,6 +17,7 @@ import json
 from pathlib import Path
 import random
 import statistics
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,16 +37,28 @@ from game_harness.vision_provider import VisionDecisionProvider
 ARMS = ('text', 'components', 'experience')
 PROFILE = 'tetris-components-v1'
 GAME_CONFIG = {'max_steps': 80}
-DEFAULT_SEED = 2026101909
+DEFAULT_SEED = 2026101910
 
 
 def code_hashes():
-    files = list((ROOT / 'src').rglob('*.py')) + list((ROOT / 'scripts').glob('*.py')) + [ROOT / 'pyproject.toml']
+    # Native rules are bundled into CJS; TS/JSON and vendor licenses preserve
+    # their exact source/provenance as well as the executed Python wrappers.
+    files = [p for p in (ROOT / 'src').rglob('*') if p.is_file()
+             and (p.suffix in {'.py', '.cjs', '.ts', '.json'}
+                  or p.name.upper().split('.')[0] in {'LICENSE', 'COPYING'})]
+    files += list((ROOT / 'scripts').glob('*.py')) + [ROOT / 'pyproject.toml']
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(files)}
 
 
 def runtime_dependencies():
-    return {name: version(name) for name in ('Pillow', 'httpx', 'gepa')}
+    try:
+        node = subprocess.run(['node', '--version'], capture_output=True, text=True, check=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        raise ExperimentError('Cannot freeze the required Node runtime version') from None
+    node_version = node.stdout.strip()
+    if not node_version.startswith('v') or len(node_version) > 200 or any(c.isspace() for c in node_version):
+        raise ExperimentError('Node runtime did not report a valid version')
+    return {**{name: version(name) for name in ('Pillow', 'httpx', 'gepa')}, 'node': node_version}
 
 
 def scenario_plan(seed, excluded=()):
@@ -214,6 +227,8 @@ class ComponentExperiment(BaseExperiment):
         if digest(self.parent) != self.manifest['parent_hash'] or load(self.path / 'parent.json') != self.parent:
             raise ExperimentError('Frozen common parent changed')
         self.adapter = get_game('tetris')
+        if self.adapter.context(GAME_CONFIG) != self.manifest['game_context']:
+            raise ExperimentError('Native game context changed since prepare; create a new experiment')
         self.retry_failed = retry_failed
         self._decision, self._coach = decision, coach
         self._owned_decision, self._owned_coach = decision is None, coach is None
