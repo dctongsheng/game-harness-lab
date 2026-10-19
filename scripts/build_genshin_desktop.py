@@ -101,6 +101,7 @@ def main():
     shutil.copytree(ROOT / "desktop", sources / "desktop", ignore=shutil.ignore_patterns("bin", "obj"))
     shutil.copytree(ROOT / "platform", sources / "platform", ignore=shutil.ignore_patterns(
         "__pycache__", ".venv", ".pytest_cache", "*.egg-info"))
+    (sources / "agent").mkdir()
     shutil.copyfile(ROOT / "scripts/genshin_desktop_entry.py", sources / "agent/entry.py")
     shutil.copyfile(ROOT / "requirements-desktop.lock", sources / "agent/requirements.lock")
     shutil.copyfile(ROOT / "scripts/build_genshin_desktop.py", sources / "build_genshin_desktop.py")
