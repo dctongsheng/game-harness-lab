@@ -6,6 +6,8 @@ on:
     paths:
       - .github/workflows/publish-genshin-preview.yml
       - scripts/publish_genshin_preview.py
+      - windows/publish-request.json
+  workflow_dispatch:
 
 permissions:
   actions: read
@@ -18,19 +20,35 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
         with:
           ref: hhr-yuanshen
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
-        with:
-          name: StartLux-Genshin-Windows-preview
-          run-id: 39118291723
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: ${{ runner.temp }}/startlux-verified-preview
-      - name: Verify and publish installer through Git LFS
+      - name: Verify publication provenance checks
+        run: python3 -m unittest discover -s tests -p test_publish_preview.py
+      - name: Read requested Windows build
+        id: request
+        run: |
+          python3 - <<'PY'
+          import json, os
+          request = json.load(open('windows/publish-request.json'))
+          run_id = request['build_run_id']
+          assert type(run_id) is int and run_id > 0
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'run_id={run_id}\n')
+          PY
+      - name: Wait for the requested build and download its verified artifact
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_RUN: ${{ steps.request.outputs.run_id }}
+          STARTLUX_PREVIEW_ARTIFACT: ${{ runner.temp }}/startlux-verified-preview
+        run: |
+          gh run watch "$BUILD_RUN" --interval 30 --exit-status
+          gh run download "$BUILD_RUN" --name StartLux-Genshin-Windows-preview --dir "$STARTLUX_PREVIEW_ARTIFACT"
+      - name: Verify source provenance and publish through Git LFS
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STARTLUX_PREVIEW_ARTIFACT: ${{ runner.temp }}/startlux-verified-preview
         run: python3 scripts/publish_genshin_preview.py
