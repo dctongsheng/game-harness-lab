@@ -56,6 +56,8 @@ def read_bundle(root, game_id, version_id):
     if {p.name for p in path.iterdir()} != filenames or any(p.is_symlink() or not p.is_file() for p in path.iterdir()):
         raise ValueError('Package must contain exactly five regular files')
     manifest = json.loads((path / 'manifest.json').read_text())
+    if manifest.get('input_mode', 'structured') not in {'structured', 'structured+vision'}:
+        raise ValueError('Unsupported package input mode')
     if manifest.get('game_id') != game_id or manifest.get('version_id') != version_id:
         raise ValueError('Package identity mismatch')
     expected = {'game.json','strategy.json','evaluation.json','README.md'}
@@ -64,8 +66,15 @@ def read_bundle(root, game_id, version_id):
     for filename, checksum in manifest['files'].items():
         if _hash(path / filename) != checksum:
             raise ValueError('Package integrity mismatch')
+    strategy = validate_candidate(json.loads((path/'strategy.json').read_text()))
+    if len(strategy) == 5:
+        from .components import context_config
+        if (game_id != 'tetris' or manifest.get('runtime_profile') != 'tetris-components-v1'
+                or manifest.get('runtime_context') != context_config(strategy)
+                or manifest.get('component_names') != sorted(strategy)):
+            raise ValueError('Component package runtime contract mismatch')
     return {'manifest':manifest,'game':json.loads((path/'game.json').read_text()),
-            'strategy':json.loads((path/'strategy.json').read_text()),
+            'strategy':strategy,
             'evaluation':json.loads((path/'evaluation.json').read_text())}
 
 
@@ -99,6 +108,9 @@ def export_approved(root: Path, version: dict, job: dict, game_context: dict, br
     if mean_gain < threshold:
         raise ValueError('Export evidence does not meet the recorded gate')
     candidate=validate_candidate(version['candidate'])
+    input_mode = version.get('input_mode', 'structured')
+    if input_mode not in {'structured', 'structured+vision'}:
+        raise ValueError('Unsupported approved input mode')
     game_id=_safe_id(game_context['game_id']);version_id=_safe_id(version['id'])
     parent=root/game_id;target=parent/version_id
     _inside(root,target)
@@ -106,6 +118,8 @@ def export_approved(root: Path, version: dict, job: dict, game_context: dict, br
         bundle=read_bundle(root,game_id,version_id)
         if bundle['strategy'] != candidate or bundle['manifest']['scope'] != version['scope']:
             raise ValueError('Existing immutable package differs from approved version')
+        if bundle['manifest'].get('input_mode', 'structured') != input_mode:
+            raise ValueError('Existing package input mode differs from approved version')
         return bundle['manifest']
     parent.mkdir(parents=True,exist_ok=True)
     temporary=Path(tempfile.mkdtemp(prefix='.export-',dir=parent))
@@ -132,9 +146,10 @@ def export_approved(root: Path, version: dict, job: dict, game_context: dict, br
         readme=(f"# {game_context['name']} Harness · {version_id}\n\n"
                 f"此包已通过记录在 evaluation.json 的配对门槛；不是长期泛化证明。\n\n"
                 f"- 游戏：`{game_id}`；规则：`{game_context['rules_version']}`。\n"
+                f"- 评测输入方式：`{input_mode}`；含视觉的成绩必须在同样提供当前棋盘图片的运行器中复现。\n"
                 f"- 原版本均分：{job.get('baseline_score')}；候选均分：{job.get('candidate_score')}；配对数：{len(pairs)}。\n"
                 f"- `game.json`：固定规则、评分、配置、对手策略和初始化资料。\n"
-                f"- `strategy.json`：可供 Decision 使用的两段策略文字。\n"
+                f"- `strategy.json`：可供 Decision 使用的策略组件；五组件包还包含目标规划、记忆和观察组织配置。\n"
                 f"- `evaluation.json`：训练选优摘要与独立于本次搜索的配对验收。\n"
                 f"- `manifest.json`：版本血缘、模型身份与文件 SHA-256。\n\n"
                 f"本包需由兼容游戏适配器运行，不包含模型权重或原始 API 轨迹。\n")
@@ -142,10 +157,18 @@ def export_approved(root: Path, version: dict, job: dict, game_context: dict, br
         manifest={'schema_version':1,'game_id':game_id,'version_id':version_id,'parent_id':version.get('parent_id'),
                   'scope':version['scope'],'rules_version':game_context['rules_version'],
                   'decision_model':version['decision_model'],'think_mode':'never',
+                  'input_mode':input_mode,
                   'identity_verification':version.get('identity_verification','service_reported_name'),
                   'approval_job_id':job['id'],'created_at':utcnow(),
                   'score_summary':{'baseline':job.get('baseline_score'),'candidate':job.get('candidate_score'),'pairs':len(pairs)},
                   'files':{name:_hash(temporary/name) for name in ('game.json','strategy.json','evaluation.json','README.md')}}
+        if len(candidate) == 5:
+            from .components import context_config
+            if game_id != 'tetris':
+                raise ValueError('The five-component export profile currently supports Tetris only')
+            manifest.update(runtime_profile='tetris-components-v1',
+                            runtime_context=context_config(candidate),
+                            component_names=sorted(candidate))
         atomic_json(temporary/'manifest.json',manifest)
         temporary.rename(target)
         return manifest

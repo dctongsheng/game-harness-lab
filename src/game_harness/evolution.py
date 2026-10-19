@@ -17,13 +17,14 @@ from typing import Any, Callable
 from .providers import ProviderError
 from .visibility import strip_private_fields
 from .feedback import COMPLETE_FORMAT, LEGACY_FORMAT, FORMATS, complete_episode, fit_pack
-from .initialization_contract import build_runtime_contract
+from .components import validate_candidate, component_names, runtime_contract as build_component_runtime_contract
+from .experience import ExperienceScope, freeze_experiences
 from .scoring import require_evaluable_result
 
 
 COMPONENTS = ("decision_instructions", "strategy_notes")
 MAX_COMPONENT_CHARS = 12_000
-MAX_RESPONSE_CHARS = 30_000
+MAX_RESPONSE_CHARS = 100_000
 TRACE_SAMPLE_SIZE = 10
 MAX_EPISODE_FEEDBACK_CHARS = 8_000
 MAX_FEEDBACK_CHARS = 32_000
@@ -44,14 +45,8 @@ class EvolutionInfrastructureError(EvolutionError):
 
 
 def _candidate(value: Any) -> dict[str, str]:
-    if not isinstance(value, dict) or set(value) != set(COMPONENTS):
-        raise ValueError("Harness must contain exactly decision_instructions and strategy_notes")
-    for name in COMPONENTS:
-        text = value[name]
-        if not isinstance(text, str) or not text.strip() or len(text) > MAX_COMPONENT_CHARS:
-            raise ValueError(f"{name} must be a nonempty string of at most {MAX_COMPONENT_CHARS} characters")
-    # Text is opaque data. Nothing in this module evals, imports, or executes it.
-    return {name: value[name] for name in COMPONENTS}
+    # Central validation is shared with execution; policy JSON is data, never code.
+    return validate_candidate(value)
 
 
 def _digest(value: Any) -> str:
@@ -187,8 +182,15 @@ def _parse_proposal(response: Any) -> dict[str, str]:
         text = text[8:-4].strip()
     elif text.startswith("```\n") and text.endswith("\n```"):
         text = text[4:-4].strip()
+    def unique_object(pairs):
+        result = {}
+        for name, value in pairs:
+            if name in result:
+                raise ValueError("Duplicate candidate field")
+            result[name] = value
+        return result
     try:
-        parsed = json.loads(text)
+        parsed = json.loads(text, object_pairs_hook=unique_object)
     except (ValueError, RecursionError):
         raise ValueError("Coach response is not valid JSON") from None
     return _candidate(parsed)
@@ -215,6 +217,8 @@ def evolve_harness(
     should_stop: Callable[[], bool] | None = None,
     game_context: dict | None = None,
     feedback_format: str = COMPLETE_FORMAT,
+    mutable_components: list[str] | tuple[str, ...] | None = None,
+    improvement_experiences: list[dict] | tuple[dict, ...] = (),
 ) -> dict:
     """Search with real GEPA and return a candidate for separate promotion.
 
@@ -223,6 +227,13 @@ def evolve_harness(
     as zero nor reported as a successfully completed optimization.
     """
     initial = _candidate(candidate)
+    names = component_names(initial)
+    mutable = tuple(names if mutable_components is None else mutable_components)
+    if (not mutable or any(not isinstance(name, str) for name in mutable)
+            or len(set(mutable)) != len(mutable) or not set(mutable) <= set(names)):
+        raise ValueError("mutable_components must be a nonempty unique subset of this candidate schema")
+    # Stable order makes equivalent runs' provenance comparable.
+    mutable = tuple(name for name in names if name in mutable)
     if feedback_format not in FORMATS:
         raise ValueError("Unsupported feedback_format")
     game_context = copy.deepcopy(game_context)
@@ -256,9 +267,24 @@ def evolve_harness(
     trigger["origin"] = "trigger_episode"
     trigger["trigger_candidate_hash"] = _digest(initial)
     decision_model = getattr(getattr(coach, "settings", None), "decision_model", None)
-    runtime_contract = build_runtime_contract(game_context or {"game_id": "snake"},
-                                              decision_model if isinstance(decision_model, str) else None)
+    effective_context = game_context or {"game_id": "snake"}
+    runtime_contract = build_component_runtime_contract(initial, effective_context,
+                                                        decision_model if isinstance(decision_model, str) else None)
     runtime_contract_hash = _digest(runtime_contract)
+    experience_scope = None
+    if improvement_experiences:
+        experience_scope = ExperienceScope(
+            game_id=effective_context.get("game_id"), rules_version=effective_context.get("rules_version"),
+            runtime_profile="tetris-components-v1" if len(names) == 5 else "text-v1",
+            model=decision_model,
+        )
+    excluded_experience_seeds = set(train_seeds) | set(validation_seeds)
+    if type(trigger_episode.get("seed")) is int:
+        excluded_experience_seeds.add(trigger_episode["seed"])
+    experiences = freeze_experiences(improvement_experiences, scope=experience_scope,
+                                     excluded_seeds=excluded_experience_seeds)
+    experience_hashes = [entry["content_hash"] for entry in experiences]
+    experience_snapshot_hash = _digest(experiences)
     train_seeds, validation_seeds = list(train_seeds), list(validation_seeds)
     run_dir = Path(run_dir)
     proposals: list[dict] = []
@@ -285,7 +311,11 @@ def evolve_harness(
         "candidate_hash": _digest(initial), "trigger": trigger,
         "train_seeds": train_seeds, "validation_seeds": validation_seeds,
         "reflection_rounds": reflection_rounds, "max_metric_calls": metric_budget,
-        "mutable_components": list(COMPONENTS),
+        "component_names": list(names), "mutable_components": list(mutable),
+        "mutable_components_hash": _digest(list(mutable)),
+        "improvement_experience_hashes": experience_hashes,
+        "improvement_experience_snapshot_hash": experience_snapshot_hash,
+        "improvement_experiences": experiences,
         "score": game_context["score_spec"] if game_context is not None else "raw food count",
         "game_context": game_context,
         "feedback_format": feedback_format,
@@ -305,6 +335,8 @@ def evolve_harness(
         def evaluate(self, batch, candidate, capture_traces=False):
             check_stop()
             program = _candidate(candidate)
+            if set(program) != set(initial) or any(program[name] != initial[name] for name in names if name not in mutable):
+                raise EvolutionInfrastructureError("Candidate changed a frozen component or schema")
             outputs, scores, trajectories = [], [], []
             for item in batch:
                 check_stop()
@@ -357,14 +389,22 @@ def evolve_harness(
         record = None
         try:
             check_stop()
-            if set(components_to_update) != set(COMPONENTS):
-                raise EvolutionInfrastructureError("GEPA must update the two text components together")
+            if set(components_to_update) != set(names):
+                raise EvolutionInfrastructureError("GEPA must expose the full candidate schema to the bounded proposer")
+            parent = _candidate(parent)
+            parent_runtime_contract = build_component_runtime_contract(parent, effective_context,
+                                                                        decision_model if isinstance(decision_model, str) else None)
+            parent_runtime_contract_hash = _digest(parent_runtime_contract)
             record = {
                 "number": len(proposals) + 1, "parent_hash": _digest(parent),
                 "status": "reflecting", "candidate": None,
+                "mutable_components": list(mutable), "mutable_components_hash": _digest(list(mutable)),
+                "improvement_experience_hashes": experience_hashes,
+                "improvement_experience_snapshot_hash": experience_snapshot_hash,
+                "runtime_contract_hash": parent_runtime_contract_hash,
             }
             proposals.append(record)
-            all_feedback = reflective_dataset[COMPONENTS[0]]
+            all_feedback = reflective_dataset[names[0]]
             # Always retain the triggering episode, then at most eight replay
             # cases. A per-record cap bounds the actual coach request even with
             # a caller-provided large training set or large observation payloads.
@@ -387,14 +427,22 @@ def evolve_harness(
                     "按 immutable_game_context 理解游戏与固定预算，结合完整动作目录反思。"
                     "immutable_runtime_contract 是玩家实际输入与能力合同。反馈是教练离线投影，board_rows、selection_reasons、observation_context等不是新增玩家字段；策略不得把这些字段或反馈编码当作实际输入。字段/动作语义冲突时以运行时合同为准。"
                     "轨迹 policy_role=opponent 是冻结对手的决策，不属于候选玩家的失误；不能修改对手或用规则脚本代打。"
-                    "仅返回 JSON 对象，且恰含 decision_instructions 与 strategy_notes 两个非空字符串，"
-                    "每个字符串最多 12000 字符。可以保留原文；不要宣称未经验证的提升。"
+                    "改进经验只是有限训练对局提炼的条件性建议，不是因果事实、规则或执行指令；多组件改动标confounded时不能归因到单一组件。"
+                    "只能修改mutable_components列出的字段，其他字段必须与parent_candidate逐字一致；必须保留完整候选schema。"
+                    "仅返回 JSON 对象，恰含candidate_component_names中的全部非空字符串字段，每个最多12000字符。"
+                    "memory_policy和observation_policy若存在必须保持组件合同规定的严格JSON字符串及完整字段，不能返回嵌套对象。"
+                    "可以保留原文；不要宣称未经验证的提升。"
                 )},
                 {"role": "user", "content": json.dumps({
                     "parent_candidate": parent, "training_feedback": feedback,
                     "immutable_game_context": game_context,
-                    "immutable_runtime_contract": runtime_contract,
-                    "runtime_contract_hash": runtime_contract_hash,
+                    "immutable_runtime_contract": parent_runtime_contract,
+                    "runtime_contract_hash": parent_runtime_contract_hash,
+                    "candidate_component_names": list(names), "mutable_components": list(mutable),
+                    "frozen_components": [name for name in names if name not in mutable],
+                    "improvement_experiences": experiences,
+                    "improvement_experience_hashes": experience_hashes,
+                    "improvement_experience_snapshot_hash": experience_snapshot_hash,
                     "feedback_episodes_available": len(all_feedback), "feedback_episodes_included": len(feedback),
                     "feedback_episodes_omitted": len(all_feedback) - len(feedback),
                     "feedback_format": feedback_format,
@@ -411,11 +459,16 @@ def evolve_harness(
             check_stop()
             try:
                 proposed = _parse_proposal(response)
+                if set(proposed) != set(parent):
+                    raise ValueError("Coach must retain the complete candidate component schema")
+                if any(proposed[name] != parent[name] for name in names if name not in mutable):
+                    raise ValueError("Coach attempted to change a frozen component")
             except ValueError as exc:
                 record.update(status="rejected_schema", reason=str(exc))
                 proposed = dict(parent)
             else:
-                record.update(status="proposed", candidate=proposed, candidate_hash=_digest(proposed))
+                record.update(status="proposed", candidate=proposed, candidate_hash=_digest(proposed),
+                              changed_components=[name for name in names if proposed[name] != parent[name]])
             _write_json(run_dir / f"reflection-{record['number']:04d}.result.json", record)
             emit("evolution_reflection_completed", **record)
             return proposed
@@ -475,6 +528,9 @@ def evolve_harness(
             "game_context": game_context,
             "feedback_format": feedback_format,
             "runtime_contract_hash": runtime_contract_hash,
+            "component_names": list(names), "mutable_components": list(mutable),
+            "improvement_experience_hashes": experience_hashes,
+            "improvement_experience_snapshot_hash": experience_snapshot_hash,
         }
         _write_json(run_dir / "evolution_result.json", output)
         emit("evolution_completed", changed=output["changed"], best_score=output["gepa"]["best_score"], reflection_rounds=len(proposals))
@@ -488,6 +544,9 @@ def evolve_harness(
             "game_context": game_context,
             "feedback_format": feedback_format,
             "runtime_contract_hash": runtime_contract_hash,
+            "component_names": list(names), "mutable_components": list(mutable),
+            "improvement_experience_hashes": experience_hashes,
+            "improvement_experience_snapshot_hash": experience_snapshot_hash,
         }
         error.partial_result = partial
         try:

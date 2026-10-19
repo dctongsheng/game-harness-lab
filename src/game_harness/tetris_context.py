@@ -6,12 +6,15 @@ declarations selected by the same Decision provider, not executable macros.
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
+import json
 import math
 from types import SimpleNamespace
 
 from .runtime import ReceiptError, _digest, _policy_instructions, _validate_receipt
 from .tetris_features import build_tetris_features
 from .tetris_control import CONTROL_CONTRACT, TetrisControlFeedback
+from .components import CONTEXT_SECTIONS, MEMORY_BOUNDS, resolve_context_config
 
 
 CONTEXT_CONTRACT = """可选玩家接口合同（四组共用）：
@@ -39,47 +42,73 @@ class TetrisContextError(ReceiptError):
 def validate_config(config):
     expected = {"schema", "structured_facts", "decision_goal_memory", "replan_every_actions"}
     schema = config.get("schema") if isinstance(config, dict) else None
-    if schema in ("tetris-context-v2", "tetris-context-v3"):
+    if schema in ("tetris-context-v2", "tetris-context-v3", "tetris-context-v4"):
         expected = expected | {"control_feedback"}
-    if schema == "tetris-context-v3":
+    if schema in ("tetris-context-v3", "tetris-context-v4"):
         expected = expected | {"goal_instructions"}
+    if schema == "tetris-context-v4":
+        expected |= {"recent_actions", "memory_instructions", "observation_instructions", "section_order"}
     if not isinstance(config, dict) or set(config) != expected:
         raise TetrisContextError("Tetris context requires its exact frozen configuration")
-    if schema not in ("tetris-context-v1", "tetris-context-v2", "tetris-context-v3"):
+    if schema not in ("tetris-context-v1", "tetris-context-v2", "tetris-context-v3", "tetris-context-v4"):
         raise TetrisContextError("Unknown Tetris context schema")
     if any(type(config[key]) is not bool for key in ("structured_facts", "decision_goal_memory")):
         raise TetrisContextError("Tetris context feature flags must be booleans")
-    if type(config["replan_every_actions"]) is not int or config["replan_every_actions"] != 4:
-        raise TetrisContextError("Tetris context replans every four game actions")
-    if schema in ("tetris-context-v2", "tetris-context-v3"):
+    periods = MEMORY_BOUNDS if schema == "tetris-context-v4" else (4,)
+    if type(config["replan_every_actions"]) is not int or config["replan_every_actions"] not in periods:
+        raise TetrisContextError("Tetris v4 replan interval must be 2, 4, or 8" if schema == "tetris-context-v4"
+                                 else "Tetris context replans every four game actions")
+    if schema in ("tetris-context-v2", "tetris-context-v3", "tetris-context-v4"):
         if config["structured_facts"] is not True or config["decision_goal_memory"] is not True:
             raise TetrisContextError("Tetris context v2 requires structural facts and Decision goal memory")
         if type(config["control_feedback"]) is not bool:
             raise TetrisContextError("Tetris control feedback flag must be boolean")
-    if schema == "tetris-context-v3":
+    if schema in ("tetris-context-v3", "tetris-context-v4"):
         if config["control_feedback"] is not True:
             raise TetrisContextError("Tetris v3 requires control feedback")
         prompt = config["goal_instructions"]
         if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 12000:
             raise TetrisContextError("Tetris v3 requires a frozen nonempty goal prompt of at most 12000 characters")
+    if schema == "tetris-context-v4":
+        if type(config["recent_actions"]) is not int or config["recent_actions"] not in MEMORY_BOUNDS:
+            raise TetrisContextError("Tetris v4 recent_actions must be 2, 4, or 8")
+        for name in ("memory_instructions", "observation_instructions"):
+            if not isinstance(config[name], str) or not config[name].strip() or len(config[name]) > 12000:
+                raise TetrisContextError("Tetris v4 component guidance must be nonempty text of at most 12000 characters")
+        order = config["section_order"]
+        if (not isinstance(order, list) or len(order) != len(CONTEXT_SECTIONS)
+                or any(not isinstance(key, str) for key in order) or set(order) != set(CONTEXT_SECTIONS)):
+            raise TetrisContextError("Tetris v4 section_order must permute all five observation sections")
     return deepcopy(config)
 
 
 def _context_contract(config):
-    if config["schema"] != "tetris-context-v3":
+    if config["schema"] not in ("tetris-context-v3", "tetris-context-v4"):
         return CONTEXT_CONTRACT
-    return CONTEXT_CONTRACT.replace("可选玩家接口合同（四组共用）：", "玩家接口合同（v3条件落点规划）：").replace(
+    result = CONTEXT_CONTRACT.replace("可选玩家接口合同（四组共用）：", "玩家接口合同（v3条件落点规划）：").replace(
         "不按棋盘过滤、搜索或排序，也不保证目标可达或安全。",
         "不按棋盘过滤或优劣排序；额外条件落点投影与后果描述不改变候选ID和顺序，也不保证目标可达或安全。")
+    if config["schema"] == "tetris-context-v4":
+        result = result.replace("v3条件落点规划", "v4可进化组件").replace(
+            "最近最多4个", f"最近最多{config['recent_actions']}个").replace(
+            "每4次游戏动作", f"每{config['replan_every_actions']}次游戏动作")
+    return result
+
+
+def _component_guidance(config):
+    if config["schema"] != "tetris-context-v4":
+        return ""
+    return ("\n本局冻结的记忆使用指导：\n" + config["memory_instructions"]
+            + "\n本局冻结的观察阅读指导：\n" + config["observation_instructions"])
 
 
 def context_instructions(instructions, config):
     """Exact shared instructions, retaining v1 bytes when feedback is off."""
     frozen = validate_config(config)
-    result = instructions + "\n" + _context_contract(frozen)
+    result = instructions + _component_guidance(frozen) + "\n" + _context_contract(frozen)
     if frozen.get("control_feedback", False):
         result += "\n" + CONTROL_CONTRACT
-    if frozen["schema"] == "tetris-context-v3":
+    if frozen["schema"] in ("tetris-context-v3", "tetris-context-v4"):
         from .tetris_landing import LANDING_CONTRACT
         result += "\n" + LANDING_CONTRACT
     return result
@@ -88,10 +117,10 @@ def context_instructions(instructions, config):
 def goal_instructions(instructions, config):
     """Separate v3 planning from action policy; retain exact v1/v2 bytes."""
     frozen = validate_config(config)
-    if frozen["schema"] != "tetris-context-v3":
+    if frozen["schema"] not in ("tetris-context-v3", "tetris-context-v4"):
         return context_instructions(instructions, frozen) + "\n" + GOAL_INSTRUCTIONS
     from .tetris_landing import LANDING_CONTRACT
-    return (frozen["goal_instructions"] + "\n" + _context_contract(frozen) + "\n"
+    return (frozen["goal_instructions"] + _component_guidance(frozen) + "\n" + _context_contract(frozen) + "\n"
             + CONTROL_CONTRACT + "\n" + LANDING_CONTRACT + "\n" + GOAL_INSTRUCTIONS)
 
 
@@ -108,7 +137,7 @@ def goal_catalog():
 def planning_catalog(state, config):
     """Describe each conditional outcome equally; never prune or rank goals."""
     catalog = goal_catalog()
-    if validate_config(config)["schema"] != "tetris-context-v3":
+    if validate_config(config)["schema"] not in ("tetris-context-v3", "tetris-context-v4"):
         return catalog
     projections = state["tetris_landing_projections"]["candidates"]
     _require([p["id"] for p in projections] == [c["id"] for c in catalog[2:]],
@@ -169,6 +198,26 @@ def _check_receipt(receipt, state, criteria, request_id, expected_model):
              and receipt["reasoning_tokens"] == 0, "Receipt thinking telemetry mismatch")
 
 
+def _organize_state(state, config):
+    """Keep every fact; only move full sections in the declared reading order.
+
+    Stable metadata/nested ordering permits replay after JSON stores sort keys.
+    The explicit section order remains model-visible and has a separate hash.
+    """
+    if config["schema"] != "tetris-context-v4":
+        return state
+    _require(all(section in state for section in CONTEXT_SECTIONS), "Missing required observation section")
+    stable = json.loads(json.dumps(state, ensure_ascii=False, sort_keys=True, allow_nan=False))
+    result = {key: value for key, value in stable.items() if key not in CONTEXT_SECTIONS}
+    result.update({key: stable[key] for key in config["section_order"]})
+    return result
+
+
+def _serialized_hash(state):
+    # Same JSON state-string serialization as DecisionProvider; no sort_keys.
+    return hashlib.sha256(json.dumps(state, ensure_ascii=False, allow_nan=False).encode("utf-8")).hexdigest()
+
+
 class TetrisDecisionHarness:
     """A per-episode context wrapper; calls a real provider for every selection.
 
@@ -196,12 +245,16 @@ class TetrisDecisionHarness:
         event = {"purpose": purpose, "input_state": deepcopy(state), "input_hash": _digest(state),
                  "instructions_hash": _digest(instructions), "catalog": deepcopy(criteria),
                  "candidate_hash": _digest(criteria), "request_id": request_id, "status": "pending"}
+        if self.config["schema"] == "tetris-context-v4":
+            event.update({"input_serialized_hash": _serialized_hash(state), "input_key_order": list(state)})
         self.pending_context["calls"].append(event)
         state_copy, catalog_copy = deepcopy(state), deepcopy(criteria)
         try:
             receipt = self.provider.decide(state, instructions, criteria, request_id)
             event["receipt"] = deepcopy(receipt)
             _require(state == state_copy and criteria == catalog_copy, "Provider mutated its request")
+            if self.config["schema"] == "tetris-context-v4":
+                _require(_serialized_hash(state) == event["input_serialized_hash"], "Provider mutated request ordering")
             _check_receipt(receipt, state, criteria, request_id, self._model)
             self._model = receipt["model"]
             event["status"] = "validated"
@@ -216,9 +269,9 @@ class TetrisDecisionHarness:
         state = deepcopy(state)
         criteria = deepcopy(criteria)
         context_fields = ("tetris_features", "decision_goal_memory")
-        if self.config["schema"] in ("tetris-context-v2", "tetris-context-v3"):
+        if self.config["schema"] in ("tetris-context-v2", "tetris-context-v3", "tetris-context-v4"):
             context_fields += ("tetris_control_facts",)
-        if self.config["schema"] == "tetris-context-v3":
+        if self.config["schema"] in ("tetris-context-v3", "tetris-context-v4"):
             context_fields += ("tetris_landing_projections",)
         _require(not any(key in state for key in context_fields),
                  "Raw runtime state already contains context fields")
@@ -245,7 +298,7 @@ class TetrisDecisionHarness:
             state["decision_goal_memory"] = self._memory(state["step"])
         if self._control is not None:
             state["tetris_control_facts"] = self._control.facts(self._target)
-        if self.config["schema"] == "tetris-context-v3":
+        if self.config["schema"] in ("tetris-context-v3", "tetris-context-v4"):
             from .tetris_landing import build_landing_projections
             state["tetris_landing_projections"] = build_landing_projections(state)
         action_instructions = context_instructions(instructions, self.config)
@@ -255,6 +308,7 @@ class TetrisDecisionHarness:
             planning_state["selection_purpose"] = "update_goal_memory_only"
             choices = planning_catalog(state, self.config)
             planning_state["candidates"] = choices
+            planning_state = _organize_state(planning_state, self.config)
             planning_id = f"{request_id}:goal"
             receipt = self._call("goal", planning_state, goal_instructions(instructions, self.config),
                                  choices, planning_id)
@@ -268,10 +322,14 @@ class TetrisDecisionHarness:
             state["decision_goal_memory"] = self._memory(state["step"])
             if self._control is not None:
                 state["tetris_control_facts"] = self._control.facts(self._target)
+        state = _organize_state(state, self.config)
         self.pending_context["memory_after_planning"] = self._memory(state["step"])
         self.pending_context.update({"action_input_state": deepcopy(state), "action_input_hash": _digest(state),
                                      "instructions_hash": _digest(action_instructions), "request_id": request_id,
                                      "action_catalog": deepcopy(criteria)})
+        if self.config["schema"] == "tetris-context-v4":
+            self.pending_context.update({"action_input_serialized_hash": _serialized_hash(state),
+                                         "action_input_key_order": list(state)})
         receipt = self._call("game_action", state, action_instructions, criteria, request_id)
         if self._control is not None:
             self._control.selected(receipt["choice_id"], self._target)
@@ -280,7 +338,7 @@ class TetrisDecisionHarness:
             self._history.append({"step": state["step"], "action": receipt["choice_id"],
                                   "before_active": {key: deepcopy(active[key]) for key in
                                                     ("type", "x", "y", "rotation", "cells")}})
-            self._history = self._history[-4:]
+            self._history = self._history[-self.config.get("recent_actions", 4):]
         self._scope_actions += 1
         self._last_step = state["step"]
         self.pending_context["memory_after_action"] = self._memory(state["step"] + 1)
@@ -291,7 +349,7 @@ class TetrisDecisionHarness:
 def audit_context_episode(episode, harness):
     """Reconstruct all goals and actual inputs using saved receipts, no network."""
     config = validate_config(episode.get("tetris_context_config"))
-    _require(config == harness.get("tetris_context_config"), "Episode/harness context configuration mismatch")
+    _require(config == resolve_context_config(harness, "tetris"), "Episode/harness context configuration mismatch")
     expected_calls = []
     for step in episode["trace"]:
         ledger = step["receipt"].get("tetris_context")
@@ -309,6 +367,10 @@ def audit_context_episode(episode, harness):
             self.index += 1
             _require(expected["input_state"] == state and expected["input_hash"] == _digest(state),
                      "Recorded Decision input differs from reconstruction")
+            if config["schema"] == "tetris-context-v4":
+                _require(expected.get("input_serialized_hash") == _serialized_hash(state)
+                         and expected.get("input_key_order") == list(state),
+                         "Recorded Decision input serialization/order differs from reconstruction")
             _require(expected["instructions_hash"] == _digest(instructions), "Recorded Decision instructions changed")
             _require(expected["catalog"] == criteria and expected["candidate_hash"] == _digest(criteria),
                      "Recorded Decision catalog changed")

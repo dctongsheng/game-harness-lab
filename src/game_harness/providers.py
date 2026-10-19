@@ -77,12 +77,11 @@ def extract_json(text: str) -> dict:
 
 
 def validate_candidate(candidate: dict) -> dict[str, str]:
-    expected = {"decision_instructions", "strategy_notes"}
-    if not isinstance(candidate, dict) or set(candidate) != expected:
-        raise ProviderError("Harness 只能包含 decision_instructions 与 strategy_notes")
-    if any(not isinstance(v, str) or not v.strip() or len(v) > 12000 for v in candidate.values()):
-        raise ProviderError("Harness 两个文本字段必须非空且不超过 12000 字符")
-    return {k: candidate[k].strip() for k in sorted(expected)}
+    from .components import ComponentValidationError, validate_candidate as validate_components
+    try:
+        return validate_components(candidate)
+    except ComponentValidationError as exc:
+        raise ProviderError(str(exc)) from None
 
 
 class DecisionProvider:
@@ -218,7 +217,8 @@ class CoachProvider:
         return content
 
     def initialize(self, rules: str | None = None, size: int | None = None,
-                   max_steps: int | None = None, *, game_context: dict | None = None) -> tuple[dict, dict]:
+                   max_steps: int | None = None, *, game_context: dict | None = None,
+                   component_profile: str = "text-v1") -> tuple[dict, dict]:
         self.initialization_contract = self.initialization_provenance = None
         context = deepcopy(game_context) if game_context is not None else {
             "game_id": "snake", "rules": rules,
@@ -226,9 +226,20 @@ class CoachProvider:
                        "max_steps": max_steps if max_steps is not None else 120}}
         if not isinstance(context, dict) or not isinstance(context.get("rules"), str):
             raise ProviderError("初始化必须提供游戏适配器的固定规则")
+        if component_profile not in {"text-v1", "tetris-components-v1"}:
+            raise ProviderError("未知 Harness 组件配置")
+        full_components = component_profile == "tetris-components-v1"
+        if full_components and context.get("game_id") != "tetris":
+            raise ProviderError("当前五组件配置仅支持俄罗斯方块")
         try:
             context = initialization_context(context)
             contract = build_initialization_contract(context, self.settings.decision_model)
+            if full_components:
+                from .components import runtime_contract, upgrade_tetris_candidate
+                sample_candidate = upgrade_tetris_candidate(
+                    {"decision_instructions": "请根据实际状态设计按键策略。", "strategy_notes": "请根据规则设计策略。"},
+                    "请比较完整条件落点后果，由Decision选择目标。")
+                contract.update(runtime_contract(sample_candidate, context, self.settings.decision_model))
             context_text = json.dumps(context, ensure_ascii=False, allow_nan=False)
             contract_text = json.dumps(contract, ensure_ascii=False, allow_nan=False)
         except (KeyError, TypeError, ValueError, RuntimeError, OSError):
@@ -254,12 +265,25 @@ class CoachProvider:
                   '{"brief":{"background":"...","goal":"...","rules":"...",'
                   '"precautions":"...","strategy":"..."},"candidate":{'
                   '"decision_instructions":"...","strategy_notes":"..."}}')
+        if full_components:
+            prompt = ("根据固定游戏资料和真实组件合同，生成适合关闭思考Decision的五组件初版Harness。"
+                      "返回恰含brief与candidate的JSON；brief包含background、goal、rules、precautions、strategy。"
+                      "candidate恰含decision_instructions、strategy_notes、goal_instructions、memory_policy、observation_policy，"
+                      "所有值均为非空字符串。memory_policy与observation_policy的值是合同规定的JSON字符串。"
+                      "Decision负责全部目标与每个原生按键；LLM只准备说明，不能代选、生成代码、过滤候选或更改计分。"
+                      "注意目标不是已验证路径，完整40项条件投影只是事实。不要记忆种子或教学开局。"
+                      "按实际观察写简短可执行的指导，明确记忆窗口与重规划频率边界。"
+                      "\n固定游戏资料：\n" + context_text + "\n实际组件合同：\n" + contract_text
+                      + "\n完整candidate字段与编码示例（请自行设计内容）：\n"
+                      + json.dumps(sample_candidate, ensure_ascii=False))
         messages = [{"role": "user", "content": prompt}]
         for attempt in range(2):
             content = self.complete(messages, purpose="initialization")
             try:
                 output = extract_json(content)
                 candidate = validate_candidate(output.get("candidate"))
+                if (len(candidate) == 5) != full_components:
+                    raise ProviderError("初始化输出与所请求组件配置不一致")
                 brief = output.get("brief")
                 required = {"background", "goal", "rules", "precautions", "strategy"}
                 if not isinstance(brief, dict) or not required <= set(brief):
@@ -275,6 +299,7 @@ class CoachProvider:
                     "coach_returned_model": call.get("returned_model"),
                     "coach_response_hash": digest(content),
                     "sample_kind": contract["sample"]["kind"],
+                    "component_profile": component_profile,
                     "identity_verification": "service_reported_name",
                 }
                 return brief, candidate

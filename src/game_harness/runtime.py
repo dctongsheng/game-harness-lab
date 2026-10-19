@@ -121,7 +121,8 @@ def run_episode(provider, harness, *, episode_id, seed, size=8, max_steps=120,
     if type(step_budget) is not int or step_budget < 1:
         raise ValueError("max_steps must be a positive integer")
     frozen_harness = deepcopy(harness)
-    tetris_context_config = frozen_harness.get("tetris_context_config")
+    from .components import resolve_context_config
+    tetris_context_config = resolve_context_config(frozen_harness, adapter.id)
     if tetris_context_config is not None:
         if adapter.id != "tetris":
             raise ValueError("Tetris context is only valid for the Tetris adapter")

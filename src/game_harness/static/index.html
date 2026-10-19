@@ -61,7 +61,7 @@
       </div>
       <aside class="right-stack">
         <div class="panel"><div class="panel-head"><div class="section-label"><svg class="icon"><use href="#i-spark"/></svg><h2>本轮进度</h2></div><span class="tag" id="runStatusTag">等待连接</span></div><div class="status-body"><div class="status-line"><div class="status-icon"><svg class="icon" id="statusIcon"><use href="#i-play"/></svg></div><div><h3 id="statusTitle">准备一场新实验</h3><p id="statusDescription">开始后可实时观察模型游玩与局后优化。</p></div></div><div class="progress-rail" id="progressRail"><div class="progress-step"><div class="progress-number">1</div>正式游玩</div><div class="progress-step"><div class="progress-number">2</div>GEPA 搜索</div><div class="progress-step"><div class="progress-number">3</div>配对评测</div><div class="progress-step"><div class="progress-number">4</div>选版完成</div></div><div class="status-hint"><strong>每个正式回合结束后，自动尝试优化。</strong><br>评测回合属于本次优化，不递归启动新任务。候选未通过验证时，保留当前版本。</div><div class="job-brief hidden" id="currentJob"></div><div class="status-actions"><button class="btn" id="pauseButton" disabled><svg class="icon"><use href="#i-pause"/></svg><span>暂停</span></button><button class="btn danger" id="stopButton" disabled><svg class="icon"><use href="#i-stop"/></svg>停止实验</button></div></div></div>
-        <details class="panel settings-panel" open><summary class="settings-head"><div class="section-label"><svg class="icon"><use href="#i-sliders"/></svg><h2>实验设置</h2></div><svg class="icon chevron"><use href="#i-chevron"/></svg></summary><form class="settings-form" id="settingsForm"><div class="form-field game-select"><label for="game_id">选择游戏适配器</label><select id="game_id" name="game_id"><option value="snake">贪吃蛇</option><option value="xiangqi">中国象棋</option><option value="army">暗棋军棋</option><option value="gomoku">五子棋</option><option value="tetris">俄罗斯方块</option><option value="platformer">平台跳跃</option><option value="overcooked">协作厨房</option><option value="pokemon">宝可梦对战</option></select><p class="field-note" id="gameSettingNote">游戏暂停等待 Decision 决策，每局冻结一个 Harness。</p></div><div class="form-grid"><div class="form-field"><label for="episodes">正式回合数</label><input id="episodes" name="episodes" type="number" min="1" max="20" value="1" required></div><div class="form-field"><label for="seed">随机种子</label><input id="seed" name="seed" type="number" min="0" max="2147483647" value="42" required></div><div class="form-field" id="boardSizeField"><label for="board_size">棋盘边长</label><input id="board_size" name="board_size" type="number" min="5" max="20" value="8" required></div><div class="form-field hidden" id="gomokuSizeField"><label for="gomoku_size">五子棋棋盘</label><select id="gomoku_size" name="gomoku_size"><option value="9">9 × 9</option><option value="15">15 × 15</option></select></div><div class="form-field hidden" id="overcookedLayoutField"><label for="overcooked_layout">厨房地图</label><select id="overcooked_layout" name="overcooked_layout"><option value="cramped_room">紧凑厨房</option><option value="asymmetric_advantages">非对称分工</option><option value="coordination_ring">协作环廊</option></select></div><div class="form-field"><label for="max_steps" id="maxStepsLabel">每局步数上限</label><input id="max_steps" name="max_steps" type="number" min="8" max="1000" value="120" required></div></div><div class="form-divider"></div><div class="form-subtitle"><span>GEPA 与候选评测预算</span><span class="mono">/ 每次优化</span></div><div class="form-grid"><div class="form-field"><label for="train_games">训练场景数</label><input id="train_games" name="train_games" type="number" min="1" max="12" value="3" required></div><div class="form-field"><label for="validation_games">选优场景数</label><input id="validation_games" name="validation_games" type="number" min="1" max="16" value="3" required></div><div class="form-field"><label for="promotion_games">发布配对场景数</label><input id="promotion_games" name="promotion_games" type="number" min="1" max="32" value="4" required></div><div class="form-field"><label for="reflection_rounds">反思轮数</label><input id="reflection_rounds" name="reflection_rounds" type="number" min="1" max="5" value="1" required></div></div><div class="trial-note" id="trialNote">小样本实验用于验证流程，不构成性能提升的统计证明。</div><button class="btn primary run-btn" id="runButton" type="submit" disabled><svg class="icon"><use href="#i-play"/></svg><span>开始实验</span></button></form><div class="provider-row"><div class="provider-info"><p>选手 <strong id="decisionProvider">Decision · 待连接</strong></p><p>教练 <strong id="llmProvider">等待服务配置</strong></p></div><button class="btn small" id="healthButton"><svg class="icon"><use href="#i-refresh"/></svg>检查服务</button></div><pre class="health-detail hidden" id="healthDetail"></pre></details>
+        <details class="panel settings-panel" open><summary class="settings-head"><div class="section-label"><svg class="icon"><use href="#i-sliders"/></svg><h2>实验设置</h2></div><svg class="icon chevron"><use href="#i-chevron"/></svg></summary><form class="settings-form" id="settingsForm"><div class="form-field game-select"><label for="game_id">选择游戏适配器</label><select id="game_id" name="game_id"><option value="snake">贪吃蛇</option><option value="xiangqi">中国象棋</option><option value="army">暗棋军棋</option><option value="gomoku">五子棋</option><option value="tetris">俄罗斯方块</option><option value="platformer">平台跳跃</option><option value="overcooked">协作厨房</option><option value="pokemon">宝可梦对战</option></select><p class="field-note" id="gameSettingNote">游戏暂停等待 Decision 决策，每局冻结一个 Harness。</p></div><div class="form-field game-select hidden" id="harnessModeField"><label for="harness_mode">Harness 优化模式</label><select id="harness_mode" name="harness_mode" aria-describedby="harnessModeNote"><option value="text-v1">两段策略文字</option><option value="tetris-components-v1">五组件</option><option value="tetris-components-experience-v1">五组件＋改进经验库</option></select><p class="field-note" id="harnessModeNote">五组件可优化目标规划、记忆和观察组织；经验库供局后复盘参考。动作仍由 Decision 决策，改进须通过独立验收。</p></div><div class="form-grid"><div class="form-field"><label for="episodes">正式回合数</label><input id="episodes" name="episodes" type="number" min="1" max="20" value="1" required></div><div class="form-field"><label for="seed">随机种子</label><input id="seed" name="seed" type="number" min="0" max="2147483647" value="42" required></div><div class="form-field" id="boardSizeField"><label for="board_size">棋盘边长</label><input id="board_size" name="board_size" type="number" min="5" max="20" value="8" required></div><div class="form-field hidden" id="gomokuSizeField"><label for="gomoku_size">五子棋棋盘</label><select id="gomoku_size" name="gomoku_size"><option value="9">9 × 9</option><option value="15">15 × 15</option></select></div><div class="form-field hidden" id="overcookedLayoutField"><label for="overcooked_layout">厨房地图</label><select id="overcooked_layout" name="overcooked_layout"><option value="cramped_room">紧凑厨房</option><option value="asymmetric_advantages">非对称分工</option><option value="coordination_ring">协作环廊</option></select></div><div class="form-field"><label for="max_steps" id="maxStepsLabel">每局步数上限</label><input id="max_steps" name="max_steps" type="number" min="8" max="1000" value="120" required></div></div><div class="form-divider"></div><div class="form-subtitle"><span>GEPA 与候选评测预算</span><span class="mono">/ 每次优化</span></div><div class="form-grid"><div class="form-field"><label for="train_games">训练场景数</label><input id="train_games" name="train_games" type="number" min="1" max="12" value="3" required></div><div class="form-field"><label for="validation_games">选优场景数</label><input id="validation_games" name="validation_games" type="number" min="1" max="16" value="3" required></div><div class="form-field"><label for="promotion_games">发布配对场景数</label><input id="promotion_games" name="promotion_games" type="number" min="1" max="32" value="4" required></div><div class="form-field"><label for="reflection_rounds">反思轮数</label><input id="reflection_rounds" name="reflection_rounds" type="number" min="1" max="5" value="1" required></div></div><div class="trial-note" id="trialNote">小样本实验用于验证流程，不构成性能提升的统计证明。</div><button class="btn primary run-btn" id="runButton" type="submit" disabled><svg class="icon"><use href="#i-play"/></svg><span>开始实验</span></button></form><div class="provider-row"><div class="provider-info"><p>选手 <strong id="decisionProvider">Decision · 待连接</strong></p><p>教练 <strong id="llmProvider">等待服务配置</strong></p></div><button class="btn small" id="healthButton"><svg class="icon"><use href="#i-refresh"/></svg>检查服务</button></div><pre class="health-detail hidden" id="healthDetail"></pre></details>
       </aside>
     </section>
     <section class="lower-grid" id="history"><div class="panel"><div class="panel-head"><div class="section-label"><svg class="icon"><use href="#i-history"/></svg><h2>回合记录</h2></div><span class="list-count" id="episodeCount">0 EPISODES</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>回合</th><th>用途</th><th>得分</th><th>步数 / 结果</th><th>操作</th></tr></thead><tbody id="episodesBody"><tr><td colspan="5" class="empty-row">完成的真实回合将保存在这里，随时逐步回放。</td></tr></tbody></table></div></div><div class="panel"><div class="panel-head"><div class="section-label"><svg class="icon"><use href="#i-layers"/></svg><h2>Harness 版本</h2></div><span class="list-count" id="versionCount">0 VERSIONS</span></div><div id="versionsList" class="version-list"><div class="empty-block">等待 LLM 生成首个 Harness。</div></div></div></section>
@@ -88,7 +88,7 @@
     const gameName = id => games().find(game=>game.id===id)?.name || id;
     const belongsToGame = item => gameOf(item) === selectedGame();
     const currentHarness = () => state?.active_harness && belongsToGame(state.active_harness) ? state.active_harness : null;
-    const settingsKeys = ['episodes','seed','board_size','gomoku_size','overcooked_layout','max_steps','train_games','validation_games','promotion_games','reflection_rounds'];
+    const settingsKeys = ['harness_mode','episodes','seed','board_size','gomoku_size','overcooked_layout','max_steps','train_games','validation_games','promotion_games','reflection_rounds'];
     let state = null, connected = false, commandPending = false, healthPending = false, settingsTouched = false, hydratedSettings = false, optimisticStop = false;
     let replay = null, replayIndex = 0, replayTimer = null, replayRequestID = 0, lastRenderedSnapshot = null, lastRenderedGameID = 'snake', lastSyncTime = null;
     let previousFocus = null;
@@ -127,13 +127,22 @@
       $('toastStack').appendChild(el); setTimeout(() => el.remove(), error ? 8000 : 4500);
     }
     function setHTML(id, markup) { if (renderCache[id] !== markup) { $(id).innerHTML = markup; renderCache[id] = markup; } }
+    function harnessSettingsForMode(mode) {
+      if(mode==='tetris-components-experience-v1')return {harness_profile:'tetris-components-v1',use_experience:true};
+      return {harness_profile:mode,use_experience:false};
+    }
+    function harnessModeForSettings(settings) {
+      return settings.harness_profile==='tetris-components-v1' ? (settings.use_experience===true?'tetris-components-experience-v1':'tetris-components-v1') : 'text-v1';
+    }
     function formPayload(gameID,values) {
       const shared=['episodes','seed','max_steps','train_games','validation_games','promotion_games','reflection_rounds'];
       const keys=[...shared,...(gameID==='snake'?['board_size']:gameID==='gomoku'?['gomoku_size']:[])];
-      return {game_id:gameID,...Object.fromEntries(keys.filter(key=>values[key]!==undefined).map(key=>[key,Number(values[key])])),...(gameID==='overcooked'&&values.overcooked_layout!==undefined?{overcooked_layout:String(values.overcooked_layout)}:{})};
+      return {game_id:gameID,...Object.fromEntries(keys.filter(key=>values[key]!==undefined).map(key=>[key,Number(values[key])])),...(gameID==='overcooked'&&values.overcooked_layout!==undefined?{overcooked_layout:String(values.overcooked_layout)}:{}),...(gameID==='tetris'&&values.harness_mode!==undefined?harnessSettingsForMode(values.harness_mode):{})};
     }
     function validFormPayload(payload) {
-      return (payload.game_id!=='overcooked'||payload.max_steps===undefined||payload.max_steps%2===0)&&Object.entries(payload).every(([key,value])=>key==='game_id'?typeof value==='string':key==='overcooked_layout'?payload.game_id==='overcooked'&&['cramped_room','asymmetric_advantages','coordination_ring'].includes(value):Number.isInteger(value));
+      const componentFields='harness_profile' in payload||'use_experience' in payload;
+      if(componentFields&&(payload.game_id!=='tetris'||!['text-v1','tetris-components-v1'].includes(payload.harness_profile)||typeof payload.use_experience!=='boolean'||(payload.use_experience&&payload.harness_profile!=='tetris-components-v1')))return false;
+      return (payload.game_id!=='overcooked'||payload.max_steps===undefined||payload.max_steps%2===0)&&Object.entries(payload).every(([key,value])=>key==='game_id'?typeof value==='string':key==='overcooked_layout'?payload.game_id==='overcooked'&&['cramped_room','asymmetric_advantages','coordination_ring'].includes(value):key==='harness_profile'?typeof value==='string':key==='use_experience'?typeof value==='boolean':Number.isInteger(value));
     }
     function getFormSettings() { return formPayload(selectedGame(),Object.fromEntries(settingsKeys.map(key=>[key,$(key).value]))); }
     function episodeOutcome(episode) {
@@ -143,7 +152,8 @@
       if (hydratedSettings || settingsTouched || !settings) return;
       if (settings.game_id && games().some(game=>game.id===settings.game_id)) $('game_id').value=settings.game_id;
       for (const key of settingsKeys) {
-        if(key==='overcooked_layout'){if(['cramped_room','asymmetric_advantages','coordination_ring'].includes(settings[key]))$(key).value=settings[key];}
+        if(key==='harness_mode')$(key).value=harnessModeForSettings(settings);
+        else if(key==='overcooked_layout'){if(['cramped_room','asymmetric_advantages','coordination_ring'].includes(settings[key]))$(key).value=settings[key];}
         else if (Number.isFinite(Number(settings[key])) && settings[key] !== null) $(key).value = settings[key];
       }
       hydratedSettings = true; renderGameSettings(); updateTrialNotice();
@@ -152,6 +162,8 @@
       const id=selectedGame(),duel=['xiangqi','army','gomoku'].includes(id);
       $('gameHeading').textContent=`${gameName(id)} · AI 实验台`; $('gameEyebrow').textContent=`GAME HARNESS / ${id.toUpperCase()}`;
       $('showdownLink').classList.toggle('hidden',id!=='pokemon');
+      $('harnessModeField').classList.toggle('hidden',id!=='tetris');
+      $('harness_mode').disabled=id!=='tetris'||Boolean(state?.busy)||commandPending;
       $('boardSizeField').classList.toggle('hidden',id!=='snake');$('gomokuSizeField').classList.toggle('hidden',id!=='gomoku');$('overcookedLayoutField').classList.toggle('hidden',id!=='overcooked');
       $('maxStepsLabel').textContent=duel?'每局半回合上限':'每局决策次数上限';
       $('max_steps').step=id==='overcooked'?'2':'1';
@@ -212,7 +224,7 @@
       const busy = Boolean(state?.busy), stopped = Boolean(state?.stop_requested || optimisticStop);
       $('runButton').disabled = !connected || busy || commandPending;
       $('runButton').querySelector('span').textContent = busy ? '实验进行中' : commandPending ? '正在提交…' : '开始实验';
-      for (const key of settingsKeys) $(key).disabled = busy || commandPending;
+      for (const key of settingsKeys) $(key).disabled = busy || commandPending || (key==='harness_mode'&&selectedGame()!=='tetris');
       $('game_id').disabled=busy || commandPending;
       $('pauseButton').disabled = !connected || commandPending || stopped || !canPause();
       $('pauseButton').innerHTML = icon(state?.paused ? 'play' : 'pause') + `<span>${state?.paused ? '继续' : '暂停'}</span>`;
@@ -737,6 +749,12 @@
       if(!version)return '尚无版本';const candidate=version.candidate||version;
       const notes=Array.isArray(candidate.strategy_notes)?candidate.strategy_notes.join('\n\n'):textValue(candidate.strategy_notes);
       const sections=['决策指令',textValue(first(candidate.decision_instructions,candidate.instructions,'未提供')),...(notes?['\n策略说明',notes]:[])];
+      for(const [field,label] of [['goal_instructions','目标规划'],['memory_policy','记忆策略'],['observation_policy','观察组织']]) {
+        if(candidate[field]===undefined)continue;
+        let content=textValue(candidate[field]);
+        if(field!=='goal_instructions'){try{content=JSON.stringify(JSON.parse(content),null,2);}catch{/* Keep malformed historical content visible as plain text. */}}
+        sections.push('\n'+label,content||'该版本未记录此项');
+      }
       const resolvedBrief=resolveVersionBrief(version),brief=resolvedBrief?.brief;
       if(brief) {
         sections.push('\n初始化游戏资料');
@@ -770,7 +788,7 @@
     }
     $('settingsForm').addEventListener('submit',event=>{
       event.preventDefault();if(!$('settingsForm').reportValidity())return;
-      const cfg=getFormSettings();if(!validFormPayload(cfg)){showError('实验设置需填写整数；厨房决策次数需为偶数，并选择支持的地图。');return;}
+      const cfg=getFormSettings();if(!validFormPayload(cfg)){showError('请检查游戏设置与 Harness 模式；数值需为整数，厨房决策次数需为偶数，并选择支持的地图。');return;}
       $('errorBanner').classList.add('hidden');returnLive();command('/api/run',cfg,'实验已提交，等待服务开始执行。');
     });
     $('game_id').addEventListener('change',()=>{settingsTouched=true;const game=games().find(item=>item.id===selectedGame());for(const key of settingsKeys)if(game?.defaults?.[key]!==undefined)$(key).value=game.defaults[key];stopReplay();replay=null;renderGameSettings();updateTrialNotice();if(state)renderState();});

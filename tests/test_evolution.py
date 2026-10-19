@@ -356,3 +356,97 @@ def test_unsupported_or_invalid_adapter_scoring_is_rejected_before_optimizer(tmp
                        train_seeds=[2], validation_seeds=[101],
                        evaluate_episode=lambda *args: pytest.fail('must validate scoring first'),
                        coach=Coach(), game_context={**TURN_CONTEXT, 'score_spec': spec}, run_dir=tmp_path / 'job')
+
+
+def full_tetris_candidate():
+    from game_harness.components import upgrade_tetris_candidate
+    return upgrade_tetris_candidate(BASE, "Choose a feasible column and rotation using conditional projections")
+
+
+def component_run(tmp_path, *, mutable=None, response=None, experiences=()):
+    from types import SimpleNamespace
+    base = full_tetris_candidate()
+    response = response or {**base, "goal_instructions": "Compare holes and line-clear outcomes before selecting a target"}
+    coach = Coach(response)
+    coach.settings = SimpleNamespace(decision_model="fake-decision")
+    context = {"game_id": "tetris", "rules_version": "tetris-v1", "score_spec": {"min": 0, "direction": "maximize"}}
+
+    def evaluator(c, seed, purpose):
+        return {**episode(seed, score=5 if c != base else 2), "game_id": "tetris"}
+
+    result = evolve_harness(candidate=base, trigger_episode=evaluator(base, 1, "play"),
+                            train_seeds=[2], validation_seeds=[101], coach=coach,
+                            evaluate_episode=evaluator, game_context=context, run_dir=tmp_path / "job",
+                            mutable_components=mutable, improvement_experiences=experiences)
+    return result, coach
+
+
+def test_full_profile_gepa_changes_goal_and_preserves_all_components(tmp_path):
+    result, coach = component_run(tmp_path)
+    assert result["changed"] and len(result["candidate"]) == 5
+    assert result["proposals"][0]["changed_components"] == ["goal_instructions"]
+    payload = json.loads(coach.calls[0][0][1]["content"])
+    contract = payload["immutable_runtime_contract"]
+    assert contract["components"]["context_schema"] == "tetris-context-v4"
+    assert "tetris_landing_projections" in contract["runtime_fields"]
+    assert "stateless" not in contract["player"]["memory"]
+    assert "不假设height_profile" not in contract["game_guidance"]["design_focus"]
+    assert set(payload["mutable_components"]) == set(result["candidate"])
+    assert result["promotion"] == "not_performed"
+
+
+def test_two_text_arm_retains_frozen_goals_memory_and_observations(tmp_path):
+    base = full_tetris_candidate()
+    result, coach = component_run(tmp_path, mutable=["decision_instructions", "strategy_notes"],
+                                  response={**base, "strategy_notes": "Compare current consequences"})
+    assert result["changed"] and len(result["candidate"]) == 5
+    for name in ("goal_instructions", "memory_policy", "observation_policy"):
+        assert result["candidate"][name] == base[name]
+    payload = json.loads(coach.calls[0][0][1]["content"])
+    assert set(payload["frozen_components"]) == {"goal_instructions", "memory_policy", "observation_policy"}
+    manifest = json.loads((tmp_path / "job/evolution_manifest.json").read_text())
+    assert manifest["mutable_components"] == ["decision_instructions", "strategy_notes"]
+    assert len(manifest["mutable_components_hash"]) == 64
+
+
+@pytest.mark.parametrize("kind", ["mutate_frozen", "drop_components", "bad_json_policy", "remove_observation"])
+def test_component_schema_escape_is_rejected_without_child_execution(tmp_path, kind):
+    response = full_tetris_candidate()
+    mutable = None
+    if kind == "mutate_frozen":
+        mutable = ["decision_instructions", "strategy_notes"]
+        response["goal_instructions"] = "Illegally modified"
+    elif kind == "drop_components":
+        response = BASE
+    elif kind == "bad_json_policy":
+        response["memory_policy"] = '{"instructions":"x","recent_actions":1000,"replan_every_actions":4}'
+    else:
+        response["observation_policy"] = '{"instructions":"x","section_order":["observation"]}'
+    result, coach = component_run(tmp_path, response=response, mutable=mutable)
+    assert not result["changed"] and result["candidate"] == full_tetris_candidate()
+    assert result["proposals"][0]["status"] == "rejected_schema"
+    assert len(coach.calls) == 1
+
+
+def test_frozen_experiences_enter_coach_with_hashes_and_never_validation_evidence(tmp_path):
+    from game_harness.experience import ExperienceLibrary, ExperienceScope, digest
+    from types import SimpleNamespace
+    scope = ExperienceScope("snake", "snake-v1", "text-v1", "fake-decision")
+    def e(c, score, label):
+        return {**episode(50, score, episode_id=label), **scope.as_dict(), "purpose": "experience_probe",
+                "final_state": {"score": score}, "policy_hashes": {"candidate": digest(c)},
+                "trace": [{"receipt": {"model": scope.model, "think_mode": "never"}}]}
+    entry = ExperienceLibrary(tmp_path / "experience").record_from_pairs(
+        scope=scope, parent=BASE, candidate=BETTER,
+        pairs=[{"parent": e(BASE, 2, "older-parent"), "candidate": e(BETTER, 3, "older-child")}],
+        cue="Open space shrinks", lesson="Consider future space", limitations=["One training pair only"])
+    coach = Coach()
+    coach.settings = SimpleNamespace(decision_model="fake-decision")
+    context = {"game_id": "snake", "rules_version": "snake-v1", "score_spec": {"min": 0}}
+    result = run(tmp_path, coach=coach, improvement_experiences=[entry], game_context=context)
+    payload = json.loads(coach.calls[0][0][1]["content"])
+    assert payload["improvement_experiences"] == [entry]
+    assert result["improvement_experience_hashes"] == [entry["content_hash"]]
+    assert result["proposals"][0]["improvement_experience_snapshot_hash"] == result["improvement_experience_snapshot_hash"]
+    entry["lesson"] = "tampered"
+    assert payload["improvement_experiences"][0]["lesson"] != entry["lesson"]

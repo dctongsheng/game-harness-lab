@@ -21,7 +21,7 @@ from .spectator import SpectatorStore
 
 DEFAULTS = {"game_id": "snake", "board_size": 8, "max_steps": 120, "train_games": 3,
             "validation_games": 3, "promotion_games": 4, "reflection_rounds": 1,
-            "episodes": 1, "seed": 42}
+            "episodes": 1, "seed": 42, "harness_profile": "text-v1", "use_experience": False}
 LIMITS = {"board_size": (5, 20), "max_steps": (8, 1000), "train_games": (1, 12),
           "validation_games": (1, 16), "promotion_games": (1, 32),
           "reflection_rounds": (1, 5), "episodes": (1, 20), "seed": (0, 2**31 - 1)}
@@ -181,6 +181,18 @@ class Lab:
         switching = game_id != previous_game_id
         previous = {k:v for k,v in self.config.items() if k in DEFAULTS} if switching else self.config
         config = {**DEFAULTS, **adapter.defaults, **previous, **(adapter.defaults if switching else {}), **options, "game_id": game_id}
+        if switching:
+            for key in ("harness_profile", "use_experience"):
+                if key not in options:
+                    config[key] = DEFAULTS[key]
+        if config["harness_profile"] not in {"text-v1", "tetris-components-v1"}:
+            raise ValueError("未知 Harness 组件配置")
+        if config["harness_profile"] == "tetris-components-v1" and game_id != "tetris":
+            raise ValueError("当前五组件配置仅支持俄罗斯方块")
+        if type(config["use_experience"]) is not bool:
+            raise ValueError("use_experience 必须是布尔值")
+        if config["use_experience"] and config["harness_profile"] != "tetris-components-v1":
+            raise ValueError("改进经验库当前需要俄罗斯方块五组件配置")
         if switching and "seed" not in options:
             # A private setup seed must neither inherit a previously public seed
             # nor later become visible in another game's public settings.
@@ -196,8 +208,13 @@ class Lab:
             if self.busy:
                 raise ValueError("已有实验正在运行")
             self.config = config
-            self.scope = digest({"game_context": adapter.context(config), "model": self.settings.decision_model,
-                                 "endpoint": self.settings.decision_url, "think_mode": "never"})[:20]
+            scope_data = {"game_context": adapter.context(config), "model": self.settings.decision_model,
+                          "endpoint": self.settings.decision_url, "think_mode": "never"}
+            # Preserve the existing two-text namespaces; component runs never
+            # silently inherit or replace an incompatible legacy champion.
+            if config["harness_profile"] != "text-v1":
+                scope_data.update(harness_profile=config["harness_profile"], use_experience=config["use_experience"])
+            self.scope = digest(scope_data)[:20]
             self.store.put("metadata", {"id": "last_run", "scope": self.scope, "config": config})
             self.stop_event.clear()
             self.paused = False
@@ -247,6 +264,10 @@ class Lab:
         if brief is None and parent:
             brief = self.inherited_brief(self.store.get("version", parent))
         game_context = game_context or get_game(self.config.get("game_id", "snake")).context(self.config)
+        from .components import component_names, TETRIS_COMPONENTS
+        profile = "tetris-components-v1" if component_names(candidate) == TETRIS_COMPONENTS else "text-v1"
+        if profile == "tetris-components-v1" and game_context["game_id"] != "tetris":
+            raise ValueError("五组件版本不能用于其他游戏")
         identity = "h-" + digest({"candidate": candidate, "scope": scope})[:16]
         existing = self.store.get("version", identity)
         if existing:
@@ -256,6 +277,8 @@ class Lab:
                   "game_id": game_context["game_id"], "game_context": game_context,
                   "rules_version": game_context["rules_version"], "decision_model": self.settings.decision_model,
                   "think_mode": "never", "identity_verification": "service_reported_name"}
+        if profile != "text-v1":
+            result["runtime_profile"] = profile
         atomic_json(self.store.root / "versions" / f"{identity}.json", result)
         return self.store.put("version", result)
 
@@ -307,7 +330,7 @@ class Lab:
             except (OSError, ValueError):
                 self.log("原版观战日志收尾失败；对局结果仍保留", "spectator_error", episode_id=identity)
         result.update(purpose=purpose, job_id=job_id, created_at=utcnow(), scope=harness["scope"], game_id=adapter.id,
-                      config=dict(config))
+                      config=dict(config), runtime_profile=harness.get("runtime_profile", "text-v1"))
         self.store.save_episode(result)
         self.log(f"{'游玩' if purpose == 'play' else '评测'}结束：{result['score']} 分 / {result['steps']} 步 / {result['termination_reason']}",
                  "episode", episode_id=identity, purpose=purpose)
@@ -358,7 +381,10 @@ class Lab:
         atomic_json(workdir / "manifest.json", job)
         with self.lock:
             self.status = "optimizing"
-        self.log("启动局后 GEPA：新作业固定数据清单，只优化两段策略文字", "optimizing", job_id=job["id"])
+        self.log("启动局后 GEPA：固定数据清单与组件边界", "optimizing", job_id=job["id"])
+        training_records = []
+        experiences = []
+        library = experience_scope = None
 
         def evaluate(candidate, seed, purpose):
             self.guard()
@@ -369,6 +395,8 @@ class Lab:
             if result.get("infra_error"):
                 raise ProviderError("评测发生基础设施错误，未将其记为策略零分")
             require_evaluable_result(result, context)
+            if purpose == "search_train":
+                training_records.append((copy.deepcopy(candidate), result))
             return result
 
         def event(data):
@@ -379,6 +407,19 @@ class Lab:
                      "optimizing", job_id=job["id"], detail=data)
 
         try:
+            if config.get("use_experience", False):
+                from .experience import ExperienceLibrary, ExperienceScope
+                library = ExperienceLibrary(self.store.root / "improvement-experiences")
+                experience_scope = ExperienceScope(adapter.id, adapter.rules_version,
+                                                   "tetris-components-v1", self.settings.decision_model)
+                if "experience_cutoff" not in job:
+                    job["experience_cutoff"] = library.snapshot_sequence()
+                    self.store.put("job", job)
+                atomic_json(workdir / "manifest.json", job)
+                experiences = library.retrieve(scope=experience_scope,
+                    exclude_seeds=job["train_seeds"] + job["validation_seeds"] + job["promotion_seeds"],
+                    before_sequence=job["experience_cutoff"])
+                atomic_json(workdir / "experience-input.json", experiences)
             if (trigger.get("infra_error") or trigger.get("termination_reason") == "stopped"
                     or trigger.get("harness_id") != baseline["id"]):
                 self.log("原局中断或策略版本与当前基线不同：先按当前基线同种子重跑，再进行反思", "recovery",
@@ -397,7 +438,8 @@ class Lab:
                                      train_seeds=job["train_seeds"], validation_seeds=job["validation_seeds"],
                                      evaluate_episode=evaluate, coach=coach, run_dir=workdir / "gepa",
                                      reflection_rounds=config["reflection_rounds"], on_event=event,
-                                     should_stop=self.stop_event.is_set, game_context=context)
+                                     should_stop=self.stop_event.is_set, game_context=context,
+                                     improvement_experiences=experiences)
             self.guard()
             atomic_json(workdir / "outcome.json", outcome)
             job["proposals"] = outcome.get("proposals", [])
@@ -468,7 +510,39 @@ class Lab:
                 self.export_version(job)
             except Exception as exc:
                 self.log("版本已发布，导出待重试：" + str(exc)[:300], "export_error", job_id=job["id"])
+        # Only search-training behavior enters future lessons. The independent
+        # validation/promotion traces and their decisions never enter this API.
+        if library is not None:
+            try:
+                self._record_training_experience(library, experience_scope, baseline["candidate"],
+                                                  outcome, training_records, coach, context, job)
+            except Exception as exc:
+                self.log("本轮经验未保存：" + type(exc).__name__, "experience_error", job_id=job["id"])
         self.log(job["decision"], "optimization_complete", job_id=job["id"])
+
+    def _record_training_experience(self, library, scope, parent, outcome, records, coach, context, job):
+        from .evolution import _digest as evolution_digest
+        for proposal in outcome.get("proposals", []):
+            child = proposal.get("candidate")
+            if not child or child == parent or proposal.get("parent_hash") != evolution_digest(parent):
+                continue
+            # Use the first actual paired observations, never pick the highest
+            # scoring repetitions. Failed/unexecuted proposals yield no lesson.
+            before, after = {}, {}
+            for program, episode in records:
+                if program == parent:
+                    before.setdefault(episode["seed"], episode)
+                elif program == child:
+                    after.setdefault(episode["seed"], episode)
+            pairs = [{"parent": before[seed], "candidate": after[seed]} for seed in sorted(before.keys() & after.keys())]
+            if not pairs:
+                continue
+            entry = library.record_from_pairs(scope=scope, parent=parent, candidate=child,
+                pairs=pairs, cue="同规则的俄罗斯方块关闭思考决策需要调整组件时。", lesson="",
+                limitations=["仅来自本轮搜索训练对局；不含独立验收信息。", "多组件共同变化时不能单独归因。"],
+                coach=coach, game_context=context)
+            self.log("训练改进经验已保存" if entry else "未提炼出可复用经验，本轮不入库", "experience", job_id=job["id"])
+            break
 
     def _run(self, config, scope):
         provider = coach = None
@@ -486,7 +560,10 @@ class Lab:
                 adapter = get_game(config["game_id"])
                 context = adapter.context(config)
                 self.log("GLM-5.3 正在生成游戏背景、规则说明与初版 Harness", "initializing")
-                brief, candidate = coach.initialize(adapter.rules, config["board_size"], config["max_steps"], game_context=context)
+                init_options = {"game_context": context}
+                if config.get("harness_profile", "text-v1") != "text-v1":
+                    init_options["component_profile"] = config["harness_profile"]
+                brief, candidate = coach.initialize(adapter.rules, config["board_size"], config["max_steps"], **init_options)
                 self.guard()
                 provenance = {"type": "bootstrap", "coach": self.settings.coach_model,
                               "initialization": copy.deepcopy(getattr(coach, "initialization_provenance", None))}

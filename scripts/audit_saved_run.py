@@ -115,7 +115,11 @@ def _audit_episode(episode, versions):
         result = {'receipts': receipts, 'thinking_verified': thinking_verified,
                   'compatibility': 'adapter' if modern else 'legacy_snake_v1'}
         context_config = episode.get('tetris_context_config')
-        expected_context = version.get('tetris_context_config') if modern else None
+        if modern:
+            from game_harness.components import resolve_context_config
+            expected_context = resolve_context_config(version, game_id)
+        else:
+            expected_context = None
         require(context_config == expected_context, 'episode context differs from frozen Harness')
         if context_config is not None:
             require(game_id == 'tetris', 'Tetris context on another game')
