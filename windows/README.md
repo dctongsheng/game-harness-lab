@@ -2,8 +2,8 @@
 
 ## 下载和安装
 
-- [安装程序](StartLux-Genshin-0.2.0-preview-win-x64.exe)：在 GitHub 文件页点击 **Download raw file**。Git 克隆的用户运行 `git lfs pull` 拉取完整二进制。
-- [安装包 SHA-256](StartLux-Genshin-0.2.0-preview-win-x64.exe.sha256)
+- [安装程序](StartLux-Genshin-0.3.0-preview-win-x64.exe)：在 GitHub 文件页点击 **Download raw file**。Git 克隆的用户运行 `git lfs pull` 拉取完整二进制。
+- [安装包 SHA-256](StartLux-Genshin-0.3.0-preview-win-x64.exe.sha256)
 - [Windows 验证结果](windows-verification.json)及[实际窗口截图](desktop-preview.png)
 - [独立 BetterGI 完整改造源码](BetterGI-StartLux-source.zip)；可阅读的改造补丁和固定上游版本位于 `integrations/bettergi/`。
 
@@ -27,4 +27,4 @@
 
 试跑后保留最新一次运行目录，其中包含 `report.json`、`trace.jsonl` 和截图。异常发生过早时可能只有部分记录。
 
-本安装包来自已通过验证的源码版本 `60755a863781fe392b296a73ca397223e81eb4b3`。[Windows 构建与安装验证](https://github.com/dctongsheng/game-harness-lab/actions/runs/39118291723)通过；真实麦克风、榜首模型 API 联调及原神实机每日委托/领奖闭环尚未验收。完整对应源码和许可证同时保留在安装包的 `sources/` 与 `licenses/` 中。
+本安装包来自已通过验证的源码版本 `be629fb624739f7198273e41c44411f79abb5106`。[Windows 构建与安装验证](https://github.com/dctongsheng/game-harness-lab/actions/runs/39214636384)通过；真实麦克风、榜首模型 API 联调及原神实机每日委托/领奖闭环尚未验收。完整对应源码和许可证同时保留在安装包的 `sources/` 与 `licenses/` 中。

@@ -2,7 +2,7 @@
 
 ## 原神 Windows 体验版：hhr-yuanshen
 
-直接体验：[下载安装程序](windows/StartLux-Genshin-0.2.0-preview-win-x64.exe)，在 GitHub 文件页点击 **Download raw file**。安装包包含桌面语音界面、离线中文语音模型、Agent 和 BetterGI，无需另装 Python 或 .NET。
+直接体验：[下载安装程序](windows/StartLux-Genshin-0.3.0-preview-win-x64.exe)，在 GitHub 文件页点击 **Download raw file**。安装包包含桌面语音界面、离线中文语音模型、Agent 和 BetterGI，无需另装 Python 或 .NET。
 
 本分支统一保存相关代码、BetterGI 改造补丁、[BetterGI 完整源码快照](windows/BetterGI-StartLux-source.zip)、安装包及 [Windows 验证结果](windows/windows-verification.json)。完整安装包和源码快照由 Git LFS 管理；使用 Git 克隆时：
 
@@ -13,7 +13,7 @@ cd game-harness-lab
 git lfs pull
 ```
 
-Windows 中双击 `Try-Genshin.cmd`，校验安装包后启动安装。也可直接运行 `windows/StartLux-Genshin-0.2.0-preview-win-x64.exe`。浏览器下载源码 ZIP 后，可从上面的安装程序文件页单独获取完整安装包。[首次设置与试跑步骤](windows/README.md)。
+Windows 中双击 `Try-Genshin.cmd`，校验安装包后启动安装。也可直接运行 `windows/StartLux-Genshin-0.3.0-preview-win-x64.exe`。浏览器下载源码 ZIP 后，可从上面的安装程序文件页单独获取完整安装包。[首次设置与试跑步骤](windows/README.md)。
 
 当前为 Windows 11 22H2 及以上 x64 开发预览，先支持中文界面和蒙德委托。Windows 安装、启动、中文解码器与卸载已验证；原神实机闭环和真实麦克风仍待验收。首次运行需配置可用的 BetterGI 战斗策略，以及用户自己的榜首 StartLux 模型部署 ID / Key。
 

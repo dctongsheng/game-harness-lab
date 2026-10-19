@@ -1,8 +1,9 @@
 {
-  "source_commit": "60755a863781fe392b296a73ca397223e81eb4b3",
-  "build_run": "https://github.com/dctongsheng/game-harness-lab/actions/runs/39118291723",
-  "artifact_id": 12133336963,
-  "installer_sha256": "897c75e01f0a898051fda54aa665ffab49734f0f4b0418baffb8ad3bad0cdad1",
+  "source_commit": "be629fb624739f7198273e41c44411f79abb5106",
+  "build_run": "https://github.com/dctongsheng/game-harness-lab/actions/runs/39214636384",
+  "artifact_id": 12169906777,
+  "installer_sha256": "22f9eeb20ed77e45b58bc3f023106bdef5612e964e899a0e6839482374c5db7e",
+  "platform_version": "0.3.0",
   "release_status": "development",
   "genshin_live_verified": false
 }
