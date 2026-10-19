@@ -17,6 +17,14 @@ Windows 中双击 `Try-Genshin.cmd`，校验安装包后启动安装。也可直
 
 当前为 Windows 11 22H2 及以上 x64 开发预览，先支持中文界面和蒙德委托。Windows 安装、启动、中文解码器与卸载已验证；原神实机闭环和真实麦克风仍待验收。首次运行需配置可用的 BetterGI 战斗策略，以及用户自己的榜首 StartLux 模型部署 ID / Key。
 
+## 新工程：StartLux 通用执行平台
+
+独立工程位于 [platform/](platform/README.md)，采用 **通用执行内核 + 场景插件 + Google Harness² 优化后端**。新客户端与后端均不依赖 RRSI，也不依赖下方保留的小游戏框架。
+
+首批场景为原神每日任务和文件账目处理。Windows 客户端执行任务、保留观察与动作记录；Linux 后端调用官方 Harness² 改进文本策略，经过独立回归后管理版本与回滚。原神回放候选可导出到 Windows 开发试跑，实机结果仍须验证。插件接口、模型配置与完整操作见 [平台指南](platform/README.md)。
+
+## 保留的小游戏实验
+
 **通用游戏 Harness 进化框架：游戏适配器 + Decision 玩家 + GEPA 局后优化 + 验收后导出。** 当前支持贪吃蛇、中国象棋、军棋、五子棋、俄罗斯方块、原创平台跳跃、Overcooked-AI 双人厨房和宝可梦对战（poke-env）。
 
 原有八款游戏实验的局内动作都由 StartLux Decision 选择，显式 `think_mode=never`、`allow_none=false`。GLM-5.3 负责游戏资料、策略设计、历史经验提取与局后反思。适配器负责规则、完整动作集和计分，运行器负责模型调用与执行校验。
