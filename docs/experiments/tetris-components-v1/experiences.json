@@ -1,0 +1,97 @@
+{
+  "bootstrap_selected_changed": true,
+  "entries": [
+    {
+      "bootstrap_proposal_reference": {
+        "artifact": "harnesses.json",
+        "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "proposal_number": 1,
+        "search": "bootstrap_search"
+      },
+      "candidate_hash": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+      "changed_components": [
+        "decision_instructions",
+        "memory_policy",
+        "strategy_notes"
+      ],
+      "confounded": true,
+      "content_hash": "6f197390f1110a12b67dd039cf841cf09559ccd6eeaac6d48c4d78746becfd68",
+      "cue": "Tetris固定80步预算对局中，决策提示词同时加入step预算意识、反向短按重置横移计时器的可靠单格移动知识、以及memory中“同块多次反向未对齐则换近落点”的重新规划规则时，配对分差+0/+600且无回退。",
+      "evidence": [
+        {
+          "candidate": {
+            "candidate_hash": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+            "episode_hash": "fc90c93722e28d7afd6bc951535a771df9669a507563dea27c6102854b5127df",
+            "episode_id": "exp-ed7b82dcfbb43f5eb0fa7ac0",
+            "purpose": "search_train",
+            "score": 700
+          },
+          "delta": 0,
+          "parent": {
+            "candidate_hash": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "episode_hash": "ab85bca36bb13c7447a7c5f70346a48e9e3fba33daf315d2def78450391f772b",
+            "episode_id": "exp-0e5b3eda4b1b3090e40a9afd",
+            "purpose": "search_train",
+            "score": 700
+          },
+          "seed": 594356254
+        },
+        {
+          "candidate": {
+            "candidate_hash": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+            "episode_hash": "d6999be28bd65cee571348e7de97ac7a3acbd542ccd08a90de1087bcc3c93c9e",
+            "episode_id": "exp-7dd6de6e5537cd2a0fc41973",
+            "purpose": "search_train",
+            "score": 1600
+          },
+          "delta": 600,
+          "parent": {
+            "candidate_hash": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "episode_hash": "076590face53a97dd16fa52c8529d2efc303650f10fd83640f52a51116810f0a",
+            "episode_id": "exp-8672cfb6c60e113a54cb9a2f",
+            "purpose": "search_train",
+            "score": 1000
+          },
+          "seed": 82358861
+        }
+      ],
+      "hash_format": "sha256-canonical-json-compact-utf8",
+      "interpretation": "suggestion_not_causal_evidence",
+      "lesson": "当Harness存在硬性决策步数上限（step_limit终止，非时间终止）时，把预算意识显式写进decision与strategy_notes可能有帮助：每块平均只能消耗约6-8个动作，微调超过3-4个动作仍不对齐就放弃精细对位、选可接受落点硬降；局末剩余步数少时对当前块快速消行收尾。同时，若运行时存在横移计时器机制，明确“反向切换会重置held_ticks到低位、此时短按:100是可靠单格移动；同向高held_ticks短按易连发”这一反馈规律，并在memory_policy中要求检测同块反复反向横移未对齐时优先改选当前姿态附近的不劣落点，可能减少0分局式的无限往返。此建议以配对结果（700/700与1000/1600，样本outcome=supported）为条件性证据，方向为正向但样本极小。",
+      "limitations": [
+        "confounded=true：decision_instructions、memory_policy、strategy_notes三组件同时改变，无法将提升归因于任一单一组件。",
+        "仅2对配对对局，+600的一对与+0的一对差异大，方差未估计，不能断言平均提升为正。",
+        "开局序列相同但续块序列不同（如next队列不同），部分差异可能来自局面本身而非提示词。",
+        "预算意识与反向短按规律的具体数值（如6-8动作、3-4微调上限）仅在本次runtime_profile下验证，不应外推到其他tickRate或步数配置。"
+      ],
+      "mean_delta": 300.0,
+      "outcome": "supported",
+      "parent_hash": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+      "schema": "harness-improvement-experience/v1",
+      "scope": {
+        "game_id": "tetris",
+        "model": "startlux-decision-27b-autothink",
+        "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+        "runtime_profile": "tetris-components-v1"
+      },
+      "sequence": 1
+    }
+  ],
+  "limitations": [
+    "Evidence is limited to the independent bootstrap training pairs; validation and held-out scores are excluded.",
+    "A multi-component modification does not identify which component caused a difference.",
+    "One frozen snapshot and one optimization per arm do not establish average retrieval benefit.",
+    "NO_ENTRY means no usable experience reached arm C; it is not evidence that retrieval has no value."
+  ],
+  "scope": {
+    "game_id": "tetris",
+    "model": "startlux-decision-27b-autothink",
+    "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+    "runtime_profile": "tetris-components-v1"
+  },
+  "sequence": 1,
+  "source": "bootstrap search_train only",
+  "status": "READY",
+  "training_pairs_available": 2
+}

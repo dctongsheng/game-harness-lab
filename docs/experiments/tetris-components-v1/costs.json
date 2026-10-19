@@ -1,0 +1,636 @@
+{
+  "coach_by_job": {
+    "bootstrap": {
+      "calls": {
+        "completed": 1,
+        "failed": 0,
+        "pending": 0,
+        "started": 1
+      },
+      "completed_call_latency_ms": {
+        "calls": 1,
+        "mean_ms": 28185.18,
+        "p50_ms": 28185.18,
+        "p95_ms": 28185.18,
+        "total_ms": 28185.18
+      },
+      "purpose_latency_ms": {},
+      "reported_usage": {
+        "completion_tokens": 1747,
+        "prompt_tokens": 11806,
+        "total_tokens": 13553
+      }
+    },
+    "components": {
+      "calls": {
+        "completed": 1,
+        "failed": 0,
+        "pending": 0,
+        "started": 1
+      },
+      "completed_call_latency_ms": {
+        "calls": 1,
+        "mean_ms": 27826.42,
+        "p50_ms": 27826.42,
+        "p95_ms": 27826.42,
+        "total_ms": 27826.42
+      },
+      "purpose_latency_ms": {},
+      "reported_usage": {
+        "completion_tokens": 1716,
+        "prompt_tokens": 11810,
+        "total_tokens": 13526
+      }
+    },
+    "experience": {
+      "calls": {
+        "completed": 1,
+        "failed": 0,
+        "pending": 0,
+        "started": 1
+      },
+      "completed_call_latency_ms": {
+        "calls": 1,
+        "mean_ms": 37699.01,
+        "p50_ms": 37699.01,
+        "p95_ms": 37699.01,
+        "total_ms": 37699.01
+      },
+      "purpose_latency_ms": {},
+      "reported_usage": {
+        "completion_tokens": 1552,
+        "prompt_tokens": 13166,
+        "total_tokens": 14718
+      }
+    },
+    "experience_extraction": {
+      "calls": {
+        "completed": 1,
+        "failed": 0,
+        "pending": 0,
+        "started": 1
+      },
+      "completed_call_latency_ms": {
+        "calls": 1,
+        "mean_ms": 14556.84,
+        "p50_ms": 14556.84,
+        "p95_ms": 14556.84,
+        "total_ms": 14556.84
+      },
+      "purpose_latency_ms": {},
+      "reported_usage": {
+        "completion_tokens": 454,
+        "prompt_tokens": 18046,
+        "total_tokens": 18500
+      }
+    },
+    "text": {
+      "calls": {
+        "completed": 1,
+        "failed": 0,
+        "pending": 0,
+        "started": 1
+      },
+      "completed_call_latency_ms": {
+        "calls": 1,
+        "mean_ms": 39496.89,
+        "p50_ms": 39496.89,
+        "p95_ms": 39496.89,
+        "total_ms": 39496.89
+      },
+      "purpose_latency_ms": {},
+      "reported_usage": {
+        "completion_tokens": 2103,
+        "prompt_tokens": 11820,
+        "total_tokens": 13923
+      }
+    }
+  },
+  "currency_cost": null,
+  "decision_by_stage": {
+    "bootstrap": {
+      "calls": {
+        "completed": 871,
+        "failed": 0,
+        "pending": 0,
+        "started": 871
+      },
+      "completed_call_latency_ms": {
+        "calls": 871,
+        "mean_ms": 1132.6911584385764,
+        "p50_ms": 955.867,
+        "p95_ms": 1595.176,
+        "total_ms": 986573.999
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 640,
+          "mean_ms": 949.47280625,
+          "p50_ms": 942.9385,
+          "p95_ms": 1012.4956,
+          "total_ms": 607662.596
+        },
+        "goal": {
+          "calls": 231,
+          "mean_ms": 1640.3091038961038,
+          "p50_ms": 1554.364,
+          "p95_ms": 2507.7885,
+          "total_ms": 378911.403
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 22995027,
+        "output_tokens": 0
+      }
+    },
+    "bootstrap-trigger": {
+      "calls": {
+        "completed": 107,
+        "failed": 0,
+        "pending": 0,
+        "started": 107
+      },
+      "completed_call_latency_ms": {
+        "calls": 107,
+        "mean_ms": 1148.6045514018692,
+        "p50_ms": 990.249,
+        "p95_ms": 1623.0205999999998,
+        "total_ms": 122900.687
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 80,
+          "mean_ms": 996.814675,
+          "p50_ms": 954.6635,
+          "p95_ms": 1205.29665,
+          "total_ms": 79745.174
+        },
+        "goal": {
+          "calls": 27,
+          "mean_ms": 1598.3523333333333,
+          "p50_ms": 1573.329,
+          "p95_ms": 1744.7118999999998,
+          "total_ms": 43155.513
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 2758551,
+        "output_tokens": 0
+      }
+    },
+    "components": {
+      "calls": {
+        "completed": 654,
+        "failed": 0,
+        "pending": 0,
+        "started": 654
+      },
+      "completed_call_latency_ms": {
+        "calls": 654,
+        "mean_ms": 1113.650366972477,
+        "p50_ms": 953.1345,
+        "p95_ms": 1592.1131,
+        "total_ms": 728327.34
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 480,
+          "mean_ms": 948.2986854166667,
+          "p50_ms": 937.4605,
+          "p95_ms": 1014.60565,
+          "total_ms": 455183.369
+        },
+        "goal": {
+          "calls": 174,
+          "mean_ms": 1569.7929367816091,
+          "p50_ms": 1546.4255,
+          "p95_ms": 1651.02545,
+          "total_ms": 273143.971
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 17265060,
+        "output_tokens": 0
+      }
+    },
+    "evaluation-components": {
+      "calls": {
+        "completed": 864,
+        "failed": 0,
+        "pending": 0,
+        "started": 864
+      },
+      "completed_call_latency_ms": {
+        "calls": 864,
+        "mean_ms": 1089.0613449074074,
+        "p50_ms": 934.816,
+        "p95_ms": 1557.18735,
+        "total_ms": 940949.002
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 640,
+          "mean_ms": 931.015840625,
+          "p50_ms": 921.259,
+          "p95_ms": 995.94085,
+          "total_ms": 595850.138
+        },
+        "goal": {
+          "calls": 224,
+          "mean_ms": 1540.6199285714285,
+          "p50_ms": 1528.6734999999999,
+          "p95_ms": 1618.1774,
+          "total_ms": 345098.864
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 22523392,
+        "output_tokens": 0
+      }
+    },
+    "evaluation-experience": {
+      "calls": {
+        "completed": 864,
+        "failed": 0,
+        "pending": 0,
+        "started": 864
+      },
+      "completed_call_latency_ms": {
+        "calls": 864,
+        "mean_ms": 1080.505230324074,
+        "p50_ms": 924.136,
+        "p95_ms": 1546.0889,
+        "total_ms": 933556.519
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 640,
+          "mean_ms": 923.4195078125,
+          "p50_ms": 911.9035,
+          "p95_ms": 993.76315,
+          "total_ms": 590988.485
+        },
+        "goal": {
+          "calls": 224,
+          "mean_ms": 1529.321580357143,
+          "p50_ms": 1518.01,
+          "p95_ms": 1608.28225,
+          "total_ms": 342568.034
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 22523392,
+        "output_tokens": 0
+      }
+    },
+    "evaluation-text": {
+      "calls": {
+        "completed": 864,
+        "failed": 0,
+        "pending": 0,
+        "started": 864
+      },
+      "completed_call_latency_ms": {
+        "calls": 864,
+        "mean_ms": 1091.9239953703704,
+        "p50_ms": 933.746,
+        "p95_ms": 1556.5226,
+        "total_ms": 943422.332
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 640,
+          "mean_ms": 932.7303171875,
+          "p50_ms": 921.221,
+          "p95_ms": 1015.0921,
+          "total_ms": 596947.403
+        },
+        "goal": {
+          "calls": 224,
+          "mean_ms": 1546.7630758928572,
+          "p50_ms": 1527.0169999999998,
+          "p95_ms": 1650.7442999999998,
+          "total_ms": 346474.929
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 22523392,
+        "output_tokens": 0
+      }
+    },
+    "experience": {
+      "calls": {
+        "completed": 660,
+        "failed": 0,
+        "pending": 0,
+        "started": 660
+      },
+      "completed_call_latency_ms": {
+        "calls": 660,
+        "mean_ms": 1105.744059090909,
+        "p50_ms": 937.2245,
+        "p95_ms": 1582.7361499999997,
+        "total_ms": 729791.079
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 480,
+          "mean_ms": 937.36759375,
+          "p50_ms": 925.8834999999999,
+          "p95_ms": 991.3095999999999,
+          "total_ms": 449936.445
+        },
+        "goal": {
+          "calls": 180,
+          "mean_ms": 1554.7479666666666,
+          "p50_ms": 1542.632,
+          "p95_ms": 1639.1141499999999,
+          "total_ms": 279854.634
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 17591433,
+        "output_tokens": 0
+      }
+    },
+    "promotion-components": {
+      "calls": {
+        "completed": 439,
+        "failed": 0,
+        "pending": 0,
+        "started": 439
+      },
+      "completed_call_latency_ms": {
+        "calls": 439,
+        "mean_ms": 1082.0017835990889,
+        "p50_ms": 922.197,
+        "p95_ms": 1543.4429,
+        "total_ms": 474998.783
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 320,
+          "mean_ms": 917.01805,
+          "p50_ms": 912.389,
+          "p95_ms": 965.51105,
+          "total_ms": 293445.776
+        },
+        "goal": {
+          "calls": 119,
+          "mean_ms": 1525.6555210084034,
+          "p50_ms": 1519.449,
+          "p95_ms": 1596.8492,
+          "total_ms": 181553.007
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 11638977,
+        "output_tokens": 0
+      }
+    },
+    "promotion-experience": {
+      "calls": {
+        "completed": 439,
+        "failed": 0,
+        "pending": 0,
+        "started": 439
+      },
+      "completed_call_latency_ms": {
+        "calls": 439,
+        "mean_ms": 1082.2557471526195,
+        "p50_ms": 923.342,
+        "p95_ms": 1546.0527,
+        "total_ms": 475110.273
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 320,
+          "mean_ms": 918.652959375,
+          "p50_ms": 912.4649999999999,
+          "p95_ms": 963.6966000000001,
+          "total_ms": 293968.947
+        },
+        "goal": {
+          "calls": 119,
+          "mean_ms": 1522.1960168067226,
+          "p50_ms": 1518.521,
+          "p95_ms": 1578.3991,
+          "total_ms": 181141.326
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 11638977,
+        "output_tokens": 0
+      }
+    },
+    "promotion-parent": {
+      "calls": {
+        "completed": 439,
+        "failed": 0,
+        "pending": 0,
+        "started": 439
+      },
+      "completed_call_latency_ms": {
+        "calls": 439,
+        "mean_ms": 1079.3805740318908,
+        "p50_ms": 919.87,
+        "p95_ms": 1543.3535,
+        "total_ms": 473848.072
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 320,
+          "mean_ms": 914.753484375,
+          "p50_ms": 909.5944999999999,
+          "p95_ms": 954.3658,
+          "total_ms": 292721.115
+        },
+        "goal": {
+          "calls": 119,
+          "mean_ms": 1522.075268907563,
+          "p50_ms": 1518.54,
+          "p95_ms": 1573.1828,
+          "total_ms": 181126.957
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 11638977,
+        "output_tokens": 0
+      }
+    },
+    "promotion-text": {
+      "calls": {
+        "completed": 439,
+        "failed": 0,
+        "pending": 0,
+        "started": 439
+      },
+      "completed_call_latency_ms": {
+        "calls": 439,
+        "mean_ms": 1079.8378246013667,
+        "p50_ms": 917.141,
+        "p95_ms": 1533.1341,
+        "total_ms": 474048.805
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 320,
+          "mean_ms": 910.54174375,
+          "p50_ms": 908.5525,
+          "p95_ms": 944.68415,
+          "total_ms": 291373.358
+        },
+        "goal": {
+          "calls": 119,
+          "mean_ms": 1535.0877899159664,
+          "p50_ms": 1520.295,
+          "p95_ms": 1563.684,
+          "total_ms": 182675.44700000001
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 11638977,
+        "output_tokens": 0
+      }
+    },
+    "shared-trigger": {
+      "calls": {
+        "completed": 110,
+        "failed": 0,
+        "pending": 0,
+        "started": 110
+      },
+      "completed_call_latency_ms": {
+        "calls": 110,
+        "mean_ms": 1118.5112818181817,
+        "p50_ms": 931.0550000000001,
+        "p95_ms": 1563.1542,
+        "total_ms": 123036.241
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 80,
+          "mean_ms": 926.3640375,
+          "p50_ms": 922.691,
+          "p95_ms": 971.7783000000001,
+          "total_ms": 74109.123
+        },
+        "goal": {
+          "calls": 30,
+          "mean_ms": 1630.9039333333333,
+          "p50_ms": 1535.056,
+          "p95_ms": 2504.594,
+          "total_ms": 48927.118
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 2929973,
+        "output_tokens": 0
+      }
+    },
+    "text": {
+      "calls": {
+        "completed": 654,
+        "failed": 0,
+        "pending": 0,
+        "started": 654
+      },
+      "completed_call_latency_ms": {
+        "calls": 654,
+        "mean_ms": 1138.6875107033638,
+        "p50_ms": 970.2245,
+        "p95_ms": 1604.273,
+        "total_ms": 744701.632
+      },
+      "purpose_latency_ms": {
+        "game_action": {
+          "calls": 480,
+          "mean_ms": 959.5988208333333,
+          "p50_ms": 953.7819999999999,
+          "p95_ms": 1034.6012999999998,
+          "total_ms": 460607.434
+        },
+        "goal": {
+          "calls": 174,
+          "mean_ms": 1632.7252758620689,
+          "p50_ms": 1554.9125,
+          "p95_ms": 2486.9237,
+          "total_ms": 284094.198
+        }
+      },
+      "reported_usage": {
+        "input_tokens": 17294873,
+        "output_tokens": 0
+      }
+    }
+  },
+  "extra_bootstrap_and_extraction": {
+    "coach": {
+      "calls": {
+        "completed": 2,
+        "failed": 0,
+        "pending": 0,
+        "started": 2
+      },
+      "reported_usage": {
+        "completion_tokens": 2201,
+        "prompt_tokens": 29852,
+        "total_tokens": 32053
+      }
+    },
+    "decision": {
+      "calls": {
+        "completed": 978,
+        "failed": 0,
+        "pending": 0,
+        "started": 978
+      },
+      "reported_usage": {
+        "input_tokens": 25753578,
+        "output_tokens": 0
+      }
+    }
+  },
+  "health_calls": {
+    "completed": 1,
+    "started": 1
+  },
+  "limitations": [
+    "No token prices were supplied; these are measured calls, reported token usage and latency, not a currency bill.",
+    "Provider latency measures completed requests; rendering, game simulation, orchestration and failed requests without timing are excluded.",
+    "Bootstrap and experience extraction are additional cost and are itemized separately.",
+    "Only the official experiment is included; retired pilot costs and results are excluded."
+  ],
+  "reported_models": {
+    "coach_requested": {
+      "glm-5.3": 5
+    },
+    "coach_returned": {
+      "glm-5.3": 5
+    },
+    "decision": {
+      "startlux-decision-27b-autothink": 7404
+    }
+  },
+  "schema": "component-public-costs/v1",
+  "totals": {
+    "accepted_actions": 5440,
+    "completed_episodes": 68,
+    "episode_attempts": 68,
+    "event_counts": {
+      "coach_completed": 5,
+      "coach_started": 5,
+      "decision_completed": 7404,
+      "decision_started": 7404,
+      "health_completed": 1,
+      "health_started": 1
+    },
+    "reported_usage": {
+      "coach_completion_tokens": 7572,
+      "coach_prompt_tokens": 66648,
+      "coach_total_tokens": 74220,
+      "decision_input_tokens": 194961001,
+      "decision_output_tokens": 0
+    }
+  }
+}

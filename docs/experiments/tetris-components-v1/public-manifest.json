@@ -1,0 +1,16 @@
+{
+  "experiment_id": "components-tetris-v2-20261019",
+  "files": {
+    "behavior.json": "f4fd475b24ef6adfa263cb8969e4523bd94e006d4b37ccdfbfa6f646a6305bbd",
+    "costs.json": "f38859d6510c2b7c82b8a19c7821684ccf3fc3799d7f5c5d7fa3ae5b4cc5782f",
+    "evidence.json": "7822e8805584c341ba8d660bfbb6884e4c7292d01ead4afbd5117e446bd148ed",
+    "experiences.json": "09d36d84cf4f09388d3959669131b59c61da870e8c047ad26eee6733c05095db",
+    "harnesses.json": "06a62edb6424844b638ce0f6410fc05ef0c903be4cff2fa621a273918a94f4a7",
+    "protocol.json": "03bb02b185bf62634044f03d75ca907a86afdf9d957cd310ff7b2d5b8b11f422",
+    "results.json": "f756ea36a05124a734ff7ae09201ade7a2c3f9acbad3d7e40f450dbc86cd33b7"
+  },
+  "raw_audit_file_sha256": "a27ab337b4829bef46fa9e437299a6dfe28d9ccaddb2b6a300a55c8ef1aa58c2",
+  "raw_manifest_file_sha256": "508f1a2079cb49555dcf9e96c140a784e872990d6aa38cd32a50c694bd4ea90f",
+  "raw_transport_or_credentials_included": false,
+  "schema": "component-public-bundle/v1"
+}

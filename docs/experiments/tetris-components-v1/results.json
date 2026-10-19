@@ -1,0 +1,947 @@
+{
+  "evaluation": {
+    "arms": {
+      "components": {
+        "any_line_episodes": 8,
+        "episodes": 8,
+        "goal_calls": 224,
+        "mean_points": 662.5,
+        "top_out_episodes": 0,
+        "total_lines": 51,
+        "total_points": 5300,
+        "total_steps": 640
+      },
+      "experience": {
+        "any_line_episodes": 8,
+        "episodes": 8,
+        "goal_calls": 224,
+        "mean_points": 662.5,
+        "top_out_episodes": 0,
+        "total_lines": 51,
+        "total_points": 5300,
+        "total_steps": 640
+      },
+      "text": {
+        "any_line_episodes": 8,
+        "episodes": 8,
+        "goal_calls": 224,
+        "mean_points": 662.5,
+        "top_out_episodes": 0,
+        "total_lines": 51,
+        "total_points": 5300,
+        "total_steps": 640
+      }
+    },
+    "comparisons": {
+      "components-text": {
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ],
+        "bootstrap_resamples": 10000,
+        "bootstrap_seed": 74109,
+        "bootstrap_unit": "paired environment bag seed",
+        "mean_gain": 0,
+        "min_gain": 0,
+        "negative_pairs": 0,
+        "pair_count": 8,
+        "pairs": [
+          {
+            "difference": 0,
+            "seed": 809197280
+          },
+          {
+            "difference": 0,
+            "seed": 442779775
+          },
+          {
+            "difference": 0,
+            "seed": 1814218849
+          },
+          {
+            "difference": 0,
+            "seed": 372180048
+          },
+          {
+            "difference": 0,
+            "seed": 478282544
+          },
+          {
+            "difference": 0,
+            "seed": 222114932
+          },
+          {
+            "difference": 0,
+            "seed": 1957566968
+          },
+          {
+            "difference": 0,
+            "seed": 208770015
+          }
+        ],
+        "positive_pairs": 0,
+        "small_sample_descriptive": true,
+        "unique_seed_count": 8
+      },
+      "experience-components": {
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ],
+        "bootstrap_resamples": 10000,
+        "bootstrap_seed": 74109,
+        "bootstrap_unit": "paired environment bag seed",
+        "mean_gain": 0,
+        "min_gain": 0,
+        "negative_pairs": 0,
+        "pair_count": 8,
+        "pairs": [
+          {
+            "difference": 0,
+            "seed": 809197280
+          },
+          {
+            "difference": 0,
+            "seed": 442779775
+          },
+          {
+            "difference": 0,
+            "seed": 1814218849
+          },
+          {
+            "difference": 0,
+            "seed": 372180048
+          },
+          {
+            "difference": 0,
+            "seed": 478282544
+          },
+          {
+            "difference": 0,
+            "seed": 222114932
+          },
+          {
+            "difference": 0,
+            "seed": 1957566968
+          },
+          {
+            "difference": 0,
+            "seed": 208770015
+          }
+        ],
+        "positive_pairs": 0,
+        "small_sample_descriptive": true,
+        "unique_seed_count": 8
+      }
+    },
+    "per_seed": [
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-fa200066b6892185ac7b42ab",
+            "goal_calls": 27,
+            "lines": 6,
+            "points": 600,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-fa200066b6892185ac7b42ab",
+            "goal_calls": 27,
+            "lines": 6,
+            "points": 600,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-fa200066b6892185ac7b42ab",
+            "goal_calls": 27,
+            "lines": 6,
+            "points": 600,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "evaluation-00",
+        "order": [
+          "text",
+          "components",
+          "experience"
+        ],
+        "score_differences": {
+          "components-text": 0,
+          "experience-components": 0
+        },
+        "seed": 809197280
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-982f3e54ae310efd33b8b834",
+            "goal_calls": 28,
+            "lines": 7,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-982f3e54ae310efd33b8b834",
+            "goal_calls": 28,
+            "lines": 7,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-982f3e54ae310efd33b8b834",
+            "goal_calls": 28,
+            "lines": 7,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "evaluation-01",
+        "order": [
+          "components",
+          "experience",
+          "text"
+        ],
+        "score_differences": {
+          "components-text": 0,
+          "experience-components": 0
+        },
+        "seed": 442779775
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-f49d7907e6b620b1b2d722df",
+            "goal_calls": 31,
+            "lines": 8,
+            "points": 800,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-f49d7907e6b620b1b2d722df",
+            "goal_calls": 31,
+            "lines": 8,
+            "points": 800,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-f49d7907e6b620b1b2d722df",
+            "goal_calls": 31,
+            "lines": 8,
+            "points": 800,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "evaluation-02",
+        "order": [
+          "experience",
+          "text",
+          "components"
+        ],
+        "score_differences": {
+          "components-text": 0,
+          "experience-components": 0
+        },
+        "seed": 1814218849
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-b40aa22fe48167b86bd2a434",
+            "goal_calls": 26,
+            "lines": 5,
+            "points": 500,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-b40aa22fe48167b86bd2a434",
+            "goal_calls": 26,
+            "lines": 5,
+            "points": 500,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-b40aa22fe48167b86bd2a434",
+            "goal_calls": 26,
+            "lines": 5,
+            "points": 500,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "evaluation-03",
+        "order": [
+          "experience",
+          "components",
+          "text"
+        ],
+        "score_differences": {
+          "components-text": 0,
+          "experience-components": 0
+        },
+        "seed": 372180048
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-f9b741a9bfb16e31c960ebce",
+            "goal_calls": 28,
+            "lines": 7,
+            "points": 700,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-f9b741a9bfb16e31c960ebce",
+            "goal_calls": 28,
+            "lines": 7,
+            "points": 700,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-f9b741a9bfb16e31c960ebce",
+            "goal_calls": 28,
+            "lines": 7,
+            "points": 700,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "evaluation-04",
+        "order": [
+          "components",
+          "text",
+          "experience"
+        ],
+        "score_differences": {
+          "components-text": 0,
+          "experience-components": 0
+        },
+        "seed": 478282544
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-9af9b136068332cf196f7e51",
+            "goal_calls": 28,
+            "lines": 5,
+            "points": 500,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-9af9b136068332cf196f7e51",
+            "goal_calls": 28,
+            "lines": 5,
+            "points": 500,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-9af9b136068332cf196f7e51",
+            "goal_calls": 28,
+            "lines": 5,
+            "points": 500,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "evaluation-05",
+        "order": [
+          "text",
+          "experience",
+          "components"
+        ],
+        "score_differences": {
+          "components-text": 0,
+          "experience-components": 0
+        },
+        "seed": 222114932
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-f0b2bc0ec50cd39b1c8eb770",
+            "goal_calls": 28,
+            "lines": 4,
+            "points": 400,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-f0b2bc0ec50cd39b1c8eb770",
+            "goal_calls": 28,
+            "lines": 4,
+            "points": 400,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-f0b2bc0ec50cd39b1c8eb770",
+            "goal_calls": 28,
+            "lines": 4,
+            "points": 400,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "evaluation-06",
+        "order": [
+          "text",
+          "components",
+          "experience"
+        ],
+        "score_differences": {
+          "components-text": 0,
+          "experience-components": 0
+        },
+        "seed": 1957566968
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-b5cd46f7e781229a6cd30982",
+            "goal_calls": 28,
+            "lines": 9,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-b5cd46f7e781229a6cd30982",
+            "goal_calls": 28,
+            "lines": 9,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-b5cd46f7e781229a6cd30982",
+            "goal_calls": 28,
+            "lines": 9,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "evaluation-07",
+        "order": [
+          "components",
+          "experience",
+          "text"
+        ],
+        "score_differences": {
+          "components-text": 0,
+          "experience-components": 0
+        },
+        "seed": 208770015
+      }
+    ]
+  },
+  "promotion": {
+    "approvals": {
+      "components": {
+        "baseline_score": 900,
+        "candidate_changed": false,
+        "candidate_id": "component-components-f3053753c2c073f6",
+        "candidate_score": 900,
+        "gate": {
+          "minimum_mean_gain": 100,
+          "minimum_pairs": 4,
+          "no_pair_regression": true,
+          "requires_candidate_change": true,
+          "statistical_claim": false,
+          "version": "v1-empirical-paired"
+        },
+        "isolated_bundle_exported": false,
+        "mean_gain": 0,
+        "pairs": [
+          {
+            "baseline": 700,
+            "baseline_episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "candidate": 700,
+            "candidate_episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "seed": 391292923
+          },
+          {
+            "baseline": 900,
+            "baseline_episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "candidate": 900,
+            "candidate_episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "seed": 914128786
+          },
+          {
+            "baseline": 1000,
+            "baseline_episode_id": "exp-65785b0c115978764fe301a5",
+            "candidate": 1000,
+            "candidate_episode_id": "exp-65785b0c115978764fe301a5",
+            "seed": 824221827
+          },
+          {
+            "baseline": 1000,
+            "baseline_episode_id": "exp-65bd43e5234040ce026a4c21",
+            "candidate": 1000,
+            "candidate_episode_id": "exp-65bd43e5234040ce026a4c21",
+            "seed": 773046928
+          }
+        ],
+        "parent_id": "component-parent-f3053753c2c073f6",
+        "production_activation_performed_by_experiment": false,
+        "status": "retained"
+      },
+      "experience": {
+        "baseline_score": 900,
+        "candidate_changed": false,
+        "candidate_id": "component-experience-f3053753c2c073f6",
+        "candidate_score": 900,
+        "gate": {
+          "minimum_mean_gain": 100,
+          "minimum_pairs": 4,
+          "no_pair_regression": true,
+          "requires_candidate_change": true,
+          "statistical_claim": false,
+          "version": "v1-empirical-paired"
+        },
+        "isolated_bundle_exported": false,
+        "mean_gain": 0,
+        "pairs": [
+          {
+            "baseline": 700,
+            "baseline_episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "candidate": 700,
+            "candidate_episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "seed": 391292923
+          },
+          {
+            "baseline": 900,
+            "baseline_episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "candidate": 900,
+            "candidate_episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "seed": 914128786
+          },
+          {
+            "baseline": 1000,
+            "baseline_episode_id": "exp-65785b0c115978764fe301a5",
+            "candidate": 1000,
+            "candidate_episode_id": "exp-65785b0c115978764fe301a5",
+            "seed": 824221827
+          },
+          {
+            "baseline": 1000,
+            "baseline_episode_id": "exp-65bd43e5234040ce026a4c21",
+            "candidate": 1000,
+            "candidate_episode_id": "exp-65bd43e5234040ce026a4c21",
+            "seed": 773046928
+          }
+        ],
+        "parent_id": "component-parent-f3053753c2c073f6",
+        "production_activation_performed_by_experiment": false,
+        "status": "retained"
+      },
+      "text": {
+        "baseline_score": 900,
+        "candidate_changed": false,
+        "candidate_id": "component-text-f3053753c2c073f6",
+        "candidate_score": 900,
+        "gate": {
+          "minimum_mean_gain": 100,
+          "minimum_pairs": 4,
+          "no_pair_regression": true,
+          "requires_candidate_change": true,
+          "statistical_claim": false,
+          "version": "v1-empirical-paired"
+        },
+        "isolated_bundle_exported": false,
+        "mean_gain": 0,
+        "pairs": [
+          {
+            "baseline": 700,
+            "baseline_episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "candidate": 700,
+            "candidate_episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "seed": 391292923
+          },
+          {
+            "baseline": 900,
+            "baseline_episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "candidate": 900,
+            "candidate_episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "seed": 914128786
+          },
+          {
+            "baseline": 1000,
+            "baseline_episode_id": "exp-65785b0c115978764fe301a5",
+            "candidate": 1000,
+            "candidate_episode_id": "exp-65785b0c115978764fe301a5",
+            "seed": 824221827
+          },
+          {
+            "baseline": 1000,
+            "baseline_episode_id": "exp-65bd43e5234040ce026a4c21",
+            "candidate": 1000,
+            "candidate_episode_id": "exp-65bd43e5234040ce026a4c21",
+            "seed": 773046928
+          }
+        ],
+        "parent_id": "component-parent-f3053753c2c073f6",
+        "production_activation_performed_by_experiment": false,
+        "status": "retained"
+      }
+    },
+    "arms": {
+      "components": {
+        "any_line_episodes": 4,
+        "episodes": 4,
+        "goal_calls": 119,
+        "mean_points": 900,
+        "top_out_episodes": 0,
+        "total_lines": 32,
+        "total_points": 3600,
+        "total_steps": 320
+      },
+      "experience": {
+        "any_line_episodes": 4,
+        "episodes": 4,
+        "goal_calls": 119,
+        "mean_points": 900,
+        "top_out_episodes": 0,
+        "total_lines": 32,
+        "total_points": 3600,
+        "total_steps": 320
+      },
+      "parent": {
+        "any_line_episodes": 4,
+        "episodes": 4,
+        "goal_calls": 119,
+        "mean_points": 900,
+        "top_out_episodes": 0,
+        "total_lines": 32,
+        "total_points": 3600,
+        "total_steps": 320
+      },
+      "text": {
+        "any_line_episodes": 4,
+        "episodes": 4,
+        "goal_calls": 119,
+        "mean_points": 900,
+        "top_out_episodes": 0,
+        "total_lines": 32,
+        "total_points": 3600,
+        "total_steps": 320
+      }
+    },
+    "comparisons": {
+      "components-parent": {
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ],
+        "bootstrap_resamples": 10000,
+        "bootstrap_seed": 74109,
+        "bootstrap_unit": "paired environment bag seed",
+        "mean_gain": 0,
+        "min_gain": 0,
+        "negative_pairs": 0,
+        "pair_count": 4,
+        "pairs": [
+          {
+            "difference": 0,
+            "seed": 391292923
+          },
+          {
+            "difference": 0,
+            "seed": 914128786
+          },
+          {
+            "difference": 0,
+            "seed": 824221827
+          },
+          {
+            "difference": 0,
+            "seed": 773046928
+          }
+        ],
+        "positive_pairs": 0,
+        "small_sample_descriptive": true,
+        "unique_seed_count": 4
+      },
+      "experience-parent": {
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ],
+        "bootstrap_resamples": 10000,
+        "bootstrap_seed": 74109,
+        "bootstrap_unit": "paired environment bag seed",
+        "mean_gain": 0,
+        "min_gain": 0,
+        "negative_pairs": 0,
+        "pair_count": 4,
+        "pairs": [
+          {
+            "difference": 0,
+            "seed": 391292923
+          },
+          {
+            "difference": 0,
+            "seed": 914128786
+          },
+          {
+            "difference": 0,
+            "seed": 824221827
+          },
+          {
+            "difference": 0,
+            "seed": 773046928
+          }
+        ],
+        "positive_pairs": 0,
+        "small_sample_descriptive": true,
+        "unique_seed_count": 4
+      },
+      "text-parent": {
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ],
+        "bootstrap_resamples": 10000,
+        "bootstrap_seed": 74109,
+        "bootstrap_unit": "paired environment bag seed",
+        "mean_gain": 0,
+        "min_gain": 0,
+        "negative_pairs": 0,
+        "pair_count": 4,
+        "pairs": [
+          {
+            "difference": 0,
+            "seed": 391292923
+          },
+          {
+            "difference": 0,
+            "seed": 914128786
+          },
+          {
+            "difference": 0,
+            "seed": 824221827
+          },
+          {
+            "difference": 0,
+            "seed": 773046928
+          }
+        ],
+        "positive_pairs": 0,
+        "small_sample_descriptive": true,
+        "unique_seed_count": 4
+      }
+    },
+    "per_seed": [
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "goal_calls": 30,
+            "lines": 6,
+            "points": 700,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "goal_calls": 30,
+            "lines": 6,
+            "points": 700,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "parent": {
+            "episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "goal_calls": 30,
+            "lines": 6,
+            "points": 700,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-2fd21d8b13293c52e83c6134",
+            "goal_calls": 30,
+            "lines": 6,
+            "points": 700,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "promotion-00",
+        "order": [
+          "parent",
+          "text",
+          "components",
+          "experience"
+        ],
+        "score_differences": {
+          "components-parent": 0,
+          "experience-parent": 0,
+          "text-parent": 0
+        },
+        "seed": 391292923
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "goal_calls": 29,
+            "lines": 9,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "goal_calls": 29,
+            "lines": 9,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "parent": {
+            "episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "goal_calls": 29,
+            "lines": 9,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-3d824c0d17f3b0e994f6a011",
+            "goal_calls": 29,
+            "lines": 9,
+            "points": 900,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "promotion-01",
+        "order": [
+          "text",
+          "components",
+          "experience",
+          "parent"
+        ],
+        "score_differences": {
+          "components-parent": 0,
+          "experience-parent": 0,
+          "text-parent": 0
+        },
+        "seed": 914128786
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-65785b0c115978764fe301a5",
+            "goal_calls": 31,
+            "lines": 9,
+            "points": 1000,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-65785b0c115978764fe301a5",
+            "goal_calls": 31,
+            "lines": 9,
+            "points": 1000,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "parent": {
+            "episode_id": "exp-65785b0c115978764fe301a5",
+            "goal_calls": 31,
+            "lines": 9,
+            "points": 1000,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-65785b0c115978764fe301a5",
+            "goal_calls": 31,
+            "lines": 9,
+            "points": 1000,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "promotion-02",
+        "order": [
+          "components",
+          "experience",
+          "parent",
+          "text"
+        ],
+        "score_differences": {
+          "components-parent": 0,
+          "experience-parent": 0,
+          "text-parent": 0
+        },
+        "seed": 824221827
+      },
+      {
+        "arms": {
+          "components": {
+            "episode_id": "exp-65bd43e5234040ce026a4c21",
+            "goal_calls": 29,
+            "lines": 8,
+            "points": 1000,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "experience": {
+            "episode_id": "exp-65bd43e5234040ce026a4c21",
+            "goal_calls": 29,
+            "lines": 8,
+            "points": 1000,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "parent": {
+            "episode_id": "exp-65bd43e5234040ce026a4c21",
+            "goal_calls": 29,
+            "lines": 8,
+            "points": 1000,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          "text": {
+            "episode_id": "exp-65bd43e5234040ce026a4c21",
+            "goal_calls": 29,
+            "lines": 8,
+            "points": 1000,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        },
+        "id": "promotion-03",
+        "order": [
+          "experience",
+          "parent",
+          "text",
+          "components"
+        ],
+        "score_differences": {
+          "components-parent": 0,
+          "experience-parent": 0,
+          "text-parent": 0
+        },
+        "seed": 773046928
+      }
+    ]
+  }
+}

@@ -1,0 +1,1354 @@
+{
+  "arms": {
+    "components": {
+      "actual_changed_components": [],
+      "actual_diff": {},
+      "candidate": {
+        "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。",
+        "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+        "memory_policy": "{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。\", \"recent_actions\": 4, \"replan_every_actions\": 4}",
+        "observation_policy": "{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}",
+        "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。"
+      },
+      "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+      "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+      "decision_model": "startlux-decision-27b-autothink",
+      "id": "component-components-f3053753c2c073f6",
+      "improvement_experience_hashes": [],
+      "input_mode": "structured+vision",
+      "mutable_components": [
+        "decision_instructions",
+        "strategy_notes",
+        "goal_instructions",
+        "memory_policy",
+        "observation_policy"
+      ],
+      "resolved_context_config": {
+        "control_feedback": true,
+        "decision_goal_memory": true,
+        "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+        "memory_instructions": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。",
+        "observation_instructions": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。",
+        "recent_actions": 4,
+        "replan_every_actions": 4,
+        "schema": "tetris-context-v4",
+        "section_order": [
+          "observation",
+          "tetris_features",
+          "decision_goal_memory",
+          "tetris_control_facts",
+          "tetris_landing_projections"
+        ],
+        "structured_facts": true
+      },
+      "runtime_profile": "tetris-components-v1",
+      "search": {
+        "evaluations": [
+          {
+            "artifact": "episodes/components/eval-00/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "eba52255fa27065f0fa6299e812b9a233d561a058fe7bf48d40b627a4eaa9bc8",
+            "episode_canonical_sha256": "e5c79996086a6b96c0bc0a2c213bf2aeb3146b937170916d71bcca9c90a9041b",
+            "episode_file_sha256": "b65f1f367eb16b6f4a32838267de7d216dbb09cb752661fc3a9a20a268dbbcf9",
+            "episode_id": "exp-49b01b86fc77bfc1f4361977",
+            "index": 0,
+            "lines": 9,
+            "points": 1000,
+            "purpose": "search_validation",
+            "seed": 1388756300,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/components/eval-01/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "660e9d888eabd692a046edbf83272cca1db6d7e4fb73e35a239a64e042bfab22",
+            "episode_canonical_sha256": "6a16a35ce708f4c6829c2af60159add860db3a864f3be2289f76a91f2cdf30e8",
+            "episode_file_sha256": "9fc5604f1ddbe0c142c2ef014af92214181fd0535f0b4c165a9af98ff2651e52",
+            "episode_id": "exp-aa876b1a7efdf64644399e78",
+            "index": 1,
+            "lines": 8,
+            "points": 1000,
+            "purpose": "search_validation",
+            "seed": 597736867,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/components/eval-02/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "404e53c0ce7965f1180c5f5f82b6e8417b1e487ed185cafbc0d7ad59472afdfd",
+            "episode_canonical_sha256": "2b78db50b4361f53e74eb087dad73df0e26317f3c274d8ca7c757849eab4ad47",
+            "episode_file_sha256": "6ed91436299fb8ade9e9a4bb6862a3a12ac10e405ad2e5d6770bd5c59f7d90ee",
+            "episode_id": "exp-2cd9fd0736803b8afe7a5272",
+            "index": 2,
+            "lines": 3,
+            "points": 300,
+            "purpose": "search_train",
+            "seed": 1125112509,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/components/eval-03/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "a9dd76b5b32816e269e1c0b6f5041a622a22d85e99d3c2cdb764a2914b030e97",
+            "episode_canonical_sha256": "5c9d0af1bc21c771953b6ef1774c99e980bbbe5052d32276a4c74d648506a608",
+            "episode_file_sha256": "064e8dc1ad263fcb0cf56118951445709969158d99e813359bfba92bb383effc",
+            "episode_id": "exp-7e97a52b7fed18bd94e77f44",
+            "index": 3,
+            "lines": 9,
+            "points": 1000,
+            "purpose": "search_train",
+            "seed": 1219621641,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/components/eval-04/attempt-01/episode.json",
+            "candidate_hash": "243fbe44624c51400876dba3cae48c431c9c5a5f267057f5e5a6d80b87cc4a92",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "54c270d5c7fcd459d31d3540576cf7ce8ca47d5cffd96933a4e48c00163ad4ce",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "0c933979f95562622610278f26344e5079108500bdceae05ce916da1a6decbcf",
+            "episode_canonical_sha256": "b1784c1e80f49bbaff6cf5ed44ba4b113135f2eae46a2a6cc9a4a066058f5818",
+            "episode_file_sha256": "c8f05613e403625d79e370bb3c1ebfacab59038e9f92ef9ac7d99f930524272a",
+            "episode_id": "exp-87d132d1007068d7b47b69fc",
+            "index": 4,
+            "lines": 4,
+            "points": 400,
+            "purpose": "search_train",
+            "seed": 1125112509,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/components/eval-05/attempt-01/episode.json",
+            "candidate_hash": "243fbe44624c51400876dba3cae48c431c9c5a5f267057f5e5a6d80b87cc4a92",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "54c270d5c7fcd459d31d3540576cf7ce8ca47d5cffd96933a4e48c00163ad4ce",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "109f48771248dde6319af98e71ef3c941fced291a90c7ed7475a434ce4a3b629",
+            "episode_canonical_sha256": "898f2992f07c01d3c78d67f1cc7450913e1e96eb30206e8ab59d261e6af35ce9",
+            "episode_file_sha256": "f0a4d72b78b4e0773e8b4b016bc5f64e8e8c3b20b7dc46645c7ffe552b7094d5",
+            "episode_id": "exp-2e13af0d0ca5dd15d701335a",
+            "index": 5,
+            "lines": 7,
+            "points": 700,
+            "purpose": "search_train",
+            "seed": 1219621641,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        ],
+        "gepa": {
+          "best_idx": 0,
+          "best_score": 1000.0,
+          "candidate_count": 1,
+          "engine": "gepa.optimize",
+          "max_metric_calls": 9,
+          "total_metric_calls": 6,
+          "val_aggregate_scores": [
+            1000.0
+          ],
+          "version": "0.1.4"
+        },
+        "improvement_experience_hashes": [],
+        "interpretation": "Proposals are genuine between-game coach outputs, including rejected proposals. Search train/validation results are development evidence, not held-out effectiveness or independent promotion.",
+        "mutable_components": [
+          "decision_instructions",
+          "strategy_notes",
+          "goal_instructions",
+          "memory_policy",
+          "observation_policy"
+        ],
+        "proposals": [
+          {
+            "actual_diff": {
+              "decision_instructions": {
+                "after_chars": 1343,
+                "after_text_sha256": "38b4e2e6bb66476407e130cc3008a15ca528f2265ee8d2f45f88606fe3b46c73",
+                "before_chars": 1227,
+                "before_text_sha256": "38b7d6e45e00a5c5b12a40783673a7b4263a31c3bd978d42111797049c8ef1da",
+                "unified_diff": "--- common_parent/decision_instructions\n+++ components-proposal-1/decision_instructions\n@@ -1 +1 @@\n-所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。\n+所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。(4)预算意识：随时读remaining_steps；当remaining_steps很少（约≤2）且块已在可锁定高度时，不要把最后的动作花在旋转或横移微调上——位置可接受即hard-drop:100锁定拿分，未验证消行也不许空转。"
+              },
+              "goal_instructions": {
+                "after_chars": 777,
+                "after_text_sha256": "b23208aaabd20e0a7cbe7c530a6855d41fa82de7e9ac2bf8218d1c37b9ebea4f",
+                "before_chars": 705,
+                "before_text_sha256": "4a3d30b81be0fd58983549888699e6c377ab8d950a6818ff2bfc7e324dae23b8",
+                "unified_diff": "--- common_parent/goal_instructions\n+++ components-proposal-1/goal_instructions\n@@ -1 +1 @@\n-这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。\n+这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。同时把remaining_steps纳入考量：剩余动作很少时优先选择列误差小、不需要旋转或只需一次旋转的候选，避免选出动作层来不及执行的远目标。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。"
+              },
+              "memory_policy": {
+                "after_chars": 178,
+                "after_text_sha256": "ccc2eba30aec9a345220cb10eaf6b2d9995bc383e732573f387860117c3f3cac",
+                "before_chars": 107,
+                "before_text_sha256": "a573ef62525a40d2586c7adfecbe923eb34880b9de133ff79589331029ed0985",
+                "parsed_changes": {
+                  "instructions": {
+                    "after": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。若recent_actions显示同向或往返短按连续两次仍未减小列误差，视为校正不收敛，在目标更新点clear或换目标，并避免继续同模式往返。",
+                    "before": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。"
+                  }
+                },
+                "unified_diff": "--- common_parent/memory_policy\n+++ components-proposal-1/memory_policy\n@@ -1 +1 @@\n-{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。\", \"recent_actions\": 4, \"replan_every_actions\": 4}\n+{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。若recent_actions显示同向或往返短按连续两次仍未减小列误差，视为校正不收敛，在目标更新点clear或换目标，并避免继续同模式往返。\", \"recent_actions\": 4, \"replan_every_actions\": 4}"
+              },
+              "observation_policy": {
+                "after_chars": 267,
+                "after_text_sha256": "411032347f88b7199774ec3648dfac8a2b707512b09117a860c0b7b1b35373d7",
+                "before_chars": 186,
+                "before_text_sha256": "efab84ecce459f635a274d69a0b4f441227a64a0e2cf3969c28c7ddb76a46d84",
+                "parsed_changes": {
+                  "instructions": {
+                    "after": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断；先看observation中remaining_steps与grounded/lockTicks，再读control_facts校正控制，最后才参考条件落点后果。",
+                    "before": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。"
+                  }
+                },
+                "unified_diff": "--- common_parent/observation_policy\n+++ components-proposal-1/observation_policy\n@@ -1 +1 @@\n-{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}\n+{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断；先看observation中remaining_steps与grounded/lockTicks，再读control_facts校正控制，最后才参考条件落点后果。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}"
+              },
+              "strategy_notes": {
+                "after_chars": 447,
+                "after_text_sha256": "608b7c94dfca634d7be4cf5dc7a42984f895be6b9ac7d1eb4a15967606aa5a54",
+                "before_chars": 367,
+                "before_text_sha256": "82d91f9dc478adf2051a2ec69d1930d861441525bb00a7fa636e9df91c86f25d",
+                "unified_diff": "--- common_parent/strategy_notes\n+++ components-proposal-1/strategy_notes\n@@ -1 +1 @@\n-核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。\n+核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。新观察：终局浪费——remaining_steps≤2时仍把最后动作花在旋转/横移而非硬降，未锁定即空手结束；预算意识是条件性建议，未验证提升，不作为固定程序。"
+              }
+            },
+            "candidate": {
+              "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。(4)预算意识：随时读remaining_steps；当remaining_steps很少（约≤2）且块已在可锁定高度时，不要把最后的动作花在旋转或横移微调上——位置可接受即hard-drop:100锁定拿分，未验证消行也不许空转。",
+              "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。同时把remaining_steps纳入考量：剩余动作很少时优先选择列误差小、不需要旋转或只需一次旋转的候选，避免选出动作层来不及执行的远目标。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+              "memory_policy": "{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。若recent_actions显示同向或往返短按连续两次仍未减小列误差，视为校正不收敛，在目标更新点clear或换目标，并避免继续同模式往返。\", \"recent_actions\": 4, \"replan_every_actions\": 4}",
+              "observation_policy": "{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断；先看observation中remaining_steps与grounded/lockTicks，再读control_facts校正控制，最后才参考条件落点后果。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}",
+              "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。新观察：终局浪费——remaining_steps≤2时仍把最后动作花在旋转/横移而非硬降，未锁定即空手结束；预算意识是条件性建议，未验证提升，不作为固定程序。"
+            },
+            "candidate_hash": "243fbe44624c51400876dba3cae48c431c9c5a5f267057f5e5a6d80b87cc4a92",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "54c270d5c7fcd459d31d3540576cf7ce8ca47d5cffd96933a4e48c00163ad4ce",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "candidate_validation": "validated",
+            "canonical_hash_format": "sha256-canonical-json-compact-utf8",
+            "changed_components": [
+              "decision_instructions",
+              "strategy_notes",
+              "goal_instructions",
+              "memory_policy",
+              "observation_policy"
+            ],
+            "entered_gepa_pool": false,
+            "evaluated_purposes": [
+              "search_train"
+            ],
+            "evaluations": [
+              {
+                "artifact": "episodes/components/eval-04/attempt-01/episode.json",
+                "candidate_hash": "243fbe44624c51400876dba3cae48c431c9c5a5f267057f5e5a6d80b87cc4a92",
+                "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+                "candidate_sha256": "54c270d5c7fcd459d31d3540576cf7ce8ca47d5cffd96933a4e48c00163ad4ce",
+                "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+                "completion_file_sha256": "0c933979f95562622610278f26344e5079108500bdceae05ce916da1a6decbcf",
+                "episode_canonical_sha256": "b1784c1e80f49bbaff6cf5ed44ba4b113135f2eae46a2a6cc9a4a066058f5818",
+                "episode_file_sha256": "c8f05613e403625d79e370bb3c1ebfacab59038e9f92ef9ac7d99f930524272a",
+                "episode_id": "exp-87d132d1007068d7b47b69fc",
+                "index": 4,
+                "lines": 4,
+                "points": 400,
+                "purpose": "search_train",
+                "seed": 1125112509,
+                "steps": 80,
+                "termination_reason": "step_limit"
+              },
+              {
+                "artifact": "episodes/components/eval-05/attempt-01/episode.json",
+                "candidate_hash": "243fbe44624c51400876dba3cae48c431c9c5a5f267057f5e5a6d80b87cc4a92",
+                "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+                "candidate_sha256": "54c270d5c7fcd459d31d3540576cf7ce8ca47d5cffd96933a4e48c00163ad4ce",
+                "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+                "completion_file_sha256": "109f48771248dde6319af98e71ef3c941fced291a90c7ed7475a434ce4a3b629",
+                "episode_canonical_sha256": "898f2992f07c01d3c78d67f1cc7450913e1e96eb30206e8ab59d261e6af35ce9",
+                "episode_file_sha256": "f0a4d72b78b4e0773e8b4b016bc5f64e8e8c3b20b7dc46645c7ffe552b7094d5",
+                "episode_id": "exp-2e13af0d0ca5dd15d701335a",
+                "index": 5,
+                "lines": 7,
+                "points": 700,
+                "purpose": "search_train",
+                "seed": 1219621641,
+                "steps": 80,
+                "termination_reason": "step_limit"
+              }
+            ],
+            "improvement_experience_hashes": [],
+            "improvement_experience_snapshot_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "mutable_components": [
+              "decision_instructions",
+              "strategy_notes",
+              "goal_instructions",
+              "memory_policy",
+              "observation_policy"
+            ],
+            "mutable_components_hash": "cdd3e42cc79d487670652fc6748f4432cd4cf3beb256b503eea0ae8ddc587eaf",
+            "number": 1,
+            "original_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "parent_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "parent_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "resolved_context_config": {
+              "control_feedback": true,
+              "decision_goal_memory": true,
+              "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。同时把remaining_steps纳入考量：剩余动作很少时优先选择列误差小、不需要旋转或只需一次旋转的候选，避免选出动作层来不及执行的远目标。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+              "memory_instructions": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。若recent_actions显示同向或往返短按连续两次仍未减小列误差，视为校正不收敛，在目标更新点clear或换目标，并避免继续同模式往返。",
+              "observation_instructions": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断；先看observation中remaining_steps与grounded/lockTicks，再读control_facts校正控制，最后才参考条件落点后果。",
+              "recent_actions": 4,
+              "replan_every_actions": 4,
+              "schema": "tetris-context-v4",
+              "section_order": [
+                "observation",
+                "tetris_features",
+                "decision_goal_memory",
+                "tetris_control_facts",
+                "tetris_landing_projections"
+              ],
+              "structured_facts": true
+            },
+            "runtime_contract_hash": "f1c79bd856a44b731eac66ae98601d90174d0e42a6764b1c43484cab55f6068c",
+            "selected": false,
+            "status": "proposed"
+          }
+        ],
+        "selected_candidate_hash_format": "sha256-canonical-json-compact-utf8",
+        "selected_candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+        "selected_changed": false
+      },
+      "think_mode": "never"
+    },
+    "experience": {
+      "actual_changed_components": [],
+      "actual_diff": {},
+      "candidate": {
+        "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。",
+        "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+        "memory_policy": "{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。\", \"recent_actions\": 4, \"replan_every_actions\": 4}",
+        "observation_policy": "{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}",
+        "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。"
+      },
+      "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+      "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+      "decision_model": "startlux-decision-27b-autothink",
+      "id": "component-experience-f3053753c2c073f6",
+      "improvement_experience_hashes": [
+        "6f197390f1110a12b67dd039cf841cf09559ccd6eeaac6d48c4d78746becfd68"
+      ],
+      "input_mode": "structured+vision",
+      "mutable_components": [
+        "decision_instructions",
+        "strategy_notes",
+        "goal_instructions",
+        "memory_policy",
+        "observation_policy"
+      ],
+      "resolved_context_config": {
+        "control_feedback": true,
+        "decision_goal_memory": true,
+        "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+        "memory_instructions": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。",
+        "observation_instructions": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。",
+        "recent_actions": 4,
+        "replan_every_actions": 4,
+        "schema": "tetris-context-v4",
+        "section_order": [
+          "observation",
+          "tetris_features",
+          "decision_goal_memory",
+          "tetris_control_facts",
+          "tetris_landing_projections"
+        ],
+        "structured_facts": true
+      },
+      "runtime_profile": "tetris-components-v1",
+      "search": {
+        "evaluations": [
+          {
+            "artifact": "episodes/experience/eval-00/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "bc7bec4e95f86ec9ba40026166d6891c903c2acfbda65b454aecf150b4e5e425",
+            "episode_canonical_sha256": "bb40e63b2823f2c55499eaad90132ece2d8907b0c8da4bff65e844330fe0d198",
+            "episode_file_sha256": "38d6c2da282f2549f3faaea461ef64a46ae455ded0c22bd01f86938853b29d6a",
+            "episode_id": "exp-68dc68ee84fa69ff249d4d89",
+            "index": 0,
+            "lines": 10,
+            "points": 1100,
+            "purpose": "search_validation",
+            "seed": 1388756300,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/experience/eval-01/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "bb886d977601e0eb448e8d911a74a45dd22ad070bde7bd09087df19dfe0b466f",
+            "episode_canonical_sha256": "23a65851b1bc11b5e52cbbc86a96e63accaf220c8ab8f87d51f06c7ed1982901",
+            "episode_file_sha256": "c6e4739328e05ceab8fc540c9f30fc6e4834ed5ec7195571960961cfc5086688",
+            "episode_id": "exp-122b63f8049f016d42b41984",
+            "index": 1,
+            "lines": 7,
+            "points": 900,
+            "purpose": "search_validation",
+            "seed": 597736867,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/experience/eval-02/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "46e1160fbb36144e15aa755ad47b324540c225ab7fd3490dd9e10cb3172ecf56",
+            "episode_canonical_sha256": "612b509dd5a9bc8ada679c401782509def4af183eefabcf20ebbb20c52add56f",
+            "episode_file_sha256": "cef0c2eb7785852dc4262f96d1f0be61e4ac1d92c36bb0a04b81cd35b8221b03",
+            "episode_id": "exp-31bbd420615075de39c703f8",
+            "index": 2,
+            "lines": 3,
+            "points": 300,
+            "purpose": "search_train",
+            "seed": 1125112509,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/experience/eval-03/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "66f1ee4aa52433203e223c39f02d50daa244636b111455f9bc764ac83c85a916",
+            "episode_canonical_sha256": "e8adc5497fedee1cc45c039b2ef442c2656b947ae258fd5efbef7341b1e2b7b2",
+            "episode_file_sha256": "3e8d879163c5115b394f037477d01b3f49765dbbd0fba5fc18ceabe4a62af77c",
+            "episode_id": "exp-15306177b9646efb8920f91b",
+            "index": 3,
+            "lines": 8,
+            "points": 1000,
+            "purpose": "search_train",
+            "seed": 1219621641,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/experience/eval-04/attempt-01/episode.json",
+            "candidate_hash": "1fa20a8d55549353dc37b591f6eaa8233041db704f57be7057a8aaf6f4c0db82",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f4b70051ae610c2c9c84138fbbc1c7c9206f7f9501bf63ea27979e1387e35227",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "cc6de20db577d4d5421ed91e3d5edd5e0a6ca1e2444b4d9c5cbf9ad541187050",
+            "episode_canonical_sha256": "9ed228d5bc85c372629269b3a90bbc29ba06bbd8dedf7eb3810f312567e13f58",
+            "episode_file_sha256": "95796da3e7c459d73723db247d1b5181c438ff4119991fe17e369a1295a6d735",
+            "episode_id": "exp-3f1bbfae303f89d7d1f954f5",
+            "index": 4,
+            "lines": 3,
+            "points": 400,
+            "purpose": "search_train",
+            "seed": 1125112509,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/experience/eval-05/attempt-01/episode.json",
+            "candidate_hash": "1fa20a8d55549353dc37b591f6eaa8233041db704f57be7057a8aaf6f4c0db82",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f4b70051ae610c2c9c84138fbbc1c7c9206f7f9501bf63ea27979e1387e35227",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "468792db2f7ad57c76b2aa26296a0c45d0074377572caa6ea6bd10f997d86c2c",
+            "episode_canonical_sha256": "736d2df7fe4b23b632989749db0f79682f140ec0c6a0e56893df43052275eb13",
+            "episode_file_sha256": "b0ff2f00fc8699d4a280a85d929a8df4f0dfa7d0a4c444e7c4d4f46f778c2407",
+            "episode_id": "exp-a39d6243469a614b171749a1",
+            "index": 5,
+            "lines": 6,
+            "points": 600,
+            "purpose": "search_train",
+            "seed": 1219621641,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        ],
+        "gepa": {
+          "best_idx": 0,
+          "best_score": 1000.0,
+          "candidate_count": 1,
+          "engine": "gepa.optimize",
+          "max_metric_calls": 9,
+          "total_metric_calls": 6,
+          "val_aggregate_scores": [
+            1000.0
+          ],
+          "version": "0.1.4"
+        },
+        "improvement_experience_hashes": [
+          "6f197390f1110a12b67dd039cf841cf09559ccd6eeaac6d48c4d78746becfd68"
+        ],
+        "interpretation": "Proposals are genuine between-game coach outputs, including rejected proposals. Search train/validation results are development evidence, not held-out effectiveness or independent promotion.",
+        "mutable_components": [
+          "decision_instructions",
+          "strategy_notes",
+          "goal_instructions",
+          "memory_policy",
+          "observation_policy"
+        ],
+        "proposals": [
+          {
+            "actual_diff": {
+              "decision_instructions": {
+                "after_chars": 1090,
+                "after_text_sha256": "e67314395a7397cabe9f1d38887625ee9678a2a6e8e68cfedafa2ce0cbc41eaa",
+                "before_chars": 1227,
+                "before_text_sha256": "38b7d6e45e00a5c5b12a40783673a7b4263a31c3bd978d42111797049c8ef1da",
+                "unified_diff": "--- common_parent/decision_instructions\n+++ experience-proposal-1/decision_instructions\n@@ -1 +1 @@\n-所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。\n+所有调用think_mode=never，每次只输出一个动作ID。固定80步预算，每块平均只能花约6-8个动作：每个动作前先估剩余步数与该块已用动作数，微调超过3-4个动作仍不对齐就放弃精细对位，选当前姿态附近可接受的落点hard-drop或让其自然锁定。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。一行缺4格配横I只消1行，四消需四行齐备；被覆盖的洞无法靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移计时器跨动作保留；关键规律：换新方向会重置held_ticks到低位，此时短按:100是可靠单格移动；同向held_ticks高（≥9）时短按会触发连发，每按多移1-2格。因此默认先换向后短按:100逐步移动：误差≥3格可用300一次，误差1-2格且held_ticks<6用100。每步按实际cells校正：未达目标继续同方向；到达目标列立即停横移。越过目标只是事实：换向即重置计时器，按新误差用100反按一次即可校正；同块内已≥2次换向仍未对齐时，不再继续往返，立即从tetris_landing_projections中选当前姿态附近不劣的落点hard-drop收尾。接地且位置正确时立即hard-drop，勿拖延（30tick锁定、横移重置上限15次）。(3)收尾：剩余步数≤8时不再规划多块，优先让当前块和下一块快速消行或安全落位；绝不为精细对位耗尽预算。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。noop:100仅在离地远、锁定窗口充足且确需重置横移计时器时用。"
+              },
+              "goal_instructions": {
+                "after_chars": 788,
+                "after_text_sha256": "00abb23b4e1ffd1fd29cedc8e3d6c5edc62eab093ffb4bf1b58526bc94518c17",
+                "before_chars": 705,
+                "before_text_sha256": "4a3d30b81be0fd58983549888699e6c377ab8d950a6818ff2bfc7e324dae23b8",
+                "unified_diff": "--- common_parent/goal_instructions\n+++ experience-proposal-1/goal_instructions\n@@ -1 +1 @@\n-这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。\n+这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。固定80步预算下还须考虑可达成本：距当前最左列很远、需要多次换向微调的目标，若与较近落点后果差距不大，优先选较近者。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列；剩余步数很少时优先选一步内可完成落位的低风险目标。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。"
+              },
+              "memory_policy": {
+                "after_chars": 206,
+                "after_text_sha256": "636a604eaa7731d6e6b2d61420d11244bb02219e84b8bf958d1b933b0a7d98af",
+                "before_chars": 107,
+                "before_text_sha256": "a573ef62525a40d2586c7adfecbe923eb34880b9de133ff79589331029ed0985",
+                "parsed_changes": {
+                  "instructions": {
+                    "after": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。检查近期动作中同块横移是否已出现≥2次方向切换仍未对齐：若是，立即放弃精细对位，在目标更新点改选当前姿态附近不劣的落点并尽快锁定。同时用剩余步数（80减当前step）约束：剩余少时不再追求精细对位。",
+                    "before": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。"
+                  }
+                },
+                "unified_diff": "--- common_parent/memory_policy\n+++ experience-proposal-1/memory_policy\n@@ -1 +1 @@\n-{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。\", \"recent_actions\": 4, \"replan_every_actions\": 4}\n+{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。检查近期动作中同块横移是否已出现≥2次方向切换仍未对齐：若是，立即放弃精细对位，在目标更新点改选当前姿态附近不劣的落点并尽快锁定。同时用剩余步数（80减当前step）约束：剩余少时不再追求精细对位。\", \"recent_actions\": 4, \"replan_every_actions\": 4}"
+              },
+              "observation_policy": {
+                "after_chars": 241,
+                "after_text_sha256": "6a88b820c5589e8447ef8b04ed103df1a31f954420f95e7b2ae8f64d93df2cd1",
+                "before_chars": 186,
+                "before_text_sha256": "efab84ecce459f635a274d69a0b4f441227a64a0e2cf3969c28c7ddb76a46d84",
+                "parsed_changes": {
+                  "instructions": {
+                    "after": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。先看step与剩余步数以约束预算，再核对active.cells实际位置与held_ticks以选择移动时长。",
+                    "before": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。"
+                  }
+                },
+                "unified_diff": "--- common_parent/observation_policy\n+++ experience-proposal-1/observation_policy\n@@ -1 +1 @@\n-{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}\n+{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。先看step与剩余步数以约束预算，再核对active.cells实际位置与held_ticks以选择移动时长。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}"
+              },
+              "strategy_notes": {
+                "after_chars": 411,
+                "after_text_sha256": "ab74b54672c278cdb53a465d6a8937291a28af926fdad9b25d04027e709002cc",
+                "before_chars": 367,
+                "before_text_sha256": "82d91f9dc478adf2051a2ec69d1930d861441525bb00a7fa636e9df91c86f25d",
+                "unified_diff": "--- common_parent/strategy_notes\n+++ experience-proposal-1/strategy_notes\n@@ -1 +1 @@\n-核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。\n+核心修正旧错误映射：换新方向重置held_ticks，随后短按:100可靠单格；同向held_ticks达9/12/15时短按触发重复移动；300ms=18tick约4次移动尝试，1000ms约18次；墙与锁块限制实际位移，必须每步读cells校正。历史0分局根因是S/L在目标列两侧长按往复；对策是：接受越过、换向重置计时器后反按一次校正；同块≥2次换向仍未对齐即放弃对位，选近处不劣落点硬降，禁止无限往返。预算意识：80步硬上限、每块约6-8动作，微调3-4动作为上限；局末剩余步数少时快速消行收尾。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键、若再不对齐的最差退路是哪个落点。"
+              }
+            },
+            "candidate": {
+              "decision_instructions": "所有调用think_mode=never，每次只输出一个动作ID。固定80步预算，每块平均只能花约6-8个动作：每个动作前先估剩余步数与该块已用动作数，微调超过3-4个动作仍不对齐就放弃精细对位，选当前姿态附近可接受的落点hard-drop或让其自然锁定。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。一行缺4格配横I只消1行，四消需四行齐备；被覆盖的洞无法靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移计时器跨动作保留；关键规律：换新方向会重置held_ticks到低位，此时短按:100是可靠单格移动；同向held_ticks高（≥9）时短按会触发连发，每按多移1-2格。因此默认先换向后短按:100逐步移动：误差≥3格可用300一次，误差1-2格且held_ticks<6用100。每步按实际cells校正：未达目标继续同方向；到达目标列立即停横移。越过目标只是事实：换向即重置计时器，按新误差用100反按一次即可校正；同块内已≥2次换向仍未对齐时，不再继续往返，立即从tetris_landing_projections中选当前姿态附近不劣的落点hard-drop收尾。接地且位置正确时立即hard-drop，勿拖延（30tick锁定、横移重置上限15次）。(3)收尾：剩余步数≤8时不再规划多块，优先让当前块和下一块快速消行或安全落位；绝不为精细对位耗尽预算。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。noop:100仅在离地远、锁定窗口充足且确需重置横移计时器时用。",
+              "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。固定80步预算下还须考虑可达成本：距当前最左列很远、需要多次换向微调的目标，若与较近落点后果差距不大，优先选较近者。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列；剩余步数很少时优先选一步内可完成落位的低风险目标。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+              "memory_policy": "{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。检查近期动作中同块横移是否已出现≥2次方向切换仍未对齐：若是，立即放弃精细对位，在目标更新点改选当前姿态附近不劣的落点并尽快锁定。同时用剩余步数（80减当前step）约束：剩余少时不再追求精细对位。\", \"recent_actions\": 4, \"replan_every_actions\": 4}",
+              "observation_policy": "{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。先看step与剩余步数以约束预算，再核对active.cells实际位置与held_ticks以选择移动时长。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}",
+              "strategy_notes": "核心修正旧错误映射：换新方向重置held_ticks，随后短按:100可靠单格；同向held_ticks达9/12/15时短按触发重复移动；300ms=18tick约4次移动尝试，1000ms约18次；墙与锁块限制实际位移，必须每步读cells校正。历史0分局根因是S/L在目标列两侧长按往复；对策是：接受越过、换向重置计时器后反按一次校正；同块≥2次换向仍未对齐即放弃对位，选近处不劣落点硬降，禁止无限往返。预算意识：80步硬上限、每块约6-8动作，微调3-4动作为上限；局末剩余步数少时快速消行收尾。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键、若再不对齐的最差退路是哪个落点。"
+            },
+            "candidate_hash": "1fa20a8d55549353dc37b591f6eaa8233041db704f57be7057a8aaf6f4c0db82",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f4b70051ae610c2c9c84138fbbc1c7c9206f7f9501bf63ea27979e1387e35227",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "candidate_validation": "validated",
+            "canonical_hash_format": "sha256-canonical-json-compact-utf8",
+            "changed_components": [
+              "decision_instructions",
+              "strategy_notes",
+              "goal_instructions",
+              "memory_policy",
+              "observation_policy"
+            ],
+            "entered_gepa_pool": false,
+            "evaluated_purposes": [
+              "search_train"
+            ],
+            "evaluations": [
+              {
+                "artifact": "episodes/experience/eval-04/attempt-01/episode.json",
+                "candidate_hash": "1fa20a8d55549353dc37b591f6eaa8233041db704f57be7057a8aaf6f4c0db82",
+                "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+                "candidate_sha256": "f4b70051ae610c2c9c84138fbbc1c7c9206f7f9501bf63ea27979e1387e35227",
+                "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+                "completion_file_sha256": "cc6de20db577d4d5421ed91e3d5edd5e0a6ca1e2444b4d9c5cbf9ad541187050",
+                "episode_canonical_sha256": "9ed228d5bc85c372629269b3a90bbc29ba06bbd8dedf7eb3810f312567e13f58",
+                "episode_file_sha256": "95796da3e7c459d73723db247d1b5181c438ff4119991fe17e369a1295a6d735",
+                "episode_id": "exp-3f1bbfae303f89d7d1f954f5",
+                "index": 4,
+                "lines": 3,
+                "points": 400,
+                "purpose": "search_train",
+                "seed": 1125112509,
+                "steps": 80,
+                "termination_reason": "step_limit"
+              },
+              {
+                "artifact": "episodes/experience/eval-05/attempt-01/episode.json",
+                "candidate_hash": "1fa20a8d55549353dc37b591f6eaa8233041db704f57be7057a8aaf6f4c0db82",
+                "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+                "candidate_sha256": "f4b70051ae610c2c9c84138fbbc1c7c9206f7f9501bf63ea27979e1387e35227",
+                "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+                "completion_file_sha256": "468792db2f7ad57c76b2aa26296a0c45d0074377572caa6ea6bd10f997d86c2c",
+                "episode_canonical_sha256": "736d2df7fe4b23b632989749db0f79682f140ec0c6a0e56893df43052275eb13",
+                "episode_file_sha256": "b0ff2f00fc8699d4a280a85d929a8df4f0dfa7d0a4c444e7c4d4f46f778c2407",
+                "episode_id": "exp-a39d6243469a614b171749a1",
+                "index": 5,
+                "lines": 6,
+                "points": 600,
+                "purpose": "search_train",
+                "seed": 1219621641,
+                "steps": 80,
+                "termination_reason": "step_limit"
+              }
+            ],
+            "improvement_experience_hashes": [
+              "6f197390f1110a12b67dd039cf841cf09559ccd6eeaac6d48c4d78746becfd68"
+            ],
+            "improvement_experience_snapshot_hash": "a5b5af11584c6681da5e438893cefc97026686558f23a4d88f222516ca9b6748",
+            "mutable_components": [
+              "decision_instructions",
+              "strategy_notes",
+              "goal_instructions",
+              "memory_policy",
+              "observation_policy"
+            ],
+            "mutable_components_hash": "cdd3e42cc79d487670652fc6748f4432cd4cf3beb256b503eea0ae8ddc587eaf",
+            "number": 1,
+            "original_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "parent_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "parent_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "resolved_context_config": {
+              "control_feedback": true,
+              "decision_goal_memory": true,
+              "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。固定80步预算下还须考虑可达成本：距当前最左列很远、需要多次换向微调的目标，若与较近落点后果差距不大，优先选较近者。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列；剩余步数很少时优先选一步内可完成落位的低风险目标。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+              "memory_instructions": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。检查近期动作中同块横移是否已出现≥2次方向切换仍未对齐：若是，立即放弃精细对位，在目标更新点改选当前姿态附近不劣的落点并尽快锁定。同时用剩余步数（80减当前step）约束：剩余少时不再追求精细对位。",
+              "observation_instructions": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。先看step与剩余步数以约束预算，再核对active.cells实际位置与held_ticks以选择移动时长。",
+              "recent_actions": 4,
+              "replan_every_actions": 4,
+              "schema": "tetris-context-v4",
+              "section_order": [
+                "observation",
+                "tetris_features",
+                "decision_goal_memory",
+                "tetris_control_facts",
+                "tetris_landing_projections"
+              ],
+              "structured_facts": true
+            },
+            "runtime_contract_hash": "f1c79bd856a44b731eac66ae98601d90174d0e42a6764b1c43484cab55f6068c",
+            "selected": false,
+            "status": "proposed"
+          }
+        ],
+        "selected_candidate_hash_format": "sha256-canonical-json-compact-utf8",
+        "selected_candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+        "selected_changed": false
+      },
+      "think_mode": "never"
+    },
+    "text": {
+      "actual_changed_components": [],
+      "actual_diff": {},
+      "candidate": {
+        "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。",
+        "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+        "memory_policy": "{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。\", \"recent_actions\": 4, \"replan_every_actions\": 4}",
+        "observation_policy": "{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}",
+        "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。"
+      },
+      "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+      "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+      "decision_model": "startlux-decision-27b-autothink",
+      "id": "component-text-f3053753c2c073f6",
+      "improvement_experience_hashes": [],
+      "input_mode": "structured+vision",
+      "mutable_components": [
+        "decision_instructions",
+        "strategy_notes"
+      ],
+      "resolved_context_config": {
+        "control_feedback": true,
+        "decision_goal_memory": true,
+        "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+        "memory_instructions": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。",
+        "observation_instructions": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。",
+        "recent_actions": 4,
+        "replan_every_actions": 4,
+        "schema": "tetris-context-v4",
+        "section_order": [
+          "observation",
+          "tetris_features",
+          "decision_goal_memory",
+          "tetris_control_facts",
+          "tetris_landing_projections"
+        ],
+        "structured_facts": true
+      },
+      "runtime_profile": "tetris-components-v1",
+      "search": {
+        "evaluations": [
+          {
+            "artifact": "episodes/text/eval-00/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "041611ba6c0d4e78aa8af2b1049a355ea31d6637064e033629a5bff49f22530e",
+            "episode_canonical_sha256": "cb6d00041cdca2ad7ce62a326d974f7f0d7e64f87e86372c5eb627809bef9399",
+            "episode_file_sha256": "b8e7dc7b4057e5ca2944c58c5ca52486a4641c4193535bed55bc5b13ad9bdc45",
+            "episode_id": "exp-8918dc459c133e88a6497a2e",
+            "index": 0,
+            "lines": 9,
+            "points": 1000,
+            "purpose": "search_validation",
+            "seed": 1388756300,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/text/eval-01/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "52806311e410e2c587aa72a65d87d3b5ac7620d4535943783686a1af2e56bc26",
+            "episode_canonical_sha256": "d7e08699e7bbbc19769441964c6359f6e0c2d3d732ec02024e2f547f59fec807",
+            "episode_file_sha256": "a900cc1eabbe8e843f23ca0901eb87a131f96079f9309214c3cd58b48725de7f",
+            "episode_id": "exp-34b95c77347501a527e8f5d9",
+            "index": 1,
+            "lines": 7,
+            "points": 900,
+            "purpose": "search_validation",
+            "seed": 597736867,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/text/eval-02/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "06674b5571d845751ad0cb944bef3a0348d8f11f3bc35f64239e88acd83c95a1",
+            "episode_canonical_sha256": "0e8509225e1b4001e78efc7d67c99c060596889b8143afc0c940c1641de0cd26",
+            "episode_file_sha256": "899c205b6ef86c2586e9bb491174791373745e918f33c78bc65210ec781ec03a",
+            "episode_id": "exp-5d8b0638bff8f3b0c10bef0f",
+            "index": 2,
+            "lines": 3,
+            "points": 300,
+            "purpose": "search_train",
+            "seed": 1125112509,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/text/eval-03/attempt-01/episode.json",
+            "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "2a3e5ec832b578664764b083b21f25bcde7f1ca7af12f05c0ba1fd9de28c6f27",
+            "episode_canonical_sha256": "b029491b00409a3804beb9437692fbb9eccc3f781bf17b8f92fa79c5f30e467a",
+            "episode_file_sha256": "05567d229a3ddb28ea7ce4f309453c7a56971a0f409d3e7edbf0a15d673cafa3",
+            "episode_id": "exp-60fbfa7828b7ea50a8e6aac6",
+            "index": 3,
+            "lines": 7,
+            "points": 700,
+            "purpose": "search_train",
+            "seed": 1219621641,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/text/eval-04/attempt-01/episode.json",
+            "candidate_hash": "8ebb17a177cd3861333a326259bb8819aa15798acc06af5f892648d19454c4db",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "673089d8744a43be759a70c7c609c8e178466c769e91c571bc1a4d438f9fc039",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "955b707a6ce3e3b770526fd18421e640881e801002a64b5f3bb9d9d2a6decba0",
+            "episode_canonical_sha256": "f9976bf8e4079cffc7212041e7354ba62c2692004c5835690afdfe35c3d4bcf2",
+            "episode_file_sha256": "544e4ddce689064e3737f0f59c6ac4b5099d62cb3ac1b4f1cc1a5e0ff9d3ab0e",
+            "episode_id": "exp-3024f4112d59ad5448a7da03",
+            "index": 4,
+            "lines": 3,
+            "points": 300,
+            "purpose": "search_train",
+            "seed": 1125112509,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/text/eval-05/attempt-01/episode.json",
+            "candidate_hash": "8ebb17a177cd3861333a326259bb8819aa15798acc06af5f892648d19454c4db",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "673089d8744a43be759a70c7c609c8e178466c769e91c571bc1a4d438f9fc039",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "808853b02dcd90efe946039f9c0e1ea7ef6e813ece0023828d5b0fbfe00ddcb8",
+            "episode_canonical_sha256": "e0db84edf99582fb53cd8b993950847b8c5d0e3b5f130752d7517ae7ece1925f",
+            "episode_file_sha256": "d76cf5267d3a201fbb31386bc1e81e35639c35534b1cfff7d283ff0aee9c3bb0",
+            "episode_id": "exp-4dfc972f5d1f39aac24d6f9f",
+            "index": 5,
+            "lines": 6,
+            "points": 600,
+            "purpose": "search_train",
+            "seed": 1219621641,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        ],
+        "gepa": {
+          "best_idx": 0,
+          "best_score": 950.0,
+          "candidate_count": 1,
+          "engine": "gepa.optimize",
+          "max_metric_calls": 9,
+          "total_metric_calls": 6,
+          "val_aggregate_scores": [
+            950.0
+          ],
+          "version": "0.1.4"
+        },
+        "improvement_experience_hashes": [],
+        "interpretation": "Proposals are genuine between-game coach outputs, including rejected proposals. Search train/validation results are development evidence, not held-out effectiveness or independent promotion.",
+        "mutable_components": [
+          "decision_instructions",
+          "strategy_notes"
+        ],
+        "proposals": [
+          {
+            "actual_diff": {
+              "decision_instructions": {
+                "after_chars": 1634,
+                "after_text_sha256": "80044a8193cacefa9c273e7f10877718c8b252286b3d6131c675ef035bec6d42",
+                "before_chars": 1227,
+                "before_text_sha256": "38b7d6e45e00a5c5b12a40783673a7b4263a31c3bd978d42111797049c8ef1da",
+                "unified_diff": "--- common_parent/decision_instructions\n+++ text-proposal-1/decision_instructions\n@@ -1 +1 @@\n-所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。\n+所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。预算意识：max_steps固定（如80），分数只在锁定消行时产生；每块应尽量用最少的决策步完成“旋转→平移→硬降”，能省的动作就是净收益。到达目标姿态且落点安全时立即hard-drop，不要追加观察或微调动作。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞；有消行候选优先选消行数多的（points按消行前等级1/2/3/4行=100/300/500/800）。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认；新块生成后若既有旋转又有较大横移误差，先旋转再平移，避免旋转改变占列后重复校正。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。步数效率规则：列误差≥3且新方向（horizontalHeldTicks低）时，优先用left:300/right:300或left:1000/right:1000一次覆盖多列，比逐格100ms省决策步；误差1-2格或反向校正时用100ms短按。每步后按实际cells校正：仍在目标一侧继续同方向（续按可用300ms利用加速期）；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；接地或锁定临近时禁用；若计时器高但方向正确，续按反而享加速期，此时优先续按而非noop。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。整局预算观：若棋盘堆高而无近期消行前景，优先选能保平/压低的落点而不是追高目标；目标是让80步内锁定块数与消行积分最大化，不追求单块完美。"
+              },
+              "strategy_notes": {
+                "after_chars": 609,
+                "after_text_sha256": "70acfc10bc89e0d508c3cd79b058af0659f7a167e3dffdd86d299d2bbdac23ff",
+                "before_chars": 367,
+                "before_text_sha256": "82d91f9dc478adf2051a2ec69d1930d861441525bb00a7fa636e9df91c86f25d",
+                "unified_diff": "--- common_parent/strategy_notes\n+++ text-proposal-1/strategy_notes\n@@ -1 +1 @@\n-核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。\n+核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。训练反馈证据：80步step_limit下两局分别300分（3行）与700分（7行），瓶颈是决策步数而非tick时钟——每块平均消耗步数过多（含校正往返与多余短按）。因此新增步数效率原则：大误差用300/1000ms长按一次覆盖多列，小误差用100ms；对齐即hard-drop，不做多余确认动作；先旋转后平移减少重复校正。同一动作时长选择以horizontalHeldTicks与新方向/续方向判断：续同向高计时器时长按更划算。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。多组件同时为条件性建议，单局分数变化不归因于单一改动。"
+              }
+            },
+            "candidate": {
+              "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。预算意识：max_steps固定（如80），分数只在锁定消行时产生；每块应尽量用最少的决策步完成“旋转→平移→硬降”，能省的动作就是净收益。到达目标姿态且落点安全时立即hard-drop，不要追加观察或微调动作。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞；有消行候选优先选消行数多的（points按消行前等级1/2/3/4行=100/300/500/800）。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认；新块生成后若既有旋转又有较大横移误差，先旋转再平移，避免旋转改变占列后重复校正。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。步数效率规则：列误差≥3且新方向（horizontalHeldTicks低）时，优先用left:300/right:300或left:1000/right:1000一次覆盖多列，比逐格100ms省决策步；误差1-2格或反向校正时用100ms短按。每步后按实际cells校正：仍在目标一侧继续同方向（续按可用300ms利用加速期）；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；接地或锁定临近时禁用；若计时器高但方向正确，续按反而享加速期，此时优先续按而非noop。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。整局预算观：若棋盘堆高而无近期消行前景，优先选能保平/压低的落点而不是追高目标；目标是让80步内锁定块数与消行积分最大化，不追求单块完美。",
+              "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+              "memory_policy": "{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。\", \"recent_actions\": 4, \"replan_every_actions\": 4}",
+              "observation_policy": "{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}",
+              "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。训练反馈证据：80步step_limit下两局分别300分（3行）与700分（7行），瓶颈是决策步数而非tick时钟——每块平均消耗步数过多（含校正往返与多余短按）。因此新增步数效率原则：大误差用300/1000ms长按一次覆盖多列，小误差用100ms；对齐即hard-drop，不做多余确认动作；先旋转后平移减少重复校正。同一动作时长选择以horizontalHeldTicks与新方向/续方向判断：续同向高计时器时长按更划算。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。多组件同时为条件性建议，单局分数变化不归因于单一改动。"
+            },
+            "candidate_hash": "8ebb17a177cd3861333a326259bb8819aa15798acc06af5f892648d19454c4db",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "673089d8744a43be759a70c7c609c8e178466c769e91c571bc1a4d438f9fc039",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "candidate_validation": "validated",
+            "canonical_hash_format": "sha256-canonical-json-compact-utf8",
+            "changed_components": [
+              "decision_instructions",
+              "strategy_notes"
+            ],
+            "entered_gepa_pool": false,
+            "evaluated_purposes": [
+              "search_train"
+            ],
+            "evaluations": [
+              {
+                "artifact": "episodes/text/eval-04/attempt-01/episode.json",
+                "candidate_hash": "8ebb17a177cd3861333a326259bb8819aa15798acc06af5f892648d19454c4db",
+                "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+                "candidate_sha256": "673089d8744a43be759a70c7c609c8e178466c769e91c571bc1a4d438f9fc039",
+                "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+                "completion_file_sha256": "955b707a6ce3e3b770526fd18421e640881e801002a64b5f3bb9d9d2a6decba0",
+                "episode_canonical_sha256": "f9976bf8e4079cffc7212041e7354ba62c2692004c5835690afdfe35c3d4bcf2",
+                "episode_file_sha256": "544e4ddce689064e3737f0f59c6ac4b5099d62cb3ac1b4f1cc1a5e0ff9d3ab0e",
+                "episode_id": "exp-3024f4112d59ad5448a7da03",
+                "index": 4,
+                "lines": 3,
+                "points": 300,
+                "purpose": "search_train",
+                "seed": 1125112509,
+                "steps": 80,
+                "termination_reason": "step_limit"
+              },
+              {
+                "artifact": "episodes/text/eval-05/attempt-01/episode.json",
+                "candidate_hash": "8ebb17a177cd3861333a326259bb8819aa15798acc06af5f892648d19454c4db",
+                "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+                "candidate_sha256": "673089d8744a43be759a70c7c609c8e178466c769e91c571bc1a4d438f9fc039",
+                "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+                "completion_file_sha256": "808853b02dcd90efe946039f9c0e1ea7ef6e813ece0023828d5b0fbfe00ddcb8",
+                "episode_canonical_sha256": "e0db84edf99582fb53cd8b993950847b8c5d0e3b5f130752d7517ae7ece1925f",
+                "episode_file_sha256": "d76cf5267d3a201fbb31386bc1e81e35639c35534b1cfff7d283ff0aee9c3bb0",
+                "episode_id": "exp-4dfc972f5d1f39aac24d6f9f",
+                "index": 5,
+                "lines": 6,
+                "points": 600,
+                "purpose": "search_train",
+                "seed": 1219621641,
+                "steps": 80,
+                "termination_reason": "step_limit"
+              }
+            ],
+            "improvement_experience_hashes": [],
+            "improvement_experience_snapshot_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "mutable_components": [
+              "decision_instructions",
+              "strategy_notes"
+            ],
+            "mutable_components_hash": "31a477859620d53953b097f94457e583a0a6667afc1d8f75e55eddeb6f079287",
+            "number": 1,
+            "original_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "parent_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+            "parent_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+            "resolved_context_config": {
+              "control_feedback": true,
+              "decision_goal_memory": true,
+              "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+              "memory_instructions": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。",
+              "observation_instructions": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。",
+              "recent_actions": 4,
+              "replan_every_actions": 4,
+              "schema": "tetris-context-v4",
+              "section_order": [
+                "observation",
+                "tetris_features",
+                "decision_goal_memory",
+                "tetris_control_facts",
+                "tetris_landing_projections"
+              ],
+              "structured_facts": true
+            },
+            "runtime_contract_hash": "f1c79bd856a44b731eac66ae98601d90174d0e42a6764b1c43484cab55f6068c",
+            "selected": false,
+            "status": "proposed"
+          }
+        ],
+        "selected_candidate_hash_format": "sha256-canonical-json-compact-utf8",
+        "selected_candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+        "selected_changed": false
+      },
+      "think_mode": "never"
+    }
+  },
+  "bootstrap_search": {
+    "evaluations": [
+      {
+        "artifact": "episodes/bootstrap/eval-00/attempt-01/episode.json",
+        "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "completion_file_sha256": "1600dd06dd3cd9fbf4fa871ade503b17702be6c4b57ad896d98debfb70860e42",
+        "episode_canonical_sha256": "c319194d876e3f41ef7dcf1f16059f77f9f14e5afcefc7c23277cf40a0820d43",
+        "episode_file_sha256": "fb77c288a28ea26bda98016cbcbb6d85f07e5293a16229a596cc0f1f5b4485c6",
+        "episode_id": "exp-77fd9291d5fcbfd9ca82dd2a",
+        "index": 0,
+        "lines": 6,
+        "points": 600,
+        "purpose": "search_validation",
+        "seed": 1077058967,
+        "steps": 80,
+        "termination_reason": "step_limit"
+      },
+      {
+        "artifact": "episodes/bootstrap/eval-01/attempt-01/episode.json",
+        "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "completion_file_sha256": "266c45f114bd06b7c3a1a41b184de8ea5b3a100fd9a98fae810d85f84d3609a3",
+        "episode_canonical_sha256": "7f38917ea0aaaff35684ddd59902758baacc453e6b44691224e19668152a528c",
+        "episode_file_sha256": "bec57720b9e9d2a2bcc833f553ddce6c0f6ee76aee323b9ed811c2cec4f9cae7",
+        "episode_id": "exp-56e23a69d35bd257d5ee658c",
+        "index": 1,
+        "lines": 7,
+        "points": 700,
+        "purpose": "search_validation",
+        "seed": 1189629101,
+        "steps": 80,
+        "termination_reason": "step_limit"
+      },
+      {
+        "artifact": "episodes/bootstrap/eval-02/attempt-01/episode.json",
+        "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "completion_file_sha256": "01d94b4c36c5b4c31ed7ad267583c19871ee267144c151c519cca4d69618cbf6",
+        "episode_canonical_sha256": "ab85bca36bb13c7447a7c5f70346a48e9e3fba33daf315d2def78450391f772b",
+        "episode_file_sha256": "2a7c8989b2120417e1c00440ca451f8781cd809aff110cea7d7d57329711583b",
+        "episode_id": "exp-0e5b3eda4b1b3090e40a9afd",
+        "index": 2,
+        "lines": 7,
+        "points": 700,
+        "purpose": "search_train",
+        "seed": 594356254,
+        "steps": 80,
+        "termination_reason": "step_limit"
+      },
+      {
+        "artifact": "episodes/bootstrap/eval-03/attempt-01/episode.json",
+        "candidate_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "completion_file_sha256": "7ad0a187196a3b7a5edd5ad17cc1155e7aa47bff4c9a86a4bff3e17bcccfdffc",
+        "episode_canonical_sha256": "076590face53a97dd16fa52c8529d2efc303650f10fd83640f52a51116810f0a",
+        "episode_file_sha256": "7592fcb4ed2256322e1a23f7631ccfbf082b452ee01bbfbda67fbec805060681",
+        "episode_id": "exp-8672cfb6c60e113a54cb9a2f",
+        "index": 3,
+        "lines": 8,
+        "points": 1000,
+        "purpose": "search_train",
+        "seed": 82358861,
+        "steps": 80,
+        "termination_reason": "step_limit"
+      },
+      {
+        "artifact": "episodes/bootstrap/eval-04/attempt-01/episode.json",
+        "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "completion_file_sha256": "3c6cc1b29c7d781dbbfb1164f23b2a1ecaf7633b738ce944f2d85b46b2149e14",
+        "episode_canonical_sha256": "fc90c93722e28d7afd6bc951535a771df9669a507563dea27c6102854b5127df",
+        "episode_file_sha256": "7328a37d8c1c1992923a7ba10203403b3158eb64e875dd5d6e9dc215ca390f46",
+        "episode_id": "exp-ed7b82dcfbb43f5eb0fa7ac0",
+        "index": 4,
+        "lines": 7,
+        "points": 700,
+        "purpose": "search_train",
+        "seed": 594356254,
+        "steps": 80,
+        "termination_reason": "step_limit"
+      },
+      {
+        "artifact": "episodes/bootstrap/eval-05/attempt-01/episode.json",
+        "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "completion_file_sha256": "f98ad8ab9508b0658350af3b07856e24c6156dce6c7587643769730d187d0a3a",
+        "episode_canonical_sha256": "d6999be28bd65cee571348e7de97ac7a3acbd542ccd08a90de1087bcc3c93c9e",
+        "episode_file_sha256": "bcddfd10fdf315ec1a2ec40d297db38cae41567aa5544c7cba727c919bc7b3a3",
+        "episode_id": "exp-7dd6de6e5537cd2a0fc41973",
+        "index": 5,
+        "lines": 10,
+        "points": 1600,
+        "purpose": "search_train",
+        "seed": 82358861,
+        "steps": 80,
+        "termination_reason": "step_limit"
+      },
+      {
+        "artifact": "episodes/bootstrap/eval-06/attempt-01/episode.json",
+        "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "completion_file_sha256": "99b1206e17cd8165581550b54824f74b2718562996ad62fd21276afeb14095e2",
+        "episode_canonical_sha256": "af64b26627707a9bfdf00dcf00fa9bb291b2dceda4523713d74dab3fad55ac78",
+        "episode_file_sha256": "aa027ca70a0c9d979468002dc7e1a74050ac27eada1b41b3da94a5017b2cbaff",
+        "episode_id": "exp-1a9ff9d94897ce6e325a8332",
+        "index": 6,
+        "lines": 7,
+        "points": 700,
+        "purpose": "search_validation",
+        "seed": 1077058967,
+        "steps": 80,
+        "termination_reason": "step_limit"
+      },
+      {
+        "artifact": "episodes/bootstrap/eval-07/attempt-01/episode.json",
+        "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "completion_file_sha256": "bd823285dfdd080f45f5268bacece8c476979f82046bd504a56dc1b051c16ac2",
+        "episode_canonical_sha256": "7cbb3e37c5932e28d660b6de2be8f6ae5e9024a7a22b03081c5eca2ed35186dc",
+        "episode_file_sha256": "4cc12968ff7462a1751376bf87523e199927033e9e95454e06c6000dd72be801",
+        "episode_id": "exp-001cb4da4e08760d0f81c00b",
+        "index": 7,
+        "lines": 8,
+        "points": 800,
+        "purpose": "search_validation",
+        "seed": 1189629101,
+        "steps": 80,
+        "termination_reason": "step_limit"
+      }
+    ],
+    "gepa": {
+      "best_idx": 1,
+      "best_score": 750.0,
+      "candidate_count": 2,
+      "engine": "gepa.optimize",
+      "max_metric_calls": 9,
+      "total_metric_calls": 8,
+      "val_aggregate_scores": [
+        650.0,
+        750.0
+      ],
+      "version": "0.1.4"
+    },
+    "improvement_experience_hashes": [],
+    "interpretation": "Proposals are genuine between-game coach outputs, including rejected proposals. Search train/validation results are development evidence, not held-out effectiveness or independent promotion.",
+    "mutable_components": [
+      "decision_instructions",
+      "strategy_notes",
+      "goal_instructions",
+      "memory_policy",
+      "observation_policy"
+    ],
+    "proposals": [
+      {
+        "actual_diff": {
+          "decision_instructions": {
+            "after_chars": 1373,
+            "after_text_sha256": "67402f33a009ea1417283fd6404450781fceba35a2f9c2ca429656cb632f39a9",
+            "before_chars": 1227,
+            "before_text_sha256": "38b7d6e45e00a5c5b12a40783673a7b4263a31c3bd978d42111797049c8ef1da",
+            "unified_diff": "--- common_parent/decision_instructions\n+++ bootstrap-proposal-1/decision_instructions\n@@ -1 +1 @@\n-所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。\n+所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。总step预算有限（约80次决策），每个动作都消耗预算；当前块若已接近目标或姿态正确，尽快hard-drop完成，勿为微调耗尽剩余步数。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。反向短按会重置新方向计时器（held_ticks回到低位），是一次干净的单格移动机会：若当前误差为1格，反向短按:100通常恰移1格；同向held_ticks高（≥9）时短按可能连发1-2格，优先改用反向或换方向重置计时器后再短按。每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。剩余step数很少时（如≤3且未top_out风险），对当前块选择可消行或不造洞的落点立即硬降，放弃精细对位。"
+          },
+          "memory_policy": {
+            "after_chars": 158,
+            "after_text_sha256": "026ffaf64f24b98e56cafced923103aa2c795fa5546bd6a27b11cf86fa6c874f",
+            "before_chars": 107,
+            "before_text_sha256": "a573ef62525a40d2586c7adfecbe923eb34880b9de133ff79589331029ed0985",
+            "parsed_changes": {
+              "instructions": {
+                "after": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定；若近期动作出现同块多次反向横移仍未对齐目标列，说明该目标难达，更新目标时优先选当前姿态附近的不劣落点。",
+                "before": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。"
+              }
+            },
+            "unified_diff": "--- common_parent/memory_policy\n+++ bootstrap-proposal-1/memory_policy\n@@ -1 +1 @@\n-{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。\", \"recent_actions\": 4, \"replan_every_actions\": 4}\n+{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定；若近期动作出现同块多次反向横移仍未对齐目标列，说明该目标难达，更新目标时优先选当前姿态附近的不劣落点。\", \"recent_actions\": 4, \"replan_every_actions\": 4}"
+          },
+          "strategy_notes": {
+            "after_chars": 533,
+            "after_text_sha256": "f5203de247db2b8adf9bde73b458658891448a6c56f6d853926848388c152ba1",
+            "before_chars": 367,
+            "before_text_sha256": "82d91f9dc478adf2051a2ec69d1930d861441525bb00a7fa636e9df91c86f25d",
+            "unified_diff": "--- common_parent/strategy_notes\n+++ bootstrap-proposal-1/strategy_notes\n@@ -1 +1 @@\n-核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。\n+核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。反馈轨迹再次确认：反向切换方向会重置held_ticks到低位（17→5），此时短按:100是可靠的单格移动；同向高held_ticks时短按易连发。step预算意识：全局仅80次决策，一块平均只能用6-8个动作完成旋转+平移+锁定，微调超过3-4个动作仍不对齐时立即放弃对位选可接受落点；局末剩余步数少时对当前块快速消行硬降收尾。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。"
+          }
+        },
+        "candidate": {
+          "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。总step预算有限（约80次决策），每个动作都消耗预算；当前块若已接近目标或姿态正确，尽快hard-drop完成，勿为微调耗尽剩余步数。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。反向短按会重置新方向计时器（held_ticks回到低位），是一次干净的单格移动机会：若当前误差为1格，反向短按:100通常恰移1格；同向held_ticks高（≥9）时短按可能连发1-2格，优先改用反向或换方向重置计时器后再短按。每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。剩余step数很少时（如≤3且未top_out风险），对当前块选择可消行或不造洞的落点立即硬降，放弃精细对位。",
+          "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+          "memory_policy": "{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定；若近期动作出现同块多次反向横移仍未对齐目标列，说明该目标难达，更新目标时优先选当前姿态附近的不劣落点。\", \"recent_actions\": 4, \"replan_every_actions\": 4}",
+          "observation_policy": "{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}",
+          "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。反馈轨迹再次确认：反向切换方向会重置held_ticks到低位（17→5），此时短按:100是可靠的单格移动；同向高held_ticks时短按易连发。step预算意识：全局仅80次决策，一块平均只能用6-8个动作完成旋转+平移+锁定，微调超过3-4个动作仍不对齐时立即放弃对位选可接受落点；局末剩余步数少时对当前块快速消行硬降收尾。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。"
+        },
+        "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+        "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+        "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+        "candidate_validation": "validated",
+        "canonical_hash_format": "sha256-canonical-json-compact-utf8",
+        "changed_components": [
+          "decision_instructions",
+          "strategy_notes",
+          "memory_policy"
+        ],
+        "entered_gepa_pool": true,
+        "evaluated_purposes": [
+          "search_train",
+          "search_validation"
+        ],
+        "evaluations": [
+          {
+            "artifact": "episodes/bootstrap/eval-04/attempt-01/episode.json",
+            "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "3c6cc1b29c7d781dbbfb1164f23b2a1ecaf7633b738ce944f2d85b46b2149e14",
+            "episode_canonical_sha256": "fc90c93722e28d7afd6bc951535a771df9669a507563dea27c6102854b5127df",
+            "episode_file_sha256": "7328a37d8c1c1992923a7ba10203403b3158eb64e875dd5d6e9dc215ca390f46",
+            "episode_id": "exp-ed7b82dcfbb43f5eb0fa7ac0",
+            "index": 4,
+            "lines": 7,
+            "points": 700,
+            "purpose": "search_train",
+            "seed": 594356254,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/bootstrap/eval-05/attempt-01/episode.json",
+            "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "f98ad8ab9508b0658350af3b07856e24c6156dce6c7587643769730d187d0a3a",
+            "episode_canonical_sha256": "d6999be28bd65cee571348e7de97ac7a3acbd542ccd08a90de1087bcc3c93c9e",
+            "episode_file_sha256": "bcddfd10fdf315ec1a2ec40d297db38cae41567aa5544c7cba727c919bc7b3a3",
+            "episode_id": "exp-7dd6de6e5537cd2a0fc41973",
+            "index": 5,
+            "lines": 10,
+            "points": 1600,
+            "purpose": "search_train",
+            "seed": 82358861,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/bootstrap/eval-06/attempt-01/episode.json",
+            "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "99b1206e17cd8165581550b54824f74b2718562996ad62fd21276afeb14095e2",
+            "episode_canonical_sha256": "af64b26627707a9bfdf00dcf00fa9bb291b2dceda4523713d74dab3fad55ac78",
+            "episode_file_sha256": "aa027ca70a0c9d979468002dc7e1a74050ac27eada1b41b3da94a5017b2cbaff",
+            "episode_id": "exp-1a9ff9d94897ce6e325a8332",
+            "index": 6,
+            "lines": 7,
+            "points": 700,
+            "purpose": "search_validation",
+            "seed": 1077058967,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          },
+          {
+            "artifact": "episodes/bootstrap/eval-07/attempt-01/episode.json",
+            "candidate_hash": "756a2cca4a728686e4bb7bd9b91f81ec562c465bc609eed5b6a7e5e8872f852f",
+            "candidate_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+            "candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+            "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+            "completion_file_sha256": "bd823285dfdd080f45f5268bacece8c476979f82046bd504a56dc1b051c16ac2",
+            "episode_canonical_sha256": "7cbb3e37c5932e28d660b6de2be8f6ae5e9024a7a22b03081c5eca2ed35186dc",
+            "episode_file_sha256": "4cc12968ff7462a1751376bf87523e199927033e9e95454e06c6000dd72be801",
+            "episode_id": "exp-001cb4da4e08760d0f81c00b",
+            "index": 7,
+            "lines": 8,
+            "points": 800,
+            "purpose": "search_validation",
+            "seed": 1189629101,
+            "steps": 80,
+            "termination_reason": "step_limit"
+          }
+        ],
+        "improvement_experience_hashes": [],
+        "improvement_experience_snapshot_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "mutable_components": [
+          "decision_instructions",
+          "strategy_notes",
+          "goal_instructions",
+          "memory_policy",
+          "observation_policy"
+        ],
+        "mutable_components_hash": "cdd3e42cc79d487670652fc6748f4432cd4cf3beb256b503eea0ae8ddc587eaf",
+        "number": 1,
+        "original_hash_format": "sha256-json-sorted-keys-default-spaced-separators-utf8",
+        "parent_hash": "96beb19bcbbabb7eb931d5001b851b99d02ae97c6d6e78aa7c5fe79d54c9f6d6",
+        "parent_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+        "resolved_context_config": {
+          "control_feedback": true,
+          "decision_goal_memory": true,
+          "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+          "memory_instructions": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定；若近期动作出现同块多次反向横移仍未对齐目标列，说明该目标难达，更新目标时优先选当前姿态附近的不劣落点。",
+          "observation_instructions": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。",
+          "recent_actions": 4,
+          "replan_every_actions": 4,
+          "schema": "tetris-context-v4",
+          "section_order": [
+            "observation",
+            "tetris_features",
+            "decision_goal_memory",
+            "tetris_control_facts",
+            "tetris_landing_projections"
+          ],
+          "structured_facts": true
+        },
+        "runtime_contract_hash": "f1c79bd856a44b731eac66ae98601d90174d0e42a6764b1c43484cab55f6068c",
+        "selected": true,
+        "status": "proposed"
+      }
+    ],
+    "selected_candidate_hash_format": "sha256-canonical-json-compact-utf8",
+    "selected_candidate_sha256": "ed0e84f15ed4b7fc596e1f6fe99af70ef5ae356bfe2edadd01d31d8fc76d7fd0",
+    "selected_changed": true
+  },
+  "common_parent": {
+    "candidate": {
+      "decision_instructions": "所有调用think_mode=never，每次只做一个判断：当前最左占用列与朝向是否等于目标，否则选最接近目标的单个原生按键。(1)目标规划：仅在目标更新点（新作用域或每4次游戏动作）调用keep/clear/target；游戏按键调用绝不输出keep/clear/target，也没有即时换目标接口。decision_goal_memory中target仍有效（同块、棋盘未变）且可达时选keep；目标被锁块挡住或形状不合时clear（clear后等下一固定更新点）或直接选新target。选目标时：有tetris_features用columns[].height与hole_ys，无则读board.rows估各列高度；优先铺平底面、不悬空、不盖洞。注意：某行缺4格配横I只消1行，消4行需4行同时完整；被覆盖的洞不能靠竖直下落填。(2)单步执行：用active.cells最小x作当前最左列（不是active.x）。若tetris_control_facts存在，用current.leftmost_column、horizontal_held_ticks、target_relation.column_error判断。旋转：active.rotation≠目标朝向时选rotate-cw:100一次（差3用rotate-ccw:100），下步重读朝向确认。平移：横移计时器跨动作保留——300ms新方向最多约4次移动尝试，同方向成熟加速期续按约6次尝试；1000ms新方向最多约18次尝试；墙与锁块会限制实际位移，长按不保证越过也不保证位移，实际以cells为准。默认用100或300短按键沿目标方向移动，每步后按实际cells校正：仍在目标一侧继续同方向；到达目标列立即停横移。误差1格且held_ticks低（<6）可用100ms，但同向连续短按会在计时器达9/12/15时每按多移1-2格，越过后按新列误差重新决策——越过或反转只是事实，若新误差仍可安全校正且预算允许可再短按一次反方向，不必也不许因越过就无条件锁块或无限往返；若反复校正仍不收敛（如已≥2次反向仍未对齐），选当前可用的最平整落点hard-drop或让其自然锁定，勿耗尽步数。若同向held_ticks很高导致短按连发，Decision可在锁定窗口充足、且当前纵向离地尚远时主动用一次noop:100重置横移计时器，代价是推进6tick重力/锁定并消耗一个动作预算；noop不是固定程序，接地或锁定临近时禁用。(3)锁定：仅当最左占用列等于target.leftmost_column、rotation等于目标朝向、且读棋盘确认落点不悬空造洞时hard-drop:100。grounded且位置正确时立即硬降，勿拖延（30tick锁定、横移重置上限15次）。hold每块限一次，仅当当前块无任何不恶化落点时用。绝不向更高列硬降假装目标达成；上方接近生成区时优先消最低可行行。",
+      "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+      "memory_policy": "{\"instructions\": \"结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。\", \"recent_actions\": 4, \"replan_every_actions\": 4}",
+      "observation_policy": "{\"instructions\": \"结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。\", \"section_order\": [\"observation\", \"tetris_features\", \"decision_goal_memory\", \"tetris_control_facts\", \"tetris_landing_projections\"]}",
+      "strategy_notes": "核心修正旧错误映射：300ms=18tick、新方向最多约4次移动尝试，同方向成熟加速期（每3tick一次）续按约6次尝试；1000ms约18次尝试；100ms不保证1格，同向计时器达9/12/15时短按会触发重复移动。所有时长只是尝试次数，墙与锁块限制实际位移（历史I贴墙长按恰达目标列），必须每步读cells校正。历史0分局根因是S/L在目标列两侧用300ms无限往复；对策是接受越过、按新列误差校正，禁止无限往返，也不把越过本身当作锁块理由。目标规划与执行分离：目标只在固定更新点选，keep/clear/target不进游戏按键；一行缺4格配横I只消1行，四消需四行齐备。noop仅在离地远、锁定窗口充足时由Decision主动用于重置横移计时器，并计入重力与动作代价。推演保持一两步：朝向是否相等、列误差正负、该按哪个单键。"
+    },
+    "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+    "candidate_sha256_format": "sha256-canonical-json-compact-utf8",
+    "decision_model": "startlux-decision-27b-autothink",
+    "id": "component-parent-f3053753c2c073f6",
+    "input_mode": "structured+vision",
+    "resolved_context_config": {
+      "control_feedback": true,
+      "decision_goal_memory": true,
+      "goal_instructions": "这是目标选择调用，只从42项目录输出一个ID，不产生任何按键。流程：(1)先复核已有目标：若decision_goal_memory中目标仍属当前块、pose_valid且后果不比其他候选差，输出keep；若目标对应的块已锁定、棋盘已变、目标姿态无效或明显劣于当前最优候选，输出clear或直接换新target，不要盲目保留，也不要无理由每轮追逐不同列。(2)选新目标时，逐个比较tetris_landing_projections中候选的完整后果：lines_cleared与points_delta（原生消行分，一行缺4格配横I只消1行，四消需四行齐备）、holes_delta（净变化，不是新增空洞数；负值可因消行填洞）、max_height、total_height、bumpiness、top_out。invalid或后果为null的候选不可当作零空洞零消行的好结果，直接不选。pose_valid只是几何假设成立，native_reachability始终为not_proven，不要把投影有效说成按键可达；但不因可达性未证明就放弃，可达性由动作层逐步校正。(3)取舍自己判断：优先消行得分；其次避免净增空洞与盖洞（被覆盖的洞无法靠竖直下落填）；控制max_height接近生成区、保持bumpiness低、为后续块（next预览）留平整可放空间；top_out=true的候选绝不选。(4)紧急时优先消最低可行行、压低最高列。不得用位置偏好代替后果比较，不得对已成功的局面承诺改进，不得生成评分公式、权重、路径、宏或fallback。输出恰好一个ID：keep、clear或target:c:r。",
+      "memory_instructions": "结合自己选择的目标、目标年龄与近期动作，检查实际执行结果；目标失效后重新决定。",
+      "observation_instructions": "结合原始观察、结构事实、自己的目标、控制反馈和完整条件落点后果做判断。",
+      "recent_actions": 4,
+      "replan_every_actions": 4,
+      "schema": "tetris-context-v4",
+      "section_order": [
+        "observation",
+        "tetris_features",
+        "decision_goal_memory",
+        "tetris_control_facts",
+        "tetris_landing_projections"
+      ],
+      "structured_facts": true
+    },
+    "runtime_profile": "tetris-components-v1",
+    "think_mode": "never"
+  },
+  "hash_formats": {
+    "sha256-canonical-json-compact-utf8": {
+      "algorithm": "sha256",
+      "allow_nan": false,
+      "encoding": "utf-8",
+      "ensure_ascii": false,
+      "separators": [
+        ",",
+        ":"
+      ],
+      "sort_keys": true,
+      "used_by": "runtime policy_hashes, runner candidates and improvement experience"
+    },
+    "sha256-json-sorted-keys-default-spaced-separators-utf8": {
+      "algorithm": "sha256",
+      "allow_nan": false,
+      "encoding": "utf-8",
+      "ensure_ascii": false,
+      "separators": [
+        ", ",
+        ": "
+      ],
+      "sort_keys": true,
+      "used_by": "original evolution candidate_hash, parent_hash, whitelist and contract hashes"
+    }
+  },
+  "schema": "component-public-harnesses/v2"
+}

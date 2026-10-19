@@ -1,0 +1,4110 @@
+{
+  "limitations": [
+    "Observed native state transitions and Decision receipts only; no optimal-action or causal-effect inference.",
+    "Horizontal reversals are compared only within unchanged piece, board, rotation and target context.",
+    "Strict overshoot requires crossing the chosen target column with the same piece, rotation and board.",
+    "Evaluation and promotion diagnostics are kept separate; neither feeds back into search or experience extraction."
+  ],
+  "phases": {
+    "evaluation": {
+      "arms": {
+        "components": {
+          "actions_when_goal_already_reached": {
+            "hard-drop:100": 180
+          },
+          "any_line_episodes": 8,
+          "any_line_rate": 1,
+          "decision_time_per_native_action_ms": 1470.232815625,
+          "departures_from_goal_column": 0,
+          "episode_ids": [
+            "exp-fa200066b6892185ac7b42ab",
+            "exp-982f3e54ae310efd33b8b834",
+            "exp-f49d7907e6b620b1b2d722df",
+            "exp-b40aa22fe48167b86bd2a434",
+            "exp-f9b741a9bfb16e31c960ebce",
+            "exp-9af9b136068332cf196f7e51",
+            "exp-f0b2bc0ec50cd39b1c8eb770",
+            "exp-b5cd46f7e781229a6cd30982"
+          ],
+          "episodes": 8,
+          "goal_already_reached_before_actions": 180,
+          "goal_calls": 224,
+          "goal_choice_counts": {
+            "keep": 9,
+            "target": 215
+          },
+          "horizontal_actions": 292,
+          "horizontal_reversal_opportunities": 105,
+          "horizontal_reversal_rate": 0.2857142857142857,
+          "latency_ms": {
+            "game_action": {
+              "calls": 640,
+              "mean_ms": 931.015840625,
+              "p50_ms": 921.259,
+              "p95_ms": 995.94085,
+              "total_ms": 595850.138
+            },
+            "goal": {
+              "calls": 224,
+              "mean_ms": 1540.6199285714285,
+              "p50_ms": 1528.6734999999999,
+              "p95_ms": 1618.1774,
+              "total_ms": 345098.864
+            }
+          },
+          "lines": [
+            6,
+            7,
+            8,
+            5,
+            7,
+            5,
+            4,
+            9
+          ],
+          "locked_pieces": 180,
+          "mean_points": 662.5,
+          "native_action_counts": {
+            "hard-drop:100": 180,
+            "left:100": 74,
+            "left:1000": 8,
+            "left:300": 39,
+            "right:100": 142,
+            "right:1000": 25,
+            "right:300": 4,
+            "rotate-cw:100": 168
+          },
+          "points": [
+            600,
+            900,
+            800,
+            500,
+            700,
+            500,
+            400,
+            900
+          ],
+          "same_piece_horizontal_reversals": 30,
+          "selected_target_counts": {
+            "target:0:0": 18,
+            "target:0:1": 14,
+            "target:0:2": 3,
+            "target:0:3": 5,
+            "target:1:0": 7,
+            "target:1:1": 6,
+            "target:1:2": 3,
+            "target:2:0": 10,
+            "target:2:1": 1,
+            "target:2:2": 5,
+            "target:2:3": 1,
+            "target:3:0": 9,
+            "target:3:1": 8,
+            "target:3:2": 3,
+            "target:3:3": 4,
+            "target:4:0": 11,
+            "target:4:1": 3,
+            "target:4:2": 2,
+            "target:4:3": 2,
+            "target:5:0": 8,
+            "target:5:1": 7,
+            "target:5:3": 6,
+            "target:6:0": 7,
+            "target:6:1": 6,
+            "target:6:2": 7,
+            "target:6:3": 6,
+            "target:7:0": 8,
+            "target:7:1": 11,
+            "target:7:2": 2,
+            "target:8:0": 3,
+            "target:8:1": 9,
+            "target:8:3": 16,
+            "target:9:1": 4
+          },
+          "steps": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "steps_per_locked_piece": 3.5555555555555554,
+          "strict_overshoot_opportunities": 292,
+          "strict_overshoot_rate": 0.10273972602739725,
+          "strict_overshoots": 30,
+          "termination_reasons": {
+            "step_limit": 8
+          },
+          "top_out_episodes": 0,
+          "total_lines": 51,
+          "total_steps": 640
+        },
+        "experience": {
+          "actions_when_goal_already_reached": {
+            "hard-drop:100": 180
+          },
+          "any_line_episodes": 8,
+          "any_line_rate": 1,
+          "decision_time_per_native_action_ms": 1458.6820609375,
+          "departures_from_goal_column": 0,
+          "episode_ids": [
+            "exp-fa200066b6892185ac7b42ab",
+            "exp-982f3e54ae310efd33b8b834",
+            "exp-f49d7907e6b620b1b2d722df",
+            "exp-b40aa22fe48167b86bd2a434",
+            "exp-f9b741a9bfb16e31c960ebce",
+            "exp-9af9b136068332cf196f7e51",
+            "exp-f0b2bc0ec50cd39b1c8eb770",
+            "exp-b5cd46f7e781229a6cd30982"
+          ],
+          "episodes": 8,
+          "goal_already_reached_before_actions": 180,
+          "goal_calls": 224,
+          "goal_choice_counts": {
+            "keep": 9,
+            "target": 215
+          },
+          "horizontal_actions": 292,
+          "horizontal_reversal_opportunities": 105,
+          "horizontal_reversal_rate": 0.2857142857142857,
+          "latency_ms": {
+            "game_action": {
+              "calls": 640,
+              "mean_ms": 923.4195078125,
+              "p50_ms": 911.9035,
+              "p95_ms": 993.76315,
+              "total_ms": 590988.485
+            },
+            "goal": {
+              "calls": 224,
+              "mean_ms": 1529.321580357143,
+              "p50_ms": 1518.01,
+              "p95_ms": 1608.28225,
+              "total_ms": 342568.034
+            }
+          },
+          "lines": [
+            6,
+            7,
+            8,
+            5,
+            7,
+            5,
+            4,
+            9
+          ],
+          "locked_pieces": 180,
+          "mean_points": 662.5,
+          "native_action_counts": {
+            "hard-drop:100": 180,
+            "left:100": 74,
+            "left:1000": 8,
+            "left:300": 39,
+            "right:100": 142,
+            "right:1000": 25,
+            "right:300": 4,
+            "rotate-cw:100": 168
+          },
+          "points": [
+            600,
+            900,
+            800,
+            500,
+            700,
+            500,
+            400,
+            900
+          ],
+          "same_piece_horizontal_reversals": 30,
+          "selected_target_counts": {
+            "target:0:0": 18,
+            "target:0:1": 14,
+            "target:0:2": 3,
+            "target:0:3": 5,
+            "target:1:0": 7,
+            "target:1:1": 6,
+            "target:1:2": 3,
+            "target:2:0": 10,
+            "target:2:1": 1,
+            "target:2:2": 5,
+            "target:2:3": 1,
+            "target:3:0": 9,
+            "target:3:1": 8,
+            "target:3:2": 3,
+            "target:3:3": 4,
+            "target:4:0": 11,
+            "target:4:1": 3,
+            "target:4:2": 2,
+            "target:4:3": 2,
+            "target:5:0": 8,
+            "target:5:1": 7,
+            "target:5:3": 6,
+            "target:6:0": 7,
+            "target:6:1": 6,
+            "target:6:2": 7,
+            "target:6:3": 6,
+            "target:7:0": 8,
+            "target:7:1": 11,
+            "target:7:2": 2,
+            "target:8:0": 3,
+            "target:8:1": 9,
+            "target:8:3": 16,
+            "target:9:1": 4
+          },
+          "steps": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "steps_per_locked_piece": 3.5555555555555554,
+          "strict_overshoot_opportunities": 292,
+          "strict_overshoot_rate": 0.10273972602739725,
+          "strict_overshoots": 30,
+          "termination_reasons": {
+            "step_limit": 8
+          },
+          "top_out_episodes": 0,
+          "total_lines": 51,
+          "total_steps": 640
+        },
+        "text": {
+          "actions_when_goal_already_reached": {
+            "hard-drop:100": 180
+          },
+          "any_line_episodes": 8,
+          "any_line_rate": 1,
+          "decision_time_per_native_action_ms": 1474.09739375,
+          "departures_from_goal_column": 0,
+          "episode_ids": [
+            "exp-fa200066b6892185ac7b42ab",
+            "exp-982f3e54ae310efd33b8b834",
+            "exp-f49d7907e6b620b1b2d722df",
+            "exp-b40aa22fe48167b86bd2a434",
+            "exp-f9b741a9bfb16e31c960ebce",
+            "exp-9af9b136068332cf196f7e51",
+            "exp-f0b2bc0ec50cd39b1c8eb770",
+            "exp-b5cd46f7e781229a6cd30982"
+          ],
+          "episodes": 8,
+          "goal_already_reached_before_actions": 180,
+          "goal_calls": 224,
+          "goal_choice_counts": {
+            "keep": 9,
+            "target": 215
+          },
+          "horizontal_actions": 292,
+          "horizontal_reversal_opportunities": 105,
+          "horizontal_reversal_rate": 0.2857142857142857,
+          "latency_ms": {
+            "game_action": {
+              "calls": 640,
+              "mean_ms": 932.7303171875,
+              "p50_ms": 921.221,
+              "p95_ms": 1015.0921,
+              "total_ms": 596947.403
+            },
+            "goal": {
+              "calls": 224,
+              "mean_ms": 1546.7630758928572,
+              "p50_ms": 1527.0169999999998,
+              "p95_ms": 1650.7442999999998,
+              "total_ms": 346474.929
+            }
+          },
+          "lines": [
+            6,
+            7,
+            8,
+            5,
+            7,
+            5,
+            4,
+            9
+          ],
+          "locked_pieces": 180,
+          "mean_points": 662.5,
+          "native_action_counts": {
+            "hard-drop:100": 180,
+            "left:100": 74,
+            "left:1000": 8,
+            "left:300": 39,
+            "right:100": 142,
+            "right:1000": 25,
+            "right:300": 4,
+            "rotate-cw:100": 168
+          },
+          "points": [
+            600,
+            900,
+            800,
+            500,
+            700,
+            500,
+            400,
+            900
+          ],
+          "same_piece_horizontal_reversals": 30,
+          "selected_target_counts": {
+            "target:0:0": 18,
+            "target:0:1": 14,
+            "target:0:2": 3,
+            "target:0:3": 5,
+            "target:1:0": 7,
+            "target:1:1": 6,
+            "target:1:2": 3,
+            "target:2:0": 10,
+            "target:2:1": 1,
+            "target:2:2": 5,
+            "target:2:3": 1,
+            "target:3:0": 9,
+            "target:3:1": 8,
+            "target:3:2": 3,
+            "target:3:3": 4,
+            "target:4:0": 11,
+            "target:4:1": 3,
+            "target:4:2": 2,
+            "target:4:3": 2,
+            "target:5:0": 8,
+            "target:5:1": 7,
+            "target:5:3": 6,
+            "target:6:0": 7,
+            "target:6:1": 6,
+            "target:6:2": 7,
+            "target:6:3": 6,
+            "target:7:0": 8,
+            "target:7:1": 11,
+            "target:7:2": 2,
+            "target:8:0": 3,
+            "target:8:1": 9,
+            "target:8:3": 16,
+            "target:9:1": 4
+          },
+          "steps": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "steps_per_locked_piece": 3.5555555555555554,
+          "strict_overshoot_opportunities": 292,
+          "strict_overshoot_rate": 0.10273972602739725,
+          "strict_overshoots": 30,
+          "termination_reasons": {
+            "step_limit": 8
+          },
+          "top_out_episodes": 0,
+          "total_lines": 51,
+          "total_steps": 640
+        }
+      },
+      "per_episode": [
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 21
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 21,
+            "goal_choice_counts": {
+              "target": 27
+            },
+            "horizontal_actions": 39,
+            "horizontal_reversal_opportunities": 14,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 938.3714125,
+                "p50_ms": 927.634,
+                "p95_ms": 998.5190999999999,
+                "total_ms": 75069.713
+              },
+              "goal": {
+                "calls": 27,
+                "mean_ms": 1540.8265185185185,
+                "p50_ms": 1529.628,
+                "p95_ms": 1603.3154,
+                "total_ms": 41602.316
+              }
+            },
+            "locked_pieces": 21,
+            "native_action_counts": {
+              "hard-drop:100": 21,
+              "left:100": 11,
+              "left:1000": 1,
+              "left:300": 5,
+              "right:100": 18,
+              "right:1000": 4,
+              "rotate-cw:100": 20
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:0:3": 2,
+              "target:1:0": 2,
+              "target:2:0": 1,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:4:0": 2,
+              "target:4:1": 1,
+              "target:5:0": 2,
+              "target:5:3": 2,
+              "target:7:0": 1,
+              "target:7:1": 4,
+              "target:8:1": 1,
+              "target:8:3": 3
+            },
+            "strict_overshoot_opportunities": 39,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-fa200066b6892185ac7b42ab",
+          "goal_calls": 27,
+          "lines": 6,
+          "points": 600,
+          "scenario_id": "evaluation-00",
+          "seed": 809197280,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 21
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 21,
+            "goal_choice_counts": {
+              "target": 27
+            },
+            "horizontal_actions": 39,
+            "horizontal_reversal_opportunities": 14,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 927.662725,
+                "p50_ms": 915.8689999999999,
+                "p95_ms": 1006.3131500000001,
+                "total_ms": 74213.018
+              },
+              "goal": {
+                "calls": 27,
+                "mean_ms": 1529.3940370370372,
+                "p50_ms": 1517.65,
+                "p95_ms": 1562.0737,
+                "total_ms": 41293.639
+              }
+            },
+            "locked_pieces": 21,
+            "native_action_counts": {
+              "hard-drop:100": 21,
+              "left:100": 11,
+              "left:1000": 1,
+              "left:300": 5,
+              "right:100": 18,
+              "right:1000": 4,
+              "rotate-cw:100": 20
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:0:3": 2,
+              "target:1:0": 2,
+              "target:2:0": 1,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:4:0": 2,
+              "target:4:1": 1,
+              "target:5:0": 2,
+              "target:5:3": 2,
+              "target:7:0": 1,
+              "target:7:1": 4,
+              "target:8:1": 1,
+              "target:8:3": 3
+            },
+            "strict_overshoot_opportunities": 39,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-fa200066b6892185ac7b42ab",
+          "goal_calls": 27,
+          "lines": 6,
+          "points": 600,
+          "scenario_id": "evaluation-00",
+          "seed": 809197280,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 21
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 21,
+            "goal_choice_counts": {
+              "target": 27
+            },
+            "horizontal_actions": 39,
+            "horizontal_reversal_opportunities": 14,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 934.448125,
+                "p50_ms": 918.534,
+                "p95_ms": 1019.01805,
+                "total_ms": 74755.85
+              },
+              "goal": {
+                "calls": 27,
+                "mean_ms": 1523.0157037037036,
+                "p50_ms": 1517.49,
+                "p95_ms": 1584.4913999999999,
+                "total_ms": 41121.424
+              }
+            },
+            "locked_pieces": 21,
+            "native_action_counts": {
+              "hard-drop:100": 21,
+              "left:100": 11,
+              "left:1000": 1,
+              "left:300": 5,
+              "right:100": 18,
+              "right:1000": 4,
+              "rotate-cw:100": 20
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:0:3": 2,
+              "target:1:0": 2,
+              "target:2:0": 1,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:4:0": 2,
+              "target:4:1": 1,
+              "target:5:0": 2,
+              "target:5:3": 2,
+              "target:7:0": 1,
+              "target:7:1": 4,
+              "target:8:1": 1,
+              "target:8:3": 3
+            },
+            "strict_overshoot_opportunities": 39,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-fa200066b6892185ac7b42ab",
+          "goal_calls": 27,
+          "lines": 6,
+          "points": 600,
+          "scenario_id": "evaluation-00",
+          "seed": 809197280,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 27
+            },
+            "horizontal_actions": 37,
+            "horizontal_reversal_opportunities": 14,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 913.439075,
+                "p50_ms": 910.5735,
+                "p95_ms": 948.2221,
+                "total_ms": 73075.126
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1512.0632857142857,
+                "p50_ms": 1504.9185,
+                "p95_ms": 1558.47785,
+                "total_ms": 42337.772
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 5,
+              "left:1000": 2,
+              "left:300": 5,
+              "right:100": 23,
+              "right:1000": 2,
+              "rotate-cw:100": 21
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 2,
+              "target:1:1": 3,
+              "target:2:0": 2,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:4:0": 1,
+              "target:4:1": 1,
+              "target:5:0": 2,
+              "target:5:1": 1,
+              "target:6:0": 1,
+              "target:6:3": 4,
+              "target:7:0": 1,
+              "target:8:1": 2,
+              "target:8:3": 3
+            },
+            "strict_overshoot_opportunities": 37,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-982f3e54ae310efd33b8b834",
+          "goal_calls": 28,
+          "lines": 7,
+          "points": 900,
+          "scenario_id": "evaluation-01",
+          "seed": 442779775,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 27
+            },
+            "horizontal_actions": 37,
+            "horizontal_reversal_opportunities": 14,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 944.4235875,
+                "p50_ms": 935.4935,
+                "p95_ms": 1010.8334,
+                "total_ms": 75553.887
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1560.144857142857,
+                "p50_ms": 1542.3029999999999,
+                "p95_ms": 1654.03425,
+                "total_ms": 43684.056
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 5,
+              "left:1000": 2,
+              "left:300": 5,
+              "right:100": 23,
+              "right:1000": 2,
+              "rotate-cw:100": 21
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 2,
+              "target:1:1": 3,
+              "target:2:0": 2,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:4:0": 1,
+              "target:4:1": 1,
+              "target:5:0": 2,
+              "target:5:1": 1,
+              "target:6:0": 1,
+              "target:6:3": 4,
+              "target:7:0": 1,
+              "target:8:1": 2,
+              "target:8:3": 3
+            },
+            "strict_overshoot_opportunities": 37,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-982f3e54ae310efd33b8b834",
+          "goal_calls": 28,
+          "lines": 7,
+          "points": 900,
+          "scenario_id": "evaluation-01",
+          "seed": 442779775,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 27
+            },
+            "horizontal_actions": 37,
+            "horizontal_reversal_opportunities": 14,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 913.98525,
+                "p50_ms": 909.6295,
+                "p95_ms": 949.9488,
+                "total_ms": 73118.82
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1518.3063928571428,
+                "p50_ms": 1503.7945,
+                "p95_ms": 1586.3364,
+                "total_ms": 42512.579
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 5,
+              "left:1000": 2,
+              "left:300": 5,
+              "right:100": 23,
+              "right:1000": 2,
+              "rotate-cw:100": 21
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 2,
+              "target:1:1": 3,
+              "target:2:0": 2,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:4:0": 1,
+              "target:4:1": 1,
+              "target:5:0": 2,
+              "target:5:1": 1,
+              "target:6:0": 1,
+              "target:6:3": 4,
+              "target:7:0": 1,
+              "target:8:1": 2,
+              "target:8:3": 3
+            },
+            "strict_overshoot_opportunities": 37,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-982f3e54ae310efd33b8b834",
+          "goal_calls": 28,
+          "lines": 7,
+          "points": 900,
+          "scenario_id": "evaluation-01",
+          "seed": 442779775,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 27
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 27,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 30
+            },
+            "horizontal_actions": 37,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 961.21605,
+                "p50_ms": 949.6775,
+                "p95_ms": 1095.1199000000001,
+                "total_ms": 76897.284
+              },
+              "goal": {
+                "calls": 31,
+                "mean_ms": 1630.4623225806452,
+                "p50_ms": 1550.429,
+                "p95_ms": 1991.3980000000001,
+                "total_ms": 50544.332
+              }
+            },
+            "locked_pieces": 27,
+            "native_action_counts": {
+              "hard-drop:100": 27,
+              "left:100": 11,
+              "left:1000": 1,
+              "left:300": 5,
+              "right:100": 14,
+              "right:1000": 5,
+              "right:300": 1,
+              "rotate-cw:100": 16
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 3,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:1": 1,
+              "target:2:2": 1,
+              "target:3:0": 2,
+              "target:3:1": 1,
+              "target:3:2": 1,
+              "target:4:0": 3,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:6:2": 2,
+              "target:7:0": 1,
+              "target:7:1": 2,
+              "target:8:0": 1,
+              "target:8:1": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 37,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f49d7907e6b620b1b2d722df",
+          "goal_calls": 31,
+          "lines": 8,
+          "points": 800,
+          "scenario_id": "evaluation-02",
+          "seed": 1814218849,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 27
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 27,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 30
+            },
+            "horizontal_actions": 37,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 939.2137125,
+                "p50_ms": 912.861,
+                "p95_ms": 1166.8547999999998,
+                "total_ms": 75137.097
+              },
+              "goal": {
+                "calls": 31,
+                "mean_ms": 1562.0776451612903,
+                "p50_ms": 1514.707,
+                "p95_ms": 1751.7915,
+                "total_ms": 48424.407
+              }
+            },
+            "locked_pieces": 27,
+            "native_action_counts": {
+              "hard-drop:100": 27,
+              "left:100": 11,
+              "left:1000": 1,
+              "left:300": 5,
+              "right:100": 14,
+              "right:1000": 5,
+              "right:300": 1,
+              "rotate-cw:100": 16
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 3,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:1": 1,
+              "target:2:2": 1,
+              "target:3:0": 2,
+              "target:3:1": 1,
+              "target:3:2": 1,
+              "target:4:0": 3,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:6:2": 2,
+              "target:7:0": 1,
+              "target:7:1": 2,
+              "target:8:0": 1,
+              "target:8:1": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 37,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f49d7907e6b620b1b2d722df",
+          "goal_calls": 31,
+          "lines": 8,
+          "points": 800,
+          "scenario_id": "evaluation-02",
+          "seed": 1814218849,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 27
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 27,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 30
+            },
+            "horizontal_actions": 37,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 933.0895,
+                "p50_ms": 919.383,
+                "p95_ms": 993.60745,
+                "total_ms": 74647.16
+              },
+              "goal": {
+                "calls": 31,
+                "mean_ms": 1567.8590967741936,
+                "p50_ms": 1524.639,
+                "p95_ms": 1620.9365,
+                "total_ms": 48603.632
+              }
+            },
+            "locked_pieces": 27,
+            "native_action_counts": {
+              "hard-drop:100": 27,
+              "left:100": 11,
+              "left:1000": 1,
+              "left:300": 5,
+              "right:100": 14,
+              "right:1000": 5,
+              "right:300": 1,
+              "rotate-cw:100": 16
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 3,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:1": 1,
+              "target:2:2": 1,
+              "target:3:0": 2,
+              "target:3:1": 1,
+              "target:3:2": 1,
+              "target:4:0": 3,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:6:2": 2,
+              "target:7:0": 1,
+              "target:7:1": 2,
+              "target:8:0": 1,
+              "target:8:1": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 37,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f49d7907e6b620b1b2d722df",
+          "goal_calls": 31,
+          "lines": 8,
+          "points": 800,
+          "scenario_id": "evaluation-02",
+          "seed": 1814218849,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 20
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 20,
+            "goal_choice_counts": {
+              "target": 26
+            },
+            "horizontal_actions": 35,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 960.2892625,
+                "p50_ms": 934.069,
+                "p95_ms": 1067.0186499999998,
+                "total_ms": 76823.141
+              },
+              "goal": {
+                "calls": 26,
+                "mean_ms": 1564.8796538461538,
+                "p50_ms": 1538.8415,
+                "p95_ms": 1695.3735,
+                "total_ms": 40686.871
+              }
+            },
+            "locked_pieces": 20,
+            "native_action_counts": {
+              "hard-drop:100": 20,
+              "left:100": 6,
+              "left:300": 6,
+              "right:100": 21,
+              "right:1000": 2,
+              "rotate-cw:100": 25
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 2,
+              "target:0:3": 2,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 2,
+              "target:3:2": 1,
+              "target:4:1": 1,
+              "target:4:2": 1,
+              "target:5:0": 1,
+              "target:5:1": 1,
+              "target:5:3": 2,
+              "target:7:0": 1,
+              "target:7:1": 2,
+              "target:7:2": 1,
+              "target:8:3": 4
+            },
+            "strict_overshoot_opportunities": 35,
+            "strict_overshoots": 3
+          },
+          "episode_id": "exp-b40aa22fe48167b86bd2a434",
+          "goal_calls": 26,
+          "lines": 5,
+          "points": 500,
+          "scenario_id": "evaluation-03",
+          "seed": 372180048,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 20
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 20,
+            "goal_choice_counts": {
+              "target": 26
+            },
+            "horizontal_actions": 35,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 923.238125,
+                "p50_ms": 919.622,
+                "p95_ms": 970.7773,
+                "total_ms": 73859.05
+              },
+              "goal": {
+                "calls": 26,
+                "mean_ms": 1523.4566923076923,
+                "p50_ms": 1514.6970000000001,
+                "p95_ms": 1577.14275,
+                "total_ms": 39609.873999999996
+              }
+            },
+            "locked_pieces": 20,
+            "native_action_counts": {
+              "hard-drop:100": 20,
+              "left:100": 6,
+              "left:300": 6,
+              "right:100": 21,
+              "right:1000": 2,
+              "rotate-cw:100": 25
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 2,
+              "target:0:3": 2,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 2,
+              "target:3:2": 1,
+              "target:4:1": 1,
+              "target:4:2": 1,
+              "target:5:0": 1,
+              "target:5:1": 1,
+              "target:5:3": 2,
+              "target:7:0": 1,
+              "target:7:1": 2,
+              "target:7:2": 1,
+              "target:8:3": 4
+            },
+            "strict_overshoot_opportunities": 35,
+            "strict_overshoots": 3
+          },
+          "episode_id": "exp-b40aa22fe48167b86bd2a434",
+          "goal_calls": 26,
+          "lines": 5,
+          "points": 500,
+          "scenario_id": "evaluation-03",
+          "seed": 372180048,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 20
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 20,
+            "goal_choice_counts": {
+              "target": 26
+            },
+            "horizontal_actions": 35,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 972.5650375,
+                "p50_ms": 948.5989999999999,
+                "p95_ms": 1097.23715,
+                "total_ms": 77805.203
+              },
+              "goal": {
+                "calls": 26,
+                "mean_ms": 1586.2241538461537,
+                "p50_ms": 1570.6375,
+                "p95_ms": 1681.825,
+                "total_ms": 41241.828
+              }
+            },
+            "locked_pieces": 20,
+            "native_action_counts": {
+              "hard-drop:100": 20,
+              "left:100": 6,
+              "left:300": 6,
+              "right:100": 21,
+              "right:1000": 2,
+              "rotate-cw:100": 25
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 2,
+              "target:0:3": 2,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 2,
+              "target:3:2": 1,
+              "target:4:1": 1,
+              "target:4:2": 1,
+              "target:5:0": 1,
+              "target:5:1": 1,
+              "target:5:3": 2,
+              "target:7:0": 1,
+              "target:7:1": 2,
+              "target:7:2": 1,
+              "target:8:3": 4
+            },
+            "strict_overshoot_opportunities": 35,
+            "strict_overshoots": 3
+          },
+          "episode_id": "exp-b40aa22fe48167b86bd2a434",
+          "goal_calls": 26,
+          "lines": 5,
+          "points": 500,
+          "scenario_id": "evaluation-03",
+          "seed": 372180048,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "keep": 4,
+              "target": 24
+            },
+            "horizontal_actions": 38,
+            "horizontal_reversal_opportunities": 17,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 935.87205,
+                "p50_ms": 927.3965000000001,
+                "p95_ms": 1003.03815,
+                "total_ms": 74869.764
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1536.0417142857143,
+                "p50_ms": 1526.1965,
+                "p95_ms": 1650.46725,
+                "total_ms": 43009.168
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 11,
+              "left:1000": 2,
+              "left:300": 4,
+              "right:100": 17,
+              "right:1000": 3,
+              "right:300": 1,
+              "rotate-cw:100": 20
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:0:3": 1,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:2": 1,
+              "target:4:0": 3,
+              "target:5:0": 1,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:6:2": 3,
+              "target:8:1": 1,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 38,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f9b741a9bfb16e31c960ebce",
+          "goal_calls": 28,
+          "lines": 7,
+          "points": 700,
+          "scenario_id": "evaluation-04",
+          "seed": 478282544,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "keep": 4,
+              "target": 24
+            },
+            "horizontal_actions": 38,
+            "horizontal_reversal_opportunities": 17,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 925.7269125,
+                "p50_ms": 922.5195,
+                "p95_ms": 958.0015000000001,
+                "total_ms": 74058.153
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1535.1207142857143,
+                "p50_ms": 1529.3739999999998,
+                "p95_ms": 1584.8179499999999,
+                "total_ms": 42983.38
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 11,
+              "left:1000": 2,
+              "left:300": 4,
+              "right:100": 17,
+              "right:1000": 3,
+              "right:300": 1,
+              "rotate-cw:100": 20
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:0:3": 1,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:2": 1,
+              "target:4:0": 3,
+              "target:5:0": 1,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:6:2": 3,
+              "target:8:1": 1,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 38,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f9b741a9bfb16e31c960ebce",
+          "goal_calls": 28,
+          "lines": 7,
+          "points": 700,
+          "scenario_id": "evaluation-04",
+          "seed": 478282544,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "keep": 4,
+              "target": 24
+            },
+            "horizontal_actions": 38,
+            "horizontal_reversal_opportunities": 17,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 904.3200375,
+                "p50_ms": 902.74,
+                "p95_ms": 928.60245,
+                "total_ms": 72345.603
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1502.2735714285714,
+                "p50_ms": 1495.871,
+                "p95_ms": 1527.09295,
+                "total_ms": 42063.659999999996
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 11,
+              "left:1000": 2,
+              "left:300": 4,
+              "right:100": 17,
+              "right:1000": 3,
+              "right:300": 1,
+              "rotate-cw:100": 20
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:0:3": 1,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:2": 1,
+              "target:4:0": 3,
+              "target:5:0": 1,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:6:2": 3,
+              "target:8:1": 1,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 38,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f9b741a9bfb16e31c960ebce",
+          "goal_calls": 28,
+          "lines": 7,
+          "points": 700,
+          "scenario_id": "evaluation-04",
+          "seed": 478282544,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 21
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 21,
+            "goal_choice_counts": {
+              "keep": 2,
+              "target": 26
+            },
+            "horizontal_actions": 36,
+            "horizontal_reversal_opportunities": 11,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 919.3639125,
+                "p50_ms": 918.025,
+                "p95_ms": 940.9245,
+                "total_ms": 73549.113
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1539.7383571428572,
+                "p50_ms": 1538.2435,
+                "p95_ms": 1601.0285,
+                "total_ms": 43112.674
+              }
+            },
+            "locked_pieces": 21,
+            "native_action_counts": {
+              "hard-drop:100": 21,
+              "left:100": 12,
+              "left:1000": 1,
+              "left:300": 4,
+              "right:100": 16,
+              "right:1000": 3,
+              "rotate-cw:100": 23
+            },
+            "same_piece_horizontal_reversals": 2,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:0:2": 2,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:3": 1,
+              "target:3:1": 1,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:4:3": 2,
+              "target:5:0": 1,
+              "target:5:1": 1,
+              "target:6:1": 2,
+              "target:7:1": 3,
+              "target:8:0": 2,
+              "target:8:3": 2
+            },
+            "strict_overshoot_opportunities": 36,
+            "strict_overshoots": 2
+          },
+          "episode_id": "exp-9af9b136068332cf196f7e51",
+          "goal_calls": 28,
+          "lines": 5,
+          "points": 500,
+          "scenario_id": "evaluation-05",
+          "seed": 222114932,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 21
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 21,
+            "goal_choice_counts": {
+              "keep": 2,
+              "target": 26
+            },
+            "horizontal_actions": 36,
+            "horizontal_reversal_opportunities": 11,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 918.609925,
+                "p50_ms": 909.269,
+                "p95_ms": 974.71165,
+                "total_ms": 73488.794
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1520.2887857142857,
+                "p50_ms": 1521.3155000000002,
+                "p95_ms": 1563.96515,
+                "total_ms": 42568.085999999996
+              }
+            },
+            "locked_pieces": 21,
+            "native_action_counts": {
+              "hard-drop:100": 21,
+              "left:100": 12,
+              "left:1000": 1,
+              "left:300": 4,
+              "right:100": 16,
+              "right:1000": 3,
+              "rotate-cw:100": 23
+            },
+            "same_piece_horizontal_reversals": 2,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:0:2": 2,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:3": 1,
+              "target:3:1": 1,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:4:3": 2,
+              "target:5:0": 1,
+              "target:5:1": 1,
+              "target:6:1": 2,
+              "target:7:1": 3,
+              "target:8:0": 2,
+              "target:8:3": 2
+            },
+            "strict_overshoot_opportunities": 36,
+            "strict_overshoots": 2
+          },
+          "episode_id": "exp-9af9b136068332cf196f7e51",
+          "goal_calls": 28,
+          "lines": 5,
+          "points": 500,
+          "scenario_id": "evaluation-05",
+          "seed": 222114932,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 21
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 21,
+            "goal_choice_counts": {
+              "keep": 2,
+              "target": 26
+            },
+            "horizontal_actions": 36,
+            "horizontal_reversal_opportunities": 11,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 902.624025,
+                "p50_ms": 899.5885000000001,
+                "p95_ms": 920.6534,
+                "total_ms": 72209.922
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1501.8696785714285,
+                "p50_ms": 1499.8584999999998,
+                "p95_ms": 1521.9627,
+                "total_ms": 42052.351
+              }
+            },
+            "locked_pieces": 21,
+            "native_action_counts": {
+              "hard-drop:100": 21,
+              "left:100": 12,
+              "left:1000": 1,
+              "left:300": 4,
+              "right:100": 16,
+              "right:1000": 3,
+              "rotate-cw:100": 23
+            },
+            "same_piece_horizontal_reversals": 2,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:0:2": 2,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:3": 1,
+              "target:3:1": 1,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:4:3": 2,
+              "target:5:0": 1,
+              "target:5:1": 1,
+              "target:6:1": 2,
+              "target:7:1": 3,
+              "target:8:0": 2,
+              "target:8:3": 2
+            },
+            "strict_overshoot_opportunities": 36,
+            "strict_overshoots": 2
+          },
+          "episode_id": "exp-9af9b136068332cf196f7e51",
+          "goal_calls": 28,
+          "lines": 5,
+          "points": 500,
+          "scenario_id": "evaluation-05",
+          "seed": 222114932,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "target": 28
+            },
+            "horizontal_actions": 36,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 924.130475,
+                "p50_ms": 922.2145,
+                "p95_ms": 951.8562,
+                "total_ms": 73930.438
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1532.8704642857142,
+                "p50_ms": 1537.35,
+                "p95_ms": 1548.9853,
+                "total_ms": 42920.373
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 6,
+              "left:300": 6,
+              "right:100": 22,
+              "right:1000": 1,
+              "right:300": 1,
+              "rotate-cw:100": 22
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:1:2": 2,
+              "target:2:0": 1,
+              "target:3:0": 2,
+              "target:3:1": 2,
+              "target:4:2": 1,
+              "target:5:1": 2,
+              "target:5:3": 2,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:6:3": 2,
+              "target:7:0": 1,
+              "target:8:1": 2,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 36,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f0b2bc0ec50cd39b1c8eb770",
+          "goal_calls": 28,
+          "lines": 4,
+          "points": 400,
+          "scenario_id": "evaluation-06",
+          "seed": 1957566968,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "target": 28
+            },
+            "horizontal_actions": 36,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 922.8659125,
+                "p50_ms": 920.6855,
+                "p95_ms": 957.9448,
+                "total_ms": 73829.273
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1530.7495357142857,
+                "p50_ms": 1524.0715,
+                "p95_ms": 1581.6149,
+                "total_ms": 42860.987
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 6,
+              "left:300": 6,
+              "right:100": 22,
+              "right:1000": 1,
+              "right:300": 1,
+              "rotate-cw:100": 22
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:1:2": 2,
+              "target:2:0": 1,
+              "target:3:0": 2,
+              "target:3:1": 2,
+              "target:4:2": 1,
+              "target:5:1": 2,
+              "target:5:3": 2,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:6:3": 2,
+              "target:7:0": 1,
+              "target:8:1": 2,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 36,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f0b2bc0ec50cd39b1c8eb770",
+          "goal_calls": 28,
+          "lines": 4,
+          "points": 400,
+          "scenario_id": "evaluation-06",
+          "seed": 1957566968,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 22
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 22,
+            "goal_choice_counts": {
+              "target": 28
+            },
+            "horizontal_actions": 36,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 915.4552625,
+                "p50_ms": 911.7715000000001,
+                "p95_ms": 966.9543,
+                "total_ms": 73236.421
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1521.3792857142857,
+                "p50_ms": 1520.388,
+                "p95_ms": 1572.60925,
+                "total_ms": 42598.62
+              }
+            },
+            "locked_pieces": 22,
+            "native_action_counts": {
+              "hard-drop:100": 22,
+              "left:100": 6,
+              "left:300": 6,
+              "right:100": 22,
+              "right:1000": 1,
+              "right:300": 1,
+              "rotate-cw:100": 22
+            },
+            "same_piece_horizontal_reversals": 5,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:1:0": 1,
+              "target:1:1": 1,
+              "target:1:2": 2,
+              "target:2:0": 1,
+              "target:3:0": 2,
+              "target:3:1": 2,
+              "target:4:2": 1,
+              "target:5:1": 2,
+              "target:5:3": 2,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:6:3": 2,
+              "target:7:0": 1,
+              "target:8:1": 2,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 36,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-f0b2bc0ec50cd39b1c8eb770",
+          "goal_calls": 28,
+          "lines": 4,
+          "points": 400,
+          "scenario_id": "evaluation-06",
+          "seed": 1957566968,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 25
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 25,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 27
+            },
+            "horizontal_actions": 34,
+            "horizontal_reversal_opportunities": 10,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 909.1603,
+                "p50_ms": 904.1625,
+                "p95_ms": 953.28485,
+                "total_ms": 72732.824
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1509.3365357142857,
+                "p50_ms": 1503.1219999999998,
+                "p95_ms": 1568.6161,
+                "total_ms": 42261.423
+              }
+            },
+            "locked_pieces": 25,
+            "native_action_counts": {
+              "hard-drop:100": 25,
+              "left:100": 12,
+              "left:1000": 1,
+              "left:300": 4,
+              "right:100": 11,
+              "right:1000": 5,
+              "right:300": 1,
+              "rotate-cw:100": 21
+            },
+            "same_piece_horizontal_reversals": 2,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 1,
+              "target:0:2": 1,
+              "target:1:0": 2,
+              "target:1:2": 1,
+              "target:2:2": 1,
+              "target:3:1": 2,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:5:0": 1,
+              "target:5:1": 2,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:6:2": 2,
+              "target:7:0": 3,
+              "target:7:2": 1,
+              "target:8:1": 1,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 34,
+            "strict_overshoots": 2
+          },
+          "episode_id": "exp-b5cd46f7e781229a6cd30982",
+          "goal_calls": 28,
+          "lines": 9,
+          "points": 900,
+          "scenario_id": "evaluation-07",
+          "seed": 208770015,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 25
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 25,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 27
+            },
+            "horizontal_actions": 34,
+            "horizontal_reversal_opportunities": 10,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 946.385825,
+                "p50_ms": 934.7555,
+                "p95_ms": 1033.4106,
+                "total_ms": 75710.866
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1559.80125,
+                "p50_ms": 1550.6525000000001,
+                "p95_ms": 1608.39385,
+                "total_ms": 43674.435
+              }
+            },
+            "locked_pieces": 25,
+            "native_action_counts": {
+              "hard-drop:100": 25,
+              "left:100": 12,
+              "left:1000": 1,
+              "left:300": 4,
+              "right:100": 11,
+              "right:1000": 5,
+              "right:300": 1,
+              "rotate-cw:100": 21
+            },
+            "same_piece_horizontal_reversals": 2,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 1,
+              "target:0:2": 1,
+              "target:1:0": 2,
+              "target:1:2": 1,
+              "target:2:2": 1,
+              "target:3:1": 2,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:5:0": 1,
+              "target:5:1": 2,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:6:2": 2,
+              "target:7:0": 3,
+              "target:7:2": 1,
+              "target:8:1": 1,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 34,
+            "strict_overshoots": 2
+          },
+          "episode_id": "exp-b5cd46f7e781229a6cd30982",
+          "goal_calls": 28,
+          "lines": 9,
+          "points": 900,
+          "scenario_id": "evaluation-07",
+          "seed": 208770015,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 25
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 25,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 27
+            },
+            "horizontal_actions": 34,
+            "horizontal_reversal_opportunities": 10,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 910.868825,
+                "p50_ms": 905.255,
+                "p95_ms": 980.6714000000001,
+                "total_ms": 72869.506
+              },
+              "goal": {
+                "calls": 28,
+                "mean_ms": 1513.355,
+                "p50_ms": 1505.864,
+                "p95_ms": 1600.92955,
+                "total_ms": 42373.94
+              }
+            },
+            "locked_pieces": 25,
+            "native_action_counts": {
+              "hard-drop:100": 25,
+              "left:100": 12,
+              "left:1000": 1,
+              "left:300": 4,
+              "right:100": 11,
+              "right:1000": 5,
+              "right:300": 1,
+              "rotate-cw:100": 21
+            },
+            "same_piece_horizontal_reversals": 2,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 1,
+              "target:0:2": 1,
+              "target:1:0": 2,
+              "target:1:2": 1,
+              "target:2:2": 1,
+              "target:3:1": 2,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:5:0": 1,
+              "target:5:1": 2,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:6:2": 2,
+              "target:7:0": 3,
+              "target:7:2": 1,
+              "target:8:1": 1,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 34,
+            "strict_overshoots": 2
+          },
+          "episode_id": "exp-b5cd46f7e781229a6cd30982",
+          "goal_calls": 28,
+          "lines": 9,
+          "points": 900,
+          "scenario_id": "evaluation-07",
+          "seed": 208770015,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        }
+      ],
+      "stepwise_comparison_notes": {
+        "episode_identity": "Paired arms share episode_id by design; the distinct stage and artifact path bind each real run.",
+        "excluded": "Network request IDs, response metadata, latency and wall-clock timing.",
+        "hash_format": "sha256-canonical-json-compact-utf8",
+        "interpretation": "Equality describes the selected policies on these paired seeds; it does not establish equal search power or efficacy of rejected proposals.",
+        "source": "Recomputed from each actual completed episode and Decision context ledger during publication."
+      },
+      "stepwise_comparisons": [
+        {
+          "equal_all_arms": {
+            "action_memory": true,
+            "applied_actions": true,
+            "candidate": true,
+            "decision_choices": true,
+            "decision_inputs": true,
+            "goal_decisions": true,
+            "native_actions": true,
+            "state_transitions": true
+          },
+          "scenario_id": "evaluation-00",
+          "seed": 809197280,
+          "signatures": {
+            "components": {
+              "action_memory": "5ff24694e6fc0d3afb8290f1ba9d3fbdb7d6935313b5c4cc5ba2102ed3ae01b0",
+              "applied_actions": "843f7f679c14ddc67913d45dadb7c7942035e4b068c0f30d405f78162af9e674",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "8b1c23cf45464968bb6c888aa04a3a68680d67d9981a0305b8523f2349cbe4e1",
+              "decision_inputs": "ff561154e7a76f0c40c73b06d3261559c5eac4e9fab68d2b9080af3e9e54804b",
+              "goal_decisions": "f568571ce2d1a34b4a39dd6e3efe28d515f3049a296397b0663e7c1a52d5cc78",
+              "native_actions": "843f7f679c14ddc67913d45dadb7c7942035e4b068c0f30d405f78162af9e674",
+              "state_transitions": "4a8f9a9ac47981378ffc5ddc1f8caea61d907cca51dd767061843740ee21bf1a"
+            },
+            "experience": {
+              "action_memory": "5ff24694e6fc0d3afb8290f1ba9d3fbdb7d6935313b5c4cc5ba2102ed3ae01b0",
+              "applied_actions": "843f7f679c14ddc67913d45dadb7c7942035e4b068c0f30d405f78162af9e674",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "8b1c23cf45464968bb6c888aa04a3a68680d67d9981a0305b8523f2349cbe4e1",
+              "decision_inputs": "ff561154e7a76f0c40c73b06d3261559c5eac4e9fab68d2b9080af3e9e54804b",
+              "goal_decisions": "f568571ce2d1a34b4a39dd6e3efe28d515f3049a296397b0663e7c1a52d5cc78",
+              "native_actions": "843f7f679c14ddc67913d45dadb7c7942035e4b068c0f30d405f78162af9e674",
+              "state_transitions": "4a8f9a9ac47981378ffc5ddc1f8caea61d907cca51dd767061843740ee21bf1a"
+            },
+            "text": {
+              "action_memory": "5ff24694e6fc0d3afb8290f1ba9d3fbdb7d6935313b5c4cc5ba2102ed3ae01b0",
+              "applied_actions": "843f7f679c14ddc67913d45dadb7c7942035e4b068c0f30d405f78162af9e674",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "8b1c23cf45464968bb6c888aa04a3a68680d67d9981a0305b8523f2349cbe4e1",
+              "decision_inputs": "ff561154e7a76f0c40c73b06d3261559c5eac4e9fab68d2b9080af3e9e54804b",
+              "goal_decisions": "f568571ce2d1a34b4a39dd6e3efe28d515f3049a296397b0663e7c1a52d5cc78",
+              "native_actions": "843f7f679c14ddc67913d45dadb7c7942035e4b068c0f30d405f78162af9e674",
+              "state_transitions": "4a8f9a9ac47981378ffc5ddc1f8caea61d907cca51dd767061843740ee21bf1a"
+            }
+          }
+        },
+        {
+          "equal_all_arms": {
+            "action_memory": true,
+            "applied_actions": true,
+            "candidate": true,
+            "decision_choices": true,
+            "decision_inputs": true,
+            "goal_decisions": true,
+            "native_actions": true,
+            "state_transitions": true
+          },
+          "scenario_id": "evaluation-01",
+          "seed": 442779775,
+          "signatures": {
+            "components": {
+              "action_memory": "aa509938b525ed0721bbdccdc706af00f0b5e245af2ea620e9ceaca246259fa1",
+              "applied_actions": "cd076022b3d42b64bafbc5569051f82b33c25417176b6f0e72613fd9268ef9df",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "a87d4f0bf1e992200d471e383d5b7f83792e72f63c17f9577773ba8da23a76da",
+              "decision_inputs": "689d3325505266069fb65c46d407beb6637cad4df846494ca661971d24d40195",
+              "goal_decisions": "fddd2d7b994e0ad37f5db68f11eb47751f924ccd684dc94798645817191e6e77",
+              "native_actions": "cd076022b3d42b64bafbc5569051f82b33c25417176b6f0e72613fd9268ef9df",
+              "state_transitions": "ef5d3ef59fc31170f49a35c2ad1ab700b6e4ac42352336f845e3d50c671c9839"
+            },
+            "experience": {
+              "action_memory": "aa509938b525ed0721bbdccdc706af00f0b5e245af2ea620e9ceaca246259fa1",
+              "applied_actions": "cd076022b3d42b64bafbc5569051f82b33c25417176b6f0e72613fd9268ef9df",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "a87d4f0bf1e992200d471e383d5b7f83792e72f63c17f9577773ba8da23a76da",
+              "decision_inputs": "689d3325505266069fb65c46d407beb6637cad4df846494ca661971d24d40195",
+              "goal_decisions": "fddd2d7b994e0ad37f5db68f11eb47751f924ccd684dc94798645817191e6e77",
+              "native_actions": "cd076022b3d42b64bafbc5569051f82b33c25417176b6f0e72613fd9268ef9df",
+              "state_transitions": "ef5d3ef59fc31170f49a35c2ad1ab700b6e4ac42352336f845e3d50c671c9839"
+            },
+            "text": {
+              "action_memory": "aa509938b525ed0721bbdccdc706af00f0b5e245af2ea620e9ceaca246259fa1",
+              "applied_actions": "cd076022b3d42b64bafbc5569051f82b33c25417176b6f0e72613fd9268ef9df",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "a87d4f0bf1e992200d471e383d5b7f83792e72f63c17f9577773ba8da23a76da",
+              "decision_inputs": "689d3325505266069fb65c46d407beb6637cad4df846494ca661971d24d40195",
+              "goal_decisions": "fddd2d7b994e0ad37f5db68f11eb47751f924ccd684dc94798645817191e6e77",
+              "native_actions": "cd076022b3d42b64bafbc5569051f82b33c25417176b6f0e72613fd9268ef9df",
+              "state_transitions": "ef5d3ef59fc31170f49a35c2ad1ab700b6e4ac42352336f845e3d50c671c9839"
+            }
+          }
+        },
+        {
+          "equal_all_arms": {
+            "action_memory": true,
+            "applied_actions": true,
+            "candidate": true,
+            "decision_choices": true,
+            "decision_inputs": true,
+            "goal_decisions": true,
+            "native_actions": true,
+            "state_transitions": true
+          },
+          "scenario_id": "evaluation-02",
+          "seed": 1814218849,
+          "signatures": {
+            "components": {
+              "action_memory": "dcaec4875ceec3ec370228b250ce41f7eb8cbd9a78cafec6cff9479e334ad7f0",
+              "applied_actions": "878d83dda286aa0b2c711874a694a70ed0f550adc65cd9d5a779e31e3862f161",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "1dea77b8f559d01450b7cb87abd2b4e42423c1e550063943ef7c02d6e63cf3fb",
+              "decision_inputs": "11b830ebbdac18f26693f4760fc4f9a1191b098d3761301585c3768534e8f4c4",
+              "goal_decisions": "f6466fe61e7e3cf71ba7a77a0b48a8b12c8bad523ca42bdb252ba828261ced93",
+              "native_actions": "878d83dda286aa0b2c711874a694a70ed0f550adc65cd9d5a779e31e3862f161",
+              "state_transitions": "196e71a7b85fa604d27deac41091919ec432648d1f3ce20574f36b32a13ba3c0"
+            },
+            "experience": {
+              "action_memory": "dcaec4875ceec3ec370228b250ce41f7eb8cbd9a78cafec6cff9479e334ad7f0",
+              "applied_actions": "878d83dda286aa0b2c711874a694a70ed0f550adc65cd9d5a779e31e3862f161",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "1dea77b8f559d01450b7cb87abd2b4e42423c1e550063943ef7c02d6e63cf3fb",
+              "decision_inputs": "11b830ebbdac18f26693f4760fc4f9a1191b098d3761301585c3768534e8f4c4",
+              "goal_decisions": "f6466fe61e7e3cf71ba7a77a0b48a8b12c8bad523ca42bdb252ba828261ced93",
+              "native_actions": "878d83dda286aa0b2c711874a694a70ed0f550adc65cd9d5a779e31e3862f161",
+              "state_transitions": "196e71a7b85fa604d27deac41091919ec432648d1f3ce20574f36b32a13ba3c0"
+            },
+            "text": {
+              "action_memory": "dcaec4875ceec3ec370228b250ce41f7eb8cbd9a78cafec6cff9479e334ad7f0",
+              "applied_actions": "878d83dda286aa0b2c711874a694a70ed0f550adc65cd9d5a779e31e3862f161",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "1dea77b8f559d01450b7cb87abd2b4e42423c1e550063943ef7c02d6e63cf3fb",
+              "decision_inputs": "11b830ebbdac18f26693f4760fc4f9a1191b098d3761301585c3768534e8f4c4",
+              "goal_decisions": "f6466fe61e7e3cf71ba7a77a0b48a8b12c8bad523ca42bdb252ba828261ced93",
+              "native_actions": "878d83dda286aa0b2c711874a694a70ed0f550adc65cd9d5a779e31e3862f161",
+              "state_transitions": "196e71a7b85fa604d27deac41091919ec432648d1f3ce20574f36b32a13ba3c0"
+            }
+          }
+        },
+        {
+          "equal_all_arms": {
+            "action_memory": true,
+            "applied_actions": true,
+            "candidate": true,
+            "decision_choices": true,
+            "decision_inputs": true,
+            "goal_decisions": true,
+            "native_actions": true,
+            "state_transitions": true
+          },
+          "scenario_id": "evaluation-03",
+          "seed": 372180048,
+          "signatures": {
+            "components": {
+              "action_memory": "7774036d3160c1b22ea5f11613b32bcfbacc302e4188da7cc09f4c83fb18b76b",
+              "applied_actions": "fda957d3a0c1e708d160dede1fe98af7d9ae62ee870314762dbf48cb9972efaa",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "7347670917343bf5bedcc1e9ff05a073b7d2741abbf0326553d94d5ad9f696e7",
+              "decision_inputs": "08419dace67b857a41c4f9a0163b8d86ab9da12eed69dd45c51f6cd65d30781b",
+              "goal_decisions": "0d4399d56884faa97d1bb159cb0c45dd777c011acff5f8b20fc8eeb53f8232fe",
+              "native_actions": "fda957d3a0c1e708d160dede1fe98af7d9ae62ee870314762dbf48cb9972efaa",
+              "state_transitions": "7f792ac61042d7eed89b7a6b04e87acc3e2853e2f285d20ca4285812be03b596"
+            },
+            "experience": {
+              "action_memory": "7774036d3160c1b22ea5f11613b32bcfbacc302e4188da7cc09f4c83fb18b76b",
+              "applied_actions": "fda957d3a0c1e708d160dede1fe98af7d9ae62ee870314762dbf48cb9972efaa",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "7347670917343bf5bedcc1e9ff05a073b7d2741abbf0326553d94d5ad9f696e7",
+              "decision_inputs": "08419dace67b857a41c4f9a0163b8d86ab9da12eed69dd45c51f6cd65d30781b",
+              "goal_decisions": "0d4399d56884faa97d1bb159cb0c45dd777c011acff5f8b20fc8eeb53f8232fe",
+              "native_actions": "fda957d3a0c1e708d160dede1fe98af7d9ae62ee870314762dbf48cb9972efaa",
+              "state_transitions": "7f792ac61042d7eed89b7a6b04e87acc3e2853e2f285d20ca4285812be03b596"
+            },
+            "text": {
+              "action_memory": "7774036d3160c1b22ea5f11613b32bcfbacc302e4188da7cc09f4c83fb18b76b",
+              "applied_actions": "fda957d3a0c1e708d160dede1fe98af7d9ae62ee870314762dbf48cb9972efaa",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "7347670917343bf5bedcc1e9ff05a073b7d2741abbf0326553d94d5ad9f696e7",
+              "decision_inputs": "08419dace67b857a41c4f9a0163b8d86ab9da12eed69dd45c51f6cd65d30781b",
+              "goal_decisions": "0d4399d56884faa97d1bb159cb0c45dd777c011acff5f8b20fc8eeb53f8232fe",
+              "native_actions": "fda957d3a0c1e708d160dede1fe98af7d9ae62ee870314762dbf48cb9972efaa",
+              "state_transitions": "7f792ac61042d7eed89b7a6b04e87acc3e2853e2f285d20ca4285812be03b596"
+            }
+          }
+        },
+        {
+          "equal_all_arms": {
+            "action_memory": true,
+            "applied_actions": true,
+            "candidate": true,
+            "decision_choices": true,
+            "decision_inputs": true,
+            "goal_decisions": true,
+            "native_actions": true,
+            "state_transitions": true
+          },
+          "scenario_id": "evaluation-04",
+          "seed": 478282544,
+          "signatures": {
+            "components": {
+              "action_memory": "4d33ee4d0902c2b6d26e7836f4e594c6c4d0ef576afe54b43bbac102f041e675",
+              "applied_actions": "b5b9d3f541dfe6b3e691fb4e6047d807c8ec4b58f89d498da3d708fb030482fb",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "d9fdde8bce329ace12090bcff82dca4a51df886a7c0e6abf8fd5ca7329f2eac9",
+              "decision_inputs": "8f4d80b1dd505d575d3d2d0c4c12a7ce802a24c34684b44bc384788a1f67b5b5",
+              "goal_decisions": "7b5164685d2f094585aaca3b523e6d49ce92cd1a2db6cf7fad08bbfaa951fde0",
+              "native_actions": "b5b9d3f541dfe6b3e691fb4e6047d807c8ec4b58f89d498da3d708fb030482fb",
+              "state_transitions": "7dab075ffa000c9627810dc8fed5e0a05760add2bd6b6069b24af13b3ff92fa6"
+            },
+            "experience": {
+              "action_memory": "4d33ee4d0902c2b6d26e7836f4e594c6c4d0ef576afe54b43bbac102f041e675",
+              "applied_actions": "b5b9d3f541dfe6b3e691fb4e6047d807c8ec4b58f89d498da3d708fb030482fb",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "d9fdde8bce329ace12090bcff82dca4a51df886a7c0e6abf8fd5ca7329f2eac9",
+              "decision_inputs": "8f4d80b1dd505d575d3d2d0c4c12a7ce802a24c34684b44bc384788a1f67b5b5",
+              "goal_decisions": "7b5164685d2f094585aaca3b523e6d49ce92cd1a2db6cf7fad08bbfaa951fde0",
+              "native_actions": "b5b9d3f541dfe6b3e691fb4e6047d807c8ec4b58f89d498da3d708fb030482fb",
+              "state_transitions": "7dab075ffa000c9627810dc8fed5e0a05760add2bd6b6069b24af13b3ff92fa6"
+            },
+            "text": {
+              "action_memory": "4d33ee4d0902c2b6d26e7836f4e594c6c4d0ef576afe54b43bbac102f041e675",
+              "applied_actions": "b5b9d3f541dfe6b3e691fb4e6047d807c8ec4b58f89d498da3d708fb030482fb",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "d9fdde8bce329ace12090bcff82dca4a51df886a7c0e6abf8fd5ca7329f2eac9",
+              "decision_inputs": "8f4d80b1dd505d575d3d2d0c4c12a7ce802a24c34684b44bc384788a1f67b5b5",
+              "goal_decisions": "7b5164685d2f094585aaca3b523e6d49ce92cd1a2db6cf7fad08bbfaa951fde0",
+              "native_actions": "b5b9d3f541dfe6b3e691fb4e6047d807c8ec4b58f89d498da3d708fb030482fb",
+              "state_transitions": "7dab075ffa000c9627810dc8fed5e0a05760add2bd6b6069b24af13b3ff92fa6"
+            }
+          }
+        },
+        {
+          "equal_all_arms": {
+            "action_memory": true,
+            "applied_actions": true,
+            "candidate": true,
+            "decision_choices": true,
+            "decision_inputs": true,
+            "goal_decisions": true,
+            "native_actions": true,
+            "state_transitions": true
+          },
+          "scenario_id": "evaluation-05",
+          "seed": 222114932,
+          "signatures": {
+            "components": {
+              "action_memory": "cab20ab93d54f37b358e3456b622d24488f75c208dac3f302d90a69cb26cacb7",
+              "applied_actions": "9b9a8a964c5584a8571aee7f47e2b803bc9493ad336e1727dcd7148a76c247ca",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "be8d62550909d810e25721c7c393106fc92d6138132d6f8de94dd476fe84b315",
+              "decision_inputs": "3dc6c1c7cdfff38cf447da350c3be178ac34fb15b75ed9272a2a4ea937efb7fa",
+              "goal_decisions": "308b9da662d095453dbc8f80f222160b8598dc18d4fbcc369a887cc64f82b867",
+              "native_actions": "9b9a8a964c5584a8571aee7f47e2b803bc9493ad336e1727dcd7148a76c247ca",
+              "state_transitions": "01299d4bb74cb8cd2686ed2e40d57025a89f79ac5160ee9543ce992050fdf0e4"
+            },
+            "experience": {
+              "action_memory": "cab20ab93d54f37b358e3456b622d24488f75c208dac3f302d90a69cb26cacb7",
+              "applied_actions": "9b9a8a964c5584a8571aee7f47e2b803bc9493ad336e1727dcd7148a76c247ca",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "be8d62550909d810e25721c7c393106fc92d6138132d6f8de94dd476fe84b315",
+              "decision_inputs": "3dc6c1c7cdfff38cf447da350c3be178ac34fb15b75ed9272a2a4ea937efb7fa",
+              "goal_decisions": "308b9da662d095453dbc8f80f222160b8598dc18d4fbcc369a887cc64f82b867",
+              "native_actions": "9b9a8a964c5584a8571aee7f47e2b803bc9493ad336e1727dcd7148a76c247ca",
+              "state_transitions": "01299d4bb74cb8cd2686ed2e40d57025a89f79ac5160ee9543ce992050fdf0e4"
+            },
+            "text": {
+              "action_memory": "cab20ab93d54f37b358e3456b622d24488f75c208dac3f302d90a69cb26cacb7",
+              "applied_actions": "9b9a8a964c5584a8571aee7f47e2b803bc9493ad336e1727dcd7148a76c247ca",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "be8d62550909d810e25721c7c393106fc92d6138132d6f8de94dd476fe84b315",
+              "decision_inputs": "3dc6c1c7cdfff38cf447da350c3be178ac34fb15b75ed9272a2a4ea937efb7fa",
+              "goal_decisions": "308b9da662d095453dbc8f80f222160b8598dc18d4fbcc369a887cc64f82b867",
+              "native_actions": "9b9a8a964c5584a8571aee7f47e2b803bc9493ad336e1727dcd7148a76c247ca",
+              "state_transitions": "01299d4bb74cb8cd2686ed2e40d57025a89f79ac5160ee9543ce992050fdf0e4"
+            }
+          }
+        },
+        {
+          "equal_all_arms": {
+            "action_memory": true,
+            "applied_actions": true,
+            "candidate": true,
+            "decision_choices": true,
+            "decision_inputs": true,
+            "goal_decisions": true,
+            "native_actions": true,
+            "state_transitions": true
+          },
+          "scenario_id": "evaluation-06",
+          "seed": 1957566968,
+          "signatures": {
+            "components": {
+              "action_memory": "50ba8dc6c01576a3453ad92d195213ec76e3890f0034bb62ad8c9b4d4e2ce4e6",
+              "applied_actions": "2496291470d9bb8716ffe9c80441dcb568875f27bee9e98b8efa98192c9b708d",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "45e1cc690b687771846c0d381d96734fb79bcf5bc43460c0604c17115fbaec1a",
+              "decision_inputs": "2dc749c1104cac283138f45e799367765c02fa92b5e87efee293e1e25c1dfd14",
+              "goal_decisions": "aa2136d514f9f673634147cd3ad8fec275252c50b5a044790b0d7ea06fe5c3da",
+              "native_actions": "2496291470d9bb8716ffe9c80441dcb568875f27bee9e98b8efa98192c9b708d",
+              "state_transitions": "725b22b0b26803dbd99c43efd4d33be4f702099193a10c5f578e4b97ee7b2fa6"
+            },
+            "experience": {
+              "action_memory": "50ba8dc6c01576a3453ad92d195213ec76e3890f0034bb62ad8c9b4d4e2ce4e6",
+              "applied_actions": "2496291470d9bb8716ffe9c80441dcb568875f27bee9e98b8efa98192c9b708d",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "45e1cc690b687771846c0d381d96734fb79bcf5bc43460c0604c17115fbaec1a",
+              "decision_inputs": "2dc749c1104cac283138f45e799367765c02fa92b5e87efee293e1e25c1dfd14",
+              "goal_decisions": "aa2136d514f9f673634147cd3ad8fec275252c50b5a044790b0d7ea06fe5c3da",
+              "native_actions": "2496291470d9bb8716ffe9c80441dcb568875f27bee9e98b8efa98192c9b708d",
+              "state_transitions": "725b22b0b26803dbd99c43efd4d33be4f702099193a10c5f578e4b97ee7b2fa6"
+            },
+            "text": {
+              "action_memory": "50ba8dc6c01576a3453ad92d195213ec76e3890f0034bb62ad8c9b4d4e2ce4e6",
+              "applied_actions": "2496291470d9bb8716ffe9c80441dcb568875f27bee9e98b8efa98192c9b708d",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "45e1cc690b687771846c0d381d96734fb79bcf5bc43460c0604c17115fbaec1a",
+              "decision_inputs": "2dc749c1104cac283138f45e799367765c02fa92b5e87efee293e1e25c1dfd14",
+              "goal_decisions": "aa2136d514f9f673634147cd3ad8fec275252c50b5a044790b0d7ea06fe5c3da",
+              "native_actions": "2496291470d9bb8716ffe9c80441dcb568875f27bee9e98b8efa98192c9b708d",
+              "state_transitions": "725b22b0b26803dbd99c43efd4d33be4f702099193a10c5f578e4b97ee7b2fa6"
+            }
+          }
+        },
+        {
+          "equal_all_arms": {
+            "action_memory": true,
+            "applied_actions": true,
+            "candidate": true,
+            "decision_choices": true,
+            "decision_inputs": true,
+            "goal_decisions": true,
+            "native_actions": true,
+            "state_transitions": true
+          },
+          "scenario_id": "evaluation-07",
+          "seed": 208770015,
+          "signatures": {
+            "components": {
+              "action_memory": "bf6869acc45a0333fb72167b2fa6128f4c5143f567b36a544ecb0eda4539b773",
+              "applied_actions": "d2652325806fed22a55123e16f3323400e69643ed1ba7e0d1381697ae29f1945",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "abe99e59d79de3c41fe67858ee3e1cc9d9d747315413ee3cb4d74ff3dd6358f8",
+              "decision_inputs": "e9a26044f58013d01a0a55bc8439953aa539d880e05cf7d519c49d1f8d6b42b9",
+              "goal_decisions": "f3a7e162bdbf4411696efacb0dd5c73c8b8542859d61e0a478f5e020986273db",
+              "native_actions": "d2652325806fed22a55123e16f3323400e69643ed1ba7e0d1381697ae29f1945",
+              "state_transitions": "ef802b4d0da94cfef9c2b9a2b5a14dddd83a6ed917deedf8b4628df7921970e3"
+            },
+            "experience": {
+              "action_memory": "bf6869acc45a0333fb72167b2fa6128f4c5143f567b36a544ecb0eda4539b773",
+              "applied_actions": "d2652325806fed22a55123e16f3323400e69643ed1ba7e0d1381697ae29f1945",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "abe99e59d79de3c41fe67858ee3e1cc9d9d747315413ee3cb4d74ff3dd6358f8",
+              "decision_inputs": "e9a26044f58013d01a0a55bc8439953aa539d880e05cf7d519c49d1f8d6b42b9",
+              "goal_decisions": "f3a7e162bdbf4411696efacb0dd5c73c8b8542859d61e0a478f5e020986273db",
+              "native_actions": "d2652325806fed22a55123e16f3323400e69643ed1ba7e0d1381697ae29f1945",
+              "state_transitions": "ef802b4d0da94cfef9c2b9a2b5a14dddd83a6ed917deedf8b4628df7921970e3"
+            },
+            "text": {
+              "action_memory": "bf6869acc45a0333fb72167b2fa6128f4c5143f567b36a544ecb0eda4539b773",
+              "applied_actions": "d2652325806fed22a55123e16f3323400e69643ed1ba7e0d1381697ae29f1945",
+              "candidate": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+              "decision_choices": "abe99e59d79de3c41fe67858ee3e1cc9d9d747315413ee3cb4d74ff3dd6358f8",
+              "decision_inputs": "e9a26044f58013d01a0a55bc8439953aa539d880e05cf7d519c49d1f8d6b42b9",
+              "goal_decisions": "f3a7e162bdbf4411696efacb0dd5c73c8b8542859d61e0a478f5e020986273db",
+              "native_actions": "d2652325806fed22a55123e16f3323400e69643ed1ba7e0d1381697ae29f1945",
+              "state_transitions": "ef802b4d0da94cfef9c2b9a2b5a14dddd83a6ed917deedf8b4628df7921970e3"
+            }
+          }
+        }
+      ]
+    },
+    "promotion": {
+      "arms": {
+        "components": {
+          "actions_when_goal_already_reached": {
+            "hard-drop:100": 102
+          },
+          "any_line_episodes": 4,
+          "any_line_rate": 1,
+          "decision_time_per_native_action_ms": 1484.3711968750001,
+          "departures_from_goal_column": 0,
+          "episode_ids": [
+            "exp-2fd21d8b13293c52e83c6134",
+            "exp-3d824c0d17f3b0e994f6a011",
+            "exp-65785b0c115978764fe301a5",
+            "exp-65bd43e5234040ce026a4c21"
+          ],
+          "episodes": 4,
+          "goal_already_reached_before_actions": 102,
+          "goal_calls": 119,
+          "goal_choice_counts": {
+            "keep": 3,
+            "target": 116
+          },
+          "horizontal_actions": 147,
+          "horizontal_reversal_opportunities": 44,
+          "horizontal_reversal_rate": 0.3181818181818182,
+          "latency_ms": {
+            "game_action": {
+              "calls": 320,
+              "mean_ms": 917.01805,
+              "p50_ms": 912.389,
+              "p95_ms": 965.51105,
+              "total_ms": 293445.776
+            },
+            "goal": {
+              "calls": 119,
+              "mean_ms": 1525.6555210084034,
+              "p50_ms": 1519.449,
+              "p95_ms": 1596.8492,
+              "total_ms": 181553.007
+            }
+          },
+          "lines": [
+            6,
+            9,
+            9,
+            8
+          ],
+          "locked_pieces": 102,
+          "mean_points": 900,
+          "native_action_counts": {
+            "hard-drop:100": 102,
+            "left:100": 43,
+            "left:1000": 2,
+            "left:300": 21,
+            "noop:100": 1,
+            "right:100": 55,
+            "right:1000": 25,
+            "right:300": 1,
+            "rotate-ccw:100": 1,
+            "rotate-cw:100": 69
+          },
+          "points": [
+            700,
+            900,
+            1000,
+            1000
+          ],
+          "same_piece_horizontal_reversals": 14,
+          "selected_target_counts": {
+            "target:0:0": 9,
+            "target:0:1": 9,
+            "target:1:0": 3,
+            "target:1:1": 4,
+            "target:1:2": 2,
+            "target:2:0": 6,
+            "target:2:1": 6,
+            "target:2:2": 2,
+            "target:3:0": 7,
+            "target:3:1": 1,
+            "target:3:3": 3,
+            "target:4:0": 6,
+            "target:4:1": 2,
+            "target:5:0": 7,
+            "target:5:1": 5,
+            "target:6:0": 8,
+            "target:6:1": 3,
+            "target:7:0": 5,
+            "target:7:1": 7,
+            "target:7:2": 3,
+            "target:7:3": 2,
+            "target:8:0": 2,
+            "target:8:1": 3,
+            "target:8:3": 8,
+            "target:9:1": 3
+          },
+          "steps": [
+            80,
+            80,
+            80,
+            80
+          ],
+          "steps_per_locked_piece": 3.1372549019607843,
+          "strict_overshoot_opportunities": 147,
+          "strict_overshoot_rate": 0.10884353741496598,
+          "strict_overshoots": 16,
+          "termination_reasons": {
+            "step_limit": 4
+          },
+          "top_out_episodes": 0,
+          "total_lines": 32,
+          "total_steps": 320
+        },
+        "experience": {
+          "actions_when_goal_already_reached": {
+            "hard-drop:100": 102
+          },
+          "any_line_episodes": 4,
+          "any_line_rate": 1,
+          "decision_time_per_native_action_ms": 1484.719603125,
+          "departures_from_goal_column": 0,
+          "episode_ids": [
+            "exp-2fd21d8b13293c52e83c6134",
+            "exp-3d824c0d17f3b0e994f6a011",
+            "exp-65785b0c115978764fe301a5",
+            "exp-65bd43e5234040ce026a4c21"
+          ],
+          "episodes": 4,
+          "goal_already_reached_before_actions": 102,
+          "goal_calls": 119,
+          "goal_choice_counts": {
+            "keep": 3,
+            "target": 116
+          },
+          "horizontal_actions": 147,
+          "horizontal_reversal_opportunities": 44,
+          "horizontal_reversal_rate": 0.3181818181818182,
+          "latency_ms": {
+            "game_action": {
+              "calls": 320,
+              "mean_ms": 918.652959375,
+              "p50_ms": 912.4649999999999,
+              "p95_ms": 963.6966000000001,
+              "total_ms": 293968.947
+            },
+            "goal": {
+              "calls": 119,
+              "mean_ms": 1522.1960168067226,
+              "p50_ms": 1518.521,
+              "p95_ms": 1578.3991,
+              "total_ms": 181141.326
+            }
+          },
+          "lines": [
+            6,
+            9,
+            9,
+            8
+          ],
+          "locked_pieces": 102,
+          "mean_points": 900,
+          "native_action_counts": {
+            "hard-drop:100": 102,
+            "left:100": 43,
+            "left:1000": 2,
+            "left:300": 21,
+            "noop:100": 1,
+            "right:100": 55,
+            "right:1000": 25,
+            "right:300": 1,
+            "rotate-ccw:100": 1,
+            "rotate-cw:100": 69
+          },
+          "points": [
+            700,
+            900,
+            1000,
+            1000
+          ],
+          "same_piece_horizontal_reversals": 14,
+          "selected_target_counts": {
+            "target:0:0": 9,
+            "target:0:1": 9,
+            "target:1:0": 3,
+            "target:1:1": 4,
+            "target:1:2": 2,
+            "target:2:0": 6,
+            "target:2:1": 6,
+            "target:2:2": 2,
+            "target:3:0": 7,
+            "target:3:1": 1,
+            "target:3:3": 3,
+            "target:4:0": 6,
+            "target:4:1": 2,
+            "target:5:0": 7,
+            "target:5:1": 5,
+            "target:6:0": 8,
+            "target:6:1": 3,
+            "target:7:0": 5,
+            "target:7:1": 7,
+            "target:7:2": 3,
+            "target:7:3": 2,
+            "target:8:0": 2,
+            "target:8:1": 3,
+            "target:8:3": 8,
+            "target:9:1": 3
+          },
+          "steps": [
+            80,
+            80,
+            80,
+            80
+          ],
+          "steps_per_locked_piece": 3.1372549019607843,
+          "strict_overshoot_opportunities": 147,
+          "strict_overshoot_rate": 0.10884353741496598,
+          "strict_overshoots": 16,
+          "termination_reasons": {
+            "step_limit": 4
+          },
+          "top_out_episodes": 0,
+          "total_lines": 32,
+          "total_steps": 320
+        },
+        "parent": {
+          "actions_when_goal_already_reached": {
+            "hard-drop:100": 102
+          },
+          "any_line_episodes": 4,
+          "any_line_rate": 1,
+          "decision_time_per_native_action_ms": 1480.7752249999999,
+          "departures_from_goal_column": 0,
+          "episode_ids": [
+            "exp-2fd21d8b13293c52e83c6134",
+            "exp-3d824c0d17f3b0e994f6a011",
+            "exp-65785b0c115978764fe301a5",
+            "exp-65bd43e5234040ce026a4c21"
+          ],
+          "episodes": 4,
+          "goal_already_reached_before_actions": 102,
+          "goal_calls": 119,
+          "goal_choice_counts": {
+            "keep": 3,
+            "target": 116
+          },
+          "horizontal_actions": 147,
+          "horizontal_reversal_opportunities": 44,
+          "horizontal_reversal_rate": 0.3181818181818182,
+          "latency_ms": {
+            "game_action": {
+              "calls": 320,
+              "mean_ms": 914.753484375,
+              "p50_ms": 909.5944999999999,
+              "p95_ms": 954.3658,
+              "total_ms": 292721.115
+            },
+            "goal": {
+              "calls": 119,
+              "mean_ms": 1522.075268907563,
+              "p50_ms": 1518.54,
+              "p95_ms": 1573.1828,
+              "total_ms": 181126.957
+            }
+          },
+          "lines": [
+            6,
+            9,
+            9,
+            8
+          ],
+          "locked_pieces": 102,
+          "mean_points": 900,
+          "native_action_counts": {
+            "hard-drop:100": 102,
+            "left:100": 43,
+            "left:1000": 2,
+            "left:300": 21,
+            "noop:100": 1,
+            "right:100": 55,
+            "right:1000": 25,
+            "right:300": 1,
+            "rotate-ccw:100": 1,
+            "rotate-cw:100": 69
+          },
+          "points": [
+            700,
+            900,
+            1000,
+            1000
+          ],
+          "same_piece_horizontal_reversals": 14,
+          "selected_target_counts": {
+            "target:0:0": 9,
+            "target:0:1": 9,
+            "target:1:0": 3,
+            "target:1:1": 4,
+            "target:1:2": 2,
+            "target:2:0": 6,
+            "target:2:1": 6,
+            "target:2:2": 2,
+            "target:3:0": 7,
+            "target:3:1": 1,
+            "target:3:3": 3,
+            "target:4:0": 6,
+            "target:4:1": 2,
+            "target:5:0": 7,
+            "target:5:1": 5,
+            "target:6:0": 8,
+            "target:6:1": 3,
+            "target:7:0": 5,
+            "target:7:1": 7,
+            "target:7:2": 3,
+            "target:7:3": 2,
+            "target:8:0": 2,
+            "target:8:1": 3,
+            "target:8:3": 8,
+            "target:9:1": 3
+          },
+          "steps": [
+            80,
+            80,
+            80,
+            80
+          ],
+          "steps_per_locked_piece": 3.1372549019607843,
+          "strict_overshoot_opportunities": 147,
+          "strict_overshoot_rate": 0.10884353741496598,
+          "strict_overshoots": 16,
+          "termination_reasons": {
+            "step_limit": 4
+          },
+          "top_out_episodes": 0,
+          "total_lines": 32,
+          "total_steps": 320
+        },
+        "text": {
+          "actions_when_goal_already_reached": {
+            "hard-drop:100": 102
+          },
+          "any_line_episodes": 4,
+          "any_line_rate": 1,
+          "decision_time_per_native_action_ms": 1481.4025156250002,
+          "departures_from_goal_column": 0,
+          "episode_ids": [
+            "exp-2fd21d8b13293c52e83c6134",
+            "exp-3d824c0d17f3b0e994f6a011",
+            "exp-65785b0c115978764fe301a5",
+            "exp-65bd43e5234040ce026a4c21"
+          ],
+          "episodes": 4,
+          "goal_already_reached_before_actions": 102,
+          "goal_calls": 119,
+          "goal_choice_counts": {
+            "keep": 3,
+            "target": 116
+          },
+          "horizontal_actions": 147,
+          "horizontal_reversal_opportunities": 44,
+          "horizontal_reversal_rate": 0.3181818181818182,
+          "latency_ms": {
+            "game_action": {
+              "calls": 320,
+              "mean_ms": 910.54174375,
+              "p50_ms": 908.5525,
+              "p95_ms": 944.68415,
+              "total_ms": 291373.358
+            },
+            "goal": {
+              "calls": 119,
+              "mean_ms": 1535.0877899159664,
+              "p50_ms": 1520.295,
+              "p95_ms": 1563.684,
+              "total_ms": 182675.44700000001
+            }
+          },
+          "lines": [
+            6,
+            9,
+            9,
+            8
+          ],
+          "locked_pieces": 102,
+          "mean_points": 900,
+          "native_action_counts": {
+            "hard-drop:100": 102,
+            "left:100": 43,
+            "left:1000": 2,
+            "left:300": 21,
+            "noop:100": 1,
+            "right:100": 55,
+            "right:1000": 25,
+            "right:300": 1,
+            "rotate-ccw:100": 1,
+            "rotate-cw:100": 69
+          },
+          "points": [
+            700,
+            900,
+            1000,
+            1000
+          ],
+          "same_piece_horizontal_reversals": 14,
+          "selected_target_counts": {
+            "target:0:0": 9,
+            "target:0:1": 9,
+            "target:1:0": 3,
+            "target:1:1": 4,
+            "target:1:2": 2,
+            "target:2:0": 6,
+            "target:2:1": 6,
+            "target:2:2": 2,
+            "target:3:0": 7,
+            "target:3:1": 1,
+            "target:3:3": 3,
+            "target:4:0": 6,
+            "target:4:1": 2,
+            "target:5:0": 7,
+            "target:5:1": 5,
+            "target:6:0": 8,
+            "target:6:1": 3,
+            "target:7:0": 5,
+            "target:7:1": 7,
+            "target:7:2": 3,
+            "target:7:3": 2,
+            "target:8:0": 2,
+            "target:8:1": 3,
+            "target:8:3": 8,
+            "target:9:1": 3
+          },
+          "steps": [
+            80,
+            80,
+            80,
+            80
+          ],
+          "steps_per_locked_piece": 3.1372549019607843,
+          "strict_overshoot_opportunities": 147,
+          "strict_overshoot_rate": 0.10884353741496598,
+          "strict_overshoots": 16,
+          "termination_reasons": {
+            "step_limit": 4
+          },
+          "top_out_episodes": 0,
+          "total_lines": 32,
+          "total_steps": 320
+        }
+      },
+      "per_episode": [
+        {
+          "arm": "parent",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 25
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 25,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 29
+            },
+            "horizontal_actions": 42,
+            "horizontal_reversal_opportunities": 16,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 917.9715,
+                "p50_ms": 917.1655,
+                "p95_ms": 940.0116,
+                "total_ms": 73437.72
+              },
+              "goal": {
+                "calls": 30,
+                "mean_ms": 1530.6785,
+                "p50_ms": 1531.8865,
+                "p95_ms": 1552.19615,
+                "total_ms": 45920.354999999996
+              }
+            },
+            "locked_pieces": 25,
+            "native_action_counts": {
+              "hard-drop:100": 25,
+              "left:100": 12,
+              "left:300": 5,
+              "right:100": 21,
+              "right:1000": 4,
+              "rotate-cw:100": 13
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:1:0": 2,
+              "target:1:1": 1,
+              "target:1:2": 2,
+              "target:2:0": 1,
+              "target:2:1": 1,
+              "target:3:0": 2,
+              "target:4:0": 4,
+              "target:5:0": 2,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:7:1": 4,
+              "target:8:0": 1,
+              "target:8:1": 1,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 42,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-2fd21d8b13293c52e83c6134",
+          "goal_calls": 30,
+          "lines": 6,
+          "points": 700,
+          "scenario_id": "promotion-00",
+          "seed": 391292923,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 25
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 25,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 29
+            },
+            "horizontal_actions": 42,
+            "horizontal_reversal_opportunities": 16,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 902.4022625,
+                "p50_ms": 902.4145,
+                "p95_ms": 926.5374,
+                "total_ms": 72192.181
+              },
+              "goal": {
+                "calls": 30,
+                "mean_ms": 1506.7285666666667,
+                "p50_ms": 1501.2395,
+                "p95_ms": 1530.75075,
+                "total_ms": 45201.857
+              }
+            },
+            "locked_pieces": 25,
+            "native_action_counts": {
+              "hard-drop:100": 25,
+              "left:100": 12,
+              "left:300": 5,
+              "right:100": 21,
+              "right:1000": 4,
+              "rotate-cw:100": 13
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:1:0": 2,
+              "target:1:1": 1,
+              "target:1:2": 2,
+              "target:2:0": 1,
+              "target:2:1": 1,
+              "target:3:0": 2,
+              "target:4:0": 4,
+              "target:5:0": 2,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:7:1": 4,
+              "target:8:0": 1,
+              "target:8:1": 1,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 42,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-2fd21d8b13293c52e83c6134",
+          "goal_calls": 30,
+          "lines": 6,
+          "points": 700,
+          "scenario_id": "promotion-00",
+          "seed": 391292923,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 25
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 25,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 29
+            },
+            "horizontal_actions": 42,
+            "horizontal_reversal_opportunities": 16,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 919.1220125,
+                "p50_ms": 911.906,
+                "p95_ms": 985.51455,
+                "total_ms": 73529.761
+              },
+              "goal": {
+                "calls": 30,
+                "mean_ms": 1530.8877666666667,
+                "p50_ms": 1518.475,
+                "p95_ms": 1611.7012,
+                "total_ms": 45926.633
+              }
+            },
+            "locked_pieces": 25,
+            "native_action_counts": {
+              "hard-drop:100": 25,
+              "left:100": 12,
+              "left:300": 5,
+              "right:100": 21,
+              "right:1000": 4,
+              "rotate-cw:100": 13
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:1:0": 2,
+              "target:1:1": 1,
+              "target:1:2": 2,
+              "target:2:0": 1,
+              "target:2:1": 1,
+              "target:3:0": 2,
+              "target:4:0": 4,
+              "target:5:0": 2,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:7:1": 4,
+              "target:8:0": 1,
+              "target:8:1": 1,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 42,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-2fd21d8b13293c52e83c6134",
+          "goal_calls": 30,
+          "lines": 6,
+          "points": 700,
+          "scenario_id": "promotion-00",
+          "seed": 391292923,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 25
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 25,
+            "goal_choice_counts": {
+              "keep": 1,
+              "target": 29
+            },
+            "horizontal_actions": 42,
+            "horizontal_reversal_opportunities": 16,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 919.2796125,
+                "p50_ms": 916.6700000000001,
+                "p95_ms": 963.6966,
+                "total_ms": 73542.369
+              },
+              "goal": {
+                "calls": 30,
+                "mean_ms": 1527.3211666666666,
+                "p50_ms": 1521.7415,
+                "p95_ms": 1568.66615,
+                "total_ms": 45819.635
+              }
+            },
+            "locked_pieces": 25,
+            "native_action_counts": {
+              "hard-drop:100": 25,
+              "left:100": 12,
+              "left:300": 5,
+              "right:100": 21,
+              "right:1000": 4,
+              "rotate-cw:100": 13
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 1,
+              "target:1:0": 2,
+              "target:1:1": 1,
+              "target:1:2": 2,
+              "target:2:0": 1,
+              "target:2:1": 1,
+              "target:3:0": 2,
+              "target:4:0": 4,
+              "target:5:0": 2,
+              "target:6:0": 1,
+              "target:6:1": 1,
+              "target:7:1": 4,
+              "target:8:0": 1,
+              "target:8:1": 1,
+              "target:8:3": 2,
+              "target:9:1": 1
+            },
+            "strict_overshoot_opportunities": 42,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-2fd21d8b13293c52e83c6134",
+          "goal_calls": 30,
+          "lines": 6,
+          "points": 700,
+          "scenario_id": "promotion-00",
+          "seed": 391292923,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "parent",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 26
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 26,
+            "goal_choice_counts": {
+              "target": 29
+            },
+            "horizontal_actions": 34,
+            "horizontal_reversal_opportunities": 8,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 912.043,
+                "p50_ms": 905.7675,
+                "p95_ms": 964.4523,
+                "total_ms": 72963.44
+              },
+              "goal": {
+                "calls": 29,
+                "mean_ms": 1518.819172413793,
+                "p50_ms": 1512.539,
+                "p95_ms": 1578.8318000000002,
+                "total_ms": 44045.756
+              }
+            },
+            "locked_pieces": 26,
+            "native_action_counts": {
+              "hard-drop:100": 26,
+              "left:100": 8,
+              "left:1000": 1,
+              "left:300": 6,
+              "noop:100": 1,
+              "right:100": 11,
+              "right:1000": 7,
+              "right:300": 1,
+              "rotate-ccw:100": 1,
+              "rotate-cw:100": 18
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:1": 3,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:3:3": 1,
+              "target:4:1": 1,
+              "target:5:0": 4,
+              "target:5:1": 1,
+              "target:6:0": 2,
+              "target:7:0": 1,
+              "target:7:1": 1,
+              "target:7:2": 1,
+              "target:8:0": 1,
+              "target:8:1": 1,
+              "target:8:3": 2
+            },
+            "strict_overshoot_opportunities": 34,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-3d824c0d17f3b0e994f6a011",
+          "goal_calls": 29,
+          "lines": 9,
+          "points": 900,
+          "scenario_id": "promotion-01",
+          "seed": 914128786,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 26
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 26,
+            "goal_choice_counts": {
+              "target": 29
+            },
+            "horizontal_actions": 34,
+            "horizontal_reversal_opportunities": 8,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 922.3441125,
+                "p50_ms": 920.686,
+                "p95_ms": 948.51525,
+                "total_ms": 73787.529
+              },
+              "goal": {
+                "calls": 29,
+                "mean_ms": 1527.9741034482759,
+                "p50_ms": 1527.554,
+                "p95_ms": 1554.4904,
+                "total_ms": 44311.249
+              }
+            },
+            "locked_pieces": 26,
+            "native_action_counts": {
+              "hard-drop:100": 26,
+              "left:100": 8,
+              "left:1000": 1,
+              "left:300": 6,
+              "noop:100": 1,
+              "right:100": 11,
+              "right:1000": 7,
+              "right:300": 1,
+              "rotate-ccw:100": 1,
+              "rotate-cw:100": 18
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:1": 3,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:3:3": 1,
+              "target:4:1": 1,
+              "target:5:0": 4,
+              "target:5:1": 1,
+              "target:6:0": 2,
+              "target:7:0": 1,
+              "target:7:1": 1,
+              "target:7:2": 1,
+              "target:8:0": 1,
+              "target:8:1": 1,
+              "target:8:3": 2
+            },
+            "strict_overshoot_opportunities": 34,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-3d824c0d17f3b0e994f6a011",
+          "goal_calls": 29,
+          "lines": 9,
+          "points": 900,
+          "scenario_id": "promotion-01",
+          "seed": 914128786,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 26
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 26,
+            "goal_choice_counts": {
+              "target": 29
+            },
+            "horizontal_actions": 34,
+            "horizontal_reversal_opportunities": 8,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 907.7076375,
+                "p50_ms": 909.819,
+                "p95_ms": 934.7921,
+                "total_ms": 72616.611
+              },
+              "goal": {
+                "calls": 29,
+                "mean_ms": 1507.9125172413794,
+                "p50_ms": 1506.772,
+                "p95_ms": 1541.8872000000001,
+                "total_ms": 43729.463
+              }
+            },
+            "locked_pieces": 26,
+            "native_action_counts": {
+              "hard-drop:100": 26,
+              "left:100": 8,
+              "left:1000": 1,
+              "left:300": 6,
+              "noop:100": 1,
+              "right:100": 11,
+              "right:1000": 7,
+              "right:300": 1,
+              "rotate-ccw:100": 1,
+              "rotate-cw:100": 18
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:1": 3,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:3:3": 1,
+              "target:4:1": 1,
+              "target:5:0": 4,
+              "target:5:1": 1,
+              "target:6:0": 2,
+              "target:7:0": 1,
+              "target:7:1": 1,
+              "target:7:2": 1,
+              "target:8:0": 1,
+              "target:8:1": 1,
+              "target:8:3": 2
+            },
+            "strict_overshoot_opportunities": 34,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-3d824c0d17f3b0e994f6a011",
+          "goal_calls": 29,
+          "lines": 9,
+          "points": 900,
+          "scenario_id": "promotion-01",
+          "seed": 914128786,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 26
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 26,
+            "goal_choice_counts": {
+              "target": 29
+            },
+            "horizontal_actions": 34,
+            "horizontal_reversal_opportunities": 8,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 907.27505,
+                "p50_ms": 905.4965,
+                "p95_ms": 941.0445000000001,
+                "total_ms": 72582.004
+              },
+              "goal": {
+                "calls": 29,
+                "mean_ms": 1508.4865517241378,
+                "p50_ms": 1503.705,
+                "p95_ms": 1532.4442,
+                "total_ms": 43746.11
+              }
+            },
+            "locked_pieces": 26,
+            "native_action_counts": {
+              "hard-drop:100": 26,
+              "left:100": 8,
+              "left:1000": 1,
+              "left:300": 6,
+              "noop:100": 1,
+              "right:100": 11,
+              "right:1000": 7,
+              "right:300": 1,
+              "rotate-ccw:100": 1,
+              "rotate-cw:100": 18
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:1:1": 1,
+              "target:2:0": 1,
+              "target:2:1": 3,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:1": 1,
+              "target:3:3": 1,
+              "target:4:1": 1,
+              "target:5:0": 4,
+              "target:5:1": 1,
+              "target:6:0": 2,
+              "target:7:0": 1,
+              "target:7:1": 1,
+              "target:7:2": 1,
+              "target:8:0": 1,
+              "target:8:1": 1,
+              "target:8:3": 2
+            },
+            "strict_overshoot_opportunities": 34,
+            "strict_overshoots": 4
+          },
+          "episode_id": "exp-3d824c0d17f3b0e994f6a011",
+          "goal_calls": 29,
+          "lines": 9,
+          "points": 900,
+          "scenario_id": "promotion-01",
+          "seed": 914128786,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "parent",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 27
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 27,
+            "goal_choice_counts": {
+              "keep": 2,
+              "target": 29
+            },
+            "horizontal_actions": 38,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 917.8409375,
+                "p50_ms": 907.029,
+                "p95_ms": 959.5080499999999,
+                "total_ms": 73427.275
+              },
+              "goal": {
+                "calls": 31,
+                "mean_ms": 1513.9554516129033,
+                "p50_ms": 1503.194,
+                "p95_ms": 1561.0120000000002,
+                "total_ms": 46932.619
+              }
+            },
+            "locked_pieces": 27,
+            "native_action_counts": {
+              "hard-drop:100": 27,
+              "left:100": 17,
+              "left:300": 4,
+              "right:100": 8,
+              "right:1000": 9,
+              "rotate-cw:100": 15
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:1:0": 1,
+              "target:2:0": 2,
+              "target:2:1": 2,
+              "target:3:0": 3,
+              "target:4:0": 1,
+              "target:4:1": 1,
+              "target:5:1": 2,
+              "target:6:0": 3,
+              "target:6:1": 1,
+              "target:7:0": 2,
+              "target:7:1": 2,
+              "target:7:2": 1,
+              "target:8:1": 1,
+              "target:9:1": 2
+            },
+            "strict_overshoot_opportunities": 38,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-65785b0c115978764fe301a5",
+          "goal_calls": 31,
+          "lines": 9,
+          "points": 1000,
+          "scenario_id": "promotion-02",
+          "seed": 824221827,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 27
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 27,
+            "goal_choice_counts": {
+              "keep": 2,
+              "target": 29
+            },
+            "horizontal_actions": 38,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 911.342025,
+                "p50_ms": 907.722,
+                "p95_ms": 959.0419999999999,
+                "total_ms": 72907.362
+              },
+              "goal": {
+                "calls": 31,
+                "mean_ms": 1521.2856451612904,
+                "p50_ms": 1520.295,
+                "p95_ms": 1568.319,
+                "total_ms": 47159.855
+              }
+            },
+            "locked_pieces": 27,
+            "native_action_counts": {
+              "hard-drop:100": 27,
+              "left:100": 17,
+              "left:300": 4,
+              "right:100": 8,
+              "right:1000": 9,
+              "rotate-cw:100": 15
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:1:0": 1,
+              "target:2:0": 2,
+              "target:2:1": 2,
+              "target:3:0": 3,
+              "target:4:0": 1,
+              "target:4:1": 1,
+              "target:5:1": 2,
+              "target:6:0": 3,
+              "target:6:1": 1,
+              "target:7:0": 2,
+              "target:7:1": 2,
+              "target:7:2": 1,
+              "target:8:1": 1,
+              "target:9:1": 2
+            },
+            "strict_overshoot_opportunities": 38,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-65785b0c115978764fe301a5",
+          "goal_calls": 31,
+          "lines": 9,
+          "points": 1000,
+          "scenario_id": "promotion-02",
+          "seed": 824221827,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 27
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 27,
+            "goal_choice_counts": {
+              "keep": 2,
+              "target": 29
+            },
+            "horizontal_actions": 38,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 931.6388,
+                "p50_ms": 923.105,
+                "p95_ms": 1008.15535,
+                "total_ms": 74531.104
+              },
+              "goal": {
+                "calls": 31,
+                "mean_ms": 1548.9481612903226,
+                "p50_ms": 1538.005,
+                "p95_ms": 1632.508,
+                "total_ms": 48017.393000000004
+              }
+            },
+            "locked_pieces": 27,
+            "native_action_counts": {
+              "hard-drop:100": 27,
+              "left:100": 17,
+              "left:300": 4,
+              "right:100": 8,
+              "right:1000": 9,
+              "rotate-cw:100": 15
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:1:0": 1,
+              "target:2:0": 2,
+              "target:2:1": 2,
+              "target:3:0": 3,
+              "target:4:0": 1,
+              "target:4:1": 1,
+              "target:5:1": 2,
+              "target:6:0": 3,
+              "target:6:1": 1,
+              "target:7:0": 2,
+              "target:7:1": 2,
+              "target:7:2": 1,
+              "target:8:1": 1,
+              "target:9:1": 2
+            },
+            "strict_overshoot_opportunities": 38,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-65785b0c115978764fe301a5",
+          "goal_calls": 31,
+          "lines": 9,
+          "points": 1000,
+          "scenario_id": "promotion-02",
+          "seed": 824221827,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 27
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 27,
+            "goal_choice_counts": {
+              "keep": 2,
+              "target": 29
+            },
+            "horizontal_actions": 38,
+            "horizontal_reversal_opportunities": 13,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 920.2598125,
+                "p50_ms": 907.0329999999999,
+                "p95_ms": 959.4987,
+                "total_ms": 73620.785
+              },
+              "goal": {
+                "calls": 31,
+                "mean_ms": 1519.4436129032258,
+                "p50_ms": 1505.162,
+                "p95_ms": 1590.5665,
+                "total_ms": 47102.752
+              }
+            },
+            "locked_pieces": 27,
+            "native_action_counts": {
+              "hard-drop:100": 27,
+              "left:100": 17,
+              "left:300": 4,
+              "right:100": 8,
+              "right:1000": 9,
+              "rotate-cw:100": 15
+            },
+            "same_piece_horizontal_reversals": 4,
+            "selected_target_counts": {
+              "target:0:0": 2,
+              "target:0:1": 3,
+              "target:1:0": 1,
+              "target:2:0": 2,
+              "target:2:1": 2,
+              "target:3:0": 3,
+              "target:4:0": 1,
+              "target:4:1": 1,
+              "target:5:1": 2,
+              "target:6:0": 3,
+              "target:6:1": 1,
+              "target:7:0": 2,
+              "target:7:1": 2,
+              "target:7:2": 1,
+              "target:8:1": 1,
+              "target:9:1": 2
+            },
+            "strict_overshoot_opportunities": 38,
+            "strict_overshoots": 5
+          },
+          "episode_id": "exp-65785b0c115978764fe301a5",
+          "goal_calls": 31,
+          "lines": 9,
+          "points": 1000,
+          "scenario_id": "promotion-02",
+          "seed": 824221827,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "parent",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 24
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 24,
+            "goal_choice_counts": {
+              "target": 29
+            },
+            "horizontal_actions": 33,
+            "horizontal_reversal_opportunities": 7,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 911.1585,
+                "p50_ms": 909.933,
+                "p95_ms": 942.39155,
+                "total_ms": 72892.68
+              },
+              "goal": {
+                "calls": 29,
+                "mean_ms": 1525.111275862069,
+                "p50_ms": 1511.866,
+                "p95_ms": 1624.0875999999998,
+                "total_ms": 44228.227
+              }
+            },
+            "locked_pieces": 24,
+            "native_action_counts": {
+              "hard-drop:100": 24,
+              "left:100": 6,
+              "left:1000": 1,
+              "left:300": 6,
+              "right:100": 15,
+              "right:1000": 5,
+              "rotate-cw:100": 23
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 2,
+              "target:1:1": 2,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:5:0": 1,
+              "target:5:1": 2,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:7:0": 2,
+              "target:7:2": 1,
+              "target:7:3": 2,
+              "target:8:3": 4
+            },
+            "strict_overshoot_opportunities": 33,
+            "strict_overshoots": 3
+          },
+          "episode_id": "exp-65bd43e5234040ce026a4c21",
+          "goal_calls": 29,
+          "lines": 8,
+          "points": 1000,
+          "scenario_id": "promotion-03",
+          "seed": 773046928,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "text",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 24
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 24,
+            "goal_choice_counts": {
+              "target": 29
+            },
+            "horizontal_actions": 33,
+            "horizontal_reversal_opportunities": 7,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 906.078575,
+                "p50_ms": 905.297,
+                "p95_ms": 927.2263,
+                "total_ms": 72486.28600000001
+              },
+              "goal": {
+                "calls": 29,
+                "mean_ms": 1586.2926206896552,
+                "p50_ms": 1513.453,
+                "p95_ms": 1882.2133999999992,
+                "total_ms": 46002.486
+              }
+            },
+            "locked_pieces": 24,
+            "native_action_counts": {
+              "hard-drop:100": 24,
+              "left:100": 6,
+              "left:1000": 1,
+              "left:300": 6,
+              "right:100": 15,
+              "right:1000": 5,
+              "rotate-cw:100": 23
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 2,
+              "target:1:1": 2,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:5:0": 1,
+              "target:5:1": 2,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:7:0": 2,
+              "target:7:2": 1,
+              "target:7:3": 2,
+              "target:8:3": 4
+            },
+            "strict_overshoot_opportunities": 33,
+            "strict_overshoots": 3
+          },
+          "episode_id": "exp-65bd43e5234040ce026a4c21",
+          "goal_calls": 29,
+          "lines": 8,
+          "points": 1000,
+          "scenario_id": "promotion-03",
+          "seed": 773046928,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "components",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 24
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 24,
+            "goal_choice_counts": {
+              "target": 29
+            },
+            "horizontal_actions": 33,
+            "horizontal_reversal_opportunities": 7,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 909.60375,
+                "p50_ms": 909.9485,
+                "p95_ms": 934.08965,
+                "total_ms": 72768.3
+              },
+              "goal": {
+                "calls": 29,
+                "mean_ms": 1513.086827586207,
+                "p50_ms": 1513.221,
+                "p95_ms": 1543.3282,
+                "total_ms": 43879.518
+              }
+            },
+            "locked_pieces": 24,
+            "native_action_counts": {
+              "hard-drop:100": 24,
+              "left:100": 6,
+              "left:1000": 1,
+              "left:300": 6,
+              "right:100": 15,
+              "right:1000": 5,
+              "rotate-cw:100": 23
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 2,
+              "target:1:1": 2,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:5:0": 1,
+              "target:5:1": 2,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:7:0": 2,
+              "target:7:2": 1,
+              "target:7:3": 2,
+              "target:8:3": 4
+            },
+            "strict_overshoot_opportunities": 33,
+            "strict_overshoots": 3
+          },
+          "episode_id": "exp-65bd43e5234040ce026a4c21",
+          "goal_calls": 29,
+          "lines": 8,
+          "points": 1000,
+          "scenario_id": "promotion-03",
+          "seed": 773046928,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        },
+        {
+          "arm": "experience",
+          "diagnostics": {
+            "actions_when_goal_already_reached": {
+              "hard-drop:100": 24
+            },
+            "departures_from_goal_column": 0,
+            "goal_already_reached_before_actions": 24,
+            "goal_choice_counts": {
+              "target": 29
+            },
+            "horizontal_actions": 33,
+            "horizontal_reversal_opportunities": 7,
+            "latency_ms": {
+              "game_action": {
+                "calls": 80,
+                "mean_ms": 927.7973625,
+                "p50_ms": 920.149,
+                "p95_ms": 967.6727,
+                "total_ms": 74223.789
+              },
+              "goal": {
+                "calls": 29,
+                "mean_ms": 1533.545827586207,
+                "p50_ms": 1525.857,
+                "p95_ms": 1575.9732000000001,
+                "total_ms": 44472.829
+              }
+            },
+            "locked_pieces": 24,
+            "native_action_counts": {
+              "hard-drop:100": 24,
+              "left:100": 6,
+              "left:1000": 1,
+              "left:300": 6,
+              "right:100": 15,
+              "right:1000": 5,
+              "rotate-cw:100": 23
+            },
+            "same_piece_horizontal_reversals": 3,
+            "selected_target_counts": {
+              "target:0:0": 3,
+              "target:0:1": 2,
+              "target:1:1": 2,
+              "target:2:0": 2,
+              "target:2:2": 1,
+              "target:3:0": 1,
+              "target:3:3": 2,
+              "target:4:0": 1,
+              "target:5:0": 1,
+              "target:5:1": 2,
+              "target:6:0": 2,
+              "target:6:1": 1,
+              "target:7:0": 2,
+              "target:7:2": 1,
+              "target:7:3": 2,
+              "target:8:3": 4
+            },
+            "strict_overshoot_opportunities": 33,
+            "strict_overshoots": 3
+          },
+          "episode_id": "exp-65bd43e5234040ce026a4c21",
+          "goal_calls": 29,
+          "lines": 8,
+          "points": 1000,
+          "scenario_id": "promotion-03",
+          "seed": 773046928,
+          "steps": 80,
+          "termination_reason": "step_limit"
+        }
+      ]
+    }
+  },
+  "schema": "component-public-behavior/v1"
+}

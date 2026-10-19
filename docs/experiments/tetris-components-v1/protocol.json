@@ -1,0 +1,277 @@
+{
+  "arms": {
+    "components": {
+      "experience": false,
+      "mutable_components": [
+        "decision_instructions",
+        "strategy_notes",
+        "goal_instructions",
+        "memory_policy",
+        "observation_policy"
+      ]
+    },
+    "experience": {
+      "experience": true,
+      "mutable_components": [
+        "decision_instructions",
+        "strategy_notes",
+        "goal_instructions",
+        "memory_policy",
+        "observation_policy"
+      ]
+    },
+    "text": {
+      "experience": false,
+      "mutable_components": [
+        "decision_instructions",
+        "strategy_notes"
+      ]
+    }
+  },
+  "budget": {
+    "coach_logical_calls_max": 5,
+    "completed_episodes_max": 78,
+    "decision_request_attempts_max": 24960,
+    "development_episodes_max": 38,
+    "evaluation_episodes": 24,
+    "evolution_jobs": 4,
+    "gepa_metric_calls_per_job_max": 9,
+    "max_calls_per_action": 2,
+    "max_coach_attempts_per_proposal": 2,
+    "max_episode_attempts_per_trial": 2,
+    "max_gepa_attempts_per_proposal": 2,
+    "max_steps": 80,
+    "promotion_episodes": 16,
+    "trigger_episodes": 2
+  },
+  "common_parent": {
+    "candidate_sha256": "f3053753c2c073f68bb51d2997cbe0c4d1b6a27375634ee38cc1da8c6a325caf",
+    "description": "Common five-component migration of V8; not a byte-identical replay of the historical V8 policy.",
+    "id": "component-parent-f3053753c2c073f6"
+  },
+  "config": {
+    "max_steps": 80
+  },
+  "constraints": {
+    "all_actions_and_goals": "Decision",
+    "all_arms_vision": true,
+    "cache": "recovery only for identical logical operations; no cross-arm candidate cache",
+    "experience_snapshot": "frozen before all three study optimizations",
+    "experience_sources": "bootstrap search_train pairs only; never validation, evaluation or promotion",
+    "exports": "approved bundles only, isolated experiment directory; no automatic activation",
+    "failed_attempts": "stop, retain evidence; one explicitly authorized retry; never score failures as zero",
+    "native_action_catalog": "complete unchanged",
+    "registry_writes": false,
+    "selection": "GEPA uses its own training and validation only; all selected arms tested without formal winner selection",
+    "think_mode": "never"
+  },
+  "experiment_id": "components-tetris-v2-20261019",
+  "frozen_source_file_count": 87,
+  "game_id": "tetris",
+  "input_mode": "structured+vision",
+  "limitations": [
+    "One optimization per condition and eight formal seeds do not estimate average optimizer efficacy.",
+    "Formal comparisons are among selected versions; superiority over common parent is tested only in four fresh promotion pairs.",
+    "Experience generation adds separate compute and training games, all itemized.",
+    "NO_ENTRY means C received no usable experience and cannot establish the effect of retrieval.",
+    "Provider names are checked on every response; a silently replaced checkpoint under the same name is not independently detectable.",
+    "Same seed does not force the stochastic model to choose identical actions; 80-action results are not long-run mastery."
+  ],
+  "models": {
+    "coach": "glm-5.3",
+    "decision": "startlux-decision-27b-autothink"
+  },
+  "native_source": {
+    "bridge_sha256": "e54a104324234f8c71d1b9e48601bb4ffb517f09daf13113ad443b523a940f41",
+    "license": "MIT",
+    "source_snapshot_sha256": "caed8f2ba9665a5a51c00c103bd213f7e1c3cb4ceb7433bbfb4ca58558c487fe",
+    "upstream_commit": "4e2bda1d6c9b2545837761e2c7d19e2ce546aa9d"
+  },
+  "promotion_gate": {
+    "minimum_mean_gain": 100,
+    "minimum_pairs": 4,
+    "no_pair_regression": true,
+    "requires_candidate_change": true,
+    "statistical_claim": false,
+    "version": "v1-empirical-paired"
+  },
+  "reflection_rounds": 1,
+  "registered_at": "2026-10-19T06:22:39.042102+00:00",
+  "reporting_notes": [
+    "Only preregistered 95 percent exploratory paired intervals are exposed; no multiplicity-adjusted significance claim is made.",
+    "Evaluation compares selected A/B/C policies. Comparison with the common parent occurs only in the independent promotion phase.",
+    "All goals and native game inputs are selected by Decision. The coach runs only between games.",
+    "Changes in the bounded memory schedule can change the number of Decision calls; equal native-action budgets do not imply equal inference cost.",
+    "Retired pilot trials are excluded from this official result."
+  ],
+  "rules_version": "game-harness-lab/tetris-paused-v1-arena-4e2bda1",
+  "runtime_dependencies": {
+    "Pillow": "12.0.0",
+    "gepa": "0.1.4",
+    "httpx": "0.28.1",
+    "node": "v26.2.0"
+  },
+  "runtime_profile": "tetris-components-v1",
+  "scenarios": {
+    "bootstrap": {
+      "train": [
+        594356254,
+        82358861
+      ],
+      "validation": [
+        1077058967,
+        1189629101
+      ]
+    },
+    "development": {
+      "train": [
+        1125112509,
+        1219621641
+      ],
+      "validation": [
+        1388756300,
+        597736867
+      ]
+    },
+    "evaluation": [
+      {
+        "id": "evaluation-00",
+        "order": [
+          "text",
+          "components",
+          "experience"
+        ],
+        "seed": 809197280
+      },
+      {
+        "id": "evaluation-01",
+        "order": [
+          "components",
+          "experience",
+          "text"
+        ],
+        "seed": 442779775
+      },
+      {
+        "id": "evaluation-02",
+        "order": [
+          "experience",
+          "text",
+          "components"
+        ],
+        "seed": 1814218849
+      },
+      {
+        "id": "evaluation-03",
+        "order": [
+          "experience",
+          "components",
+          "text"
+        ],
+        "seed": 372180048
+      },
+      {
+        "id": "evaluation-04",
+        "order": [
+          "components",
+          "text",
+          "experience"
+        ],
+        "seed": 478282544
+      },
+      {
+        "id": "evaluation-05",
+        "order": [
+          "text",
+          "experience",
+          "components"
+        ],
+        "seed": 222114932
+      },
+      {
+        "id": "evaluation-06",
+        "order": [
+          "text",
+          "components",
+          "experience"
+        ],
+        "seed": 1957566968
+      },
+      {
+        "id": "evaluation-07",
+        "order": [
+          "components",
+          "experience",
+          "text"
+        ],
+        "seed": 208770015
+      }
+    ],
+    "promotion": [
+      {
+        "id": "promotion-00",
+        "order": [
+          "parent",
+          "text",
+          "components",
+          "experience"
+        ],
+        "seed": 391292923
+      },
+      {
+        "id": "promotion-01",
+        "order": [
+          "text",
+          "components",
+          "experience",
+          "parent"
+        ],
+        "seed": 914128786
+      },
+      {
+        "id": "promotion-02",
+        "order": [
+          "components",
+          "experience",
+          "parent",
+          "text"
+        ],
+        "seed": 824221827
+      },
+      {
+        "id": "promotion-03",
+        "order": [
+          "experience",
+          "parent",
+          "text",
+          "components"
+        ],
+        "seed": 773046928
+      }
+    ]
+  },
+  "schedule_seed": 2026101910,
+  "schema": "component-public-protocol/v1",
+  "score_spec": {
+    "description": "只使用原生消行points；1/2/3/4行得100/300/500/800乘消行前等级。软硬降和存活不加分。",
+    "direction": "maximize",
+    "id": "arena-tetris-points-v1",
+    "max": 16594560000,
+    "min": 0,
+    "minimum_mean_gain": 100,
+    "unit": "原生消行积分",
+    "upper_bound_basis": "保守上界：7200tick×每tick最多一次锁块×800×最高等级2881；不是实际可达到的目标。"
+  },
+  "statistics": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 74109,
+    "bootstrap_unit": "paired environment seed; exploratory intervals, no multiplicity-adjusted significance claim",
+    "confidence_level": 0.95,
+    "primary_comparisons": [
+      "components-text",
+      "experience-components"
+    ],
+    "primary_metric": "native line-clear points"
+  },
+  "think_mode": "never"
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "component-initialization-smoke-summary/v1",
+  "purpose": "Real coach integration smoke only; no game or performance evaluation.",
+  "source_artifact": "data/components-initialization-smoke-20261019/result.json",
+  "source_file_sha256": "be94136fb5e397b599df377ffd43c7ae1d6c6c8fc6d41871848c9caa37131de0",
+  "candidate_sha256": "2ac13d0493375e08793fe97519da224045d536c96f212e03e031880244557d31",
+  "component_names": [
+    "decision_instructions",
+    "goal_instructions",
+    "memory_policy",
+    "observation_policy",
+    "strategy_notes"
+  ],
+  "component_profile": "tetris-components-v1",
+  "coach_requested_model": "glm-5.3",
+  "coach_returned_model": "glm-5.3",
+  "decision_model": "startlux-decision-27b-autothink",
+  "decision_think_mode": "never",
+  "logical_initializations": 1,
+  "actual_coach_calls": 2,
+  "calls": [
+    {
+      "purpose": "initialization",
+      "requested_model": "glm-5.3",
+      "returned_model": "glm-5.3",
+      "usage": {
+        "completion_tokens": 2296,
+        "completion_tokens_details": {
+          "reasoning_tokens": 11
+        },
+        "prompt_tokens": 6650,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 8946
+      },
+      "elapsed_ms": 43205.25,
+      "response_hash": "d6fc472b497e5f5e292138b3593e90b573c50ed1bd84940b640016359873afb7"
+    },
+    {
+      "purpose": "initialization",
+      "requested_model": "glm-5.3",
+      "returned_model": "glm-5.3",
+      "usage": {
+        "completion_tokens": 2520,
+        "completion_tokens_details": {
+          "reasoning_tokens": 126
+        },
+        "prompt_tokens": 8964,
+        "prompt_tokens_details": {
+          "cached_tokens": 6592
+        },
+        "total_tokens": 11484
+      },
+      "elapsed_ms": 29477.68,
+      "response_hash": "0d9ec21410571e4da9aaf7c75aa3798614b45cee4928ba54d7a4c2f388848011"
+    }
+  ],
+  "accepted_response_hash": "0d9ec21410571e4da9aaf7c75aa3798614b45cee4928ba54d7a4c2f388848011",
+  "runtime_parameters": {
+    "schema": "tetris-context-v4",
+    "recent_actions": 4,
+    "replan_every_actions": 4,
+    "section_order": [
+      "observation",
+      "tetris_features",
+      "decision_goal_memory",
+      "tetris_control_facts",
+      "tetris_landing_projections"
+    ]
+  },
+  "validation": {
+    "candidate_schema": true,
+    "runtime_config_matches_candidate": true
+  },
+  "approved": false,
+  "included_in_official_experiment": false,
+  "used_as_improvement_experience": false
+}
